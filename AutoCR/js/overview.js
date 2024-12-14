@@ -1,5 +1,51 @@
 const sidebar = ReactDOM.createRoot(document.getElementById('list-body'));
 const container = ReactDOM.createRoot(document.getElementById('info-container'));
+const filePicker = document.getElementById('file-picker');
+
+function reset_to_instructions()
+{
+	container.render(
+		<>
+			<label>
+				<h1 id="ui-instructions">(Drag files here to load feedback or click to browse files)</h1>
+				<input type="file"
+					onChange={e => load_files(e.target.files)}
+					id="file-picker"
+					accept=".json,.txt,application/json,text/plain"
+					style={{display: "none"}}
+					multiple
+				/>
+			</label>
+			<div className="instructions">
+				<ol>
+					<li>Load the game into RALibRetro (or equivalent)</li>
+					<li>Check the <code>RACache/Data/</code> folder for the following files</li>
+					<ul>
+						<li><code>[gameid].json</code></li>
+						<ul>
+							<li>contains achievement set logic</li>
+						</ul>
+						<li><code>[gameid]-Notes.json</code></li>
+						<ul>
+							<li>code notes database</li>
+						</ul>
+						<li><code>[gameid]-User.txt</code></li>
+						<ul>
+							<li>local, unpublished achievements, leaderboards, and code notes</li>
+						</ul>
+						<li><code>[gameid]-Rich.txt</code></li>
+						<ul>
+							<li>local or cached copy of rich presence script</li>
+						</ul>
+					</ul>
+					<li>Drag any/all files to this window</li>
+				</ol>
+				<p><strong>Important note #1:</strong> This tool is not a validator. If you submit a broken set, it might not parse correctly.</p>
+				<p><strong>Important note #2:</strong> All feedback is automated, and therefore imperfect. It is <em>not</em> advised to blindly make every change recommended, but rather to consider the nature of the feedback and determine for yourself whether a change might be appropriate.</p>
+			</div>
+		</>
+	);
+	}
 
 function clearSelected()
 {
@@ -18,6 +64,10 @@ function reset_loaded()
 	clearSelected();
 }
 
+filePicker.addEventListener('change', () => {
+	load_files(filePicker.files);
+});
+
 function __noop(event)
 {
 	event.stopPropagation();
@@ -27,78 +77,11 @@ function __noop(event)
 document.ondragover = __noop;
 document.ondragenter = __noop;
 
+
 document.ondrop = function(event)
 {
 	event.preventDefault();
-	for (const file of event.dataTransfer.files)
-	{
-		let idregex = file.name.match(/^(\d+)/);
-		let thisid = +idregex[1] || -1;
-		if (thisid != current.id)
-		{
-			current.id = thisid;
-			reset_loaded();
-		}
-		
-		let reader = new FileReader();
-		if (file.name.endsWith('-Notes.json'))
-			reader.onload = function(event)
-			{
-				try
-				{
-					let data = JSON.parse(event.target.result);
-					load_code_notes(data);
-				}
-				catch (e)
-				{
-					if (e instanceof LogicParseError) alert(e.message);
-					else console.error(e);
-				}
-			};
-		else if (file.name.endsWith('.json'))
-			reader.onload = function(event)
-			{
-				try
-				{
-					let data = JSON.parse(event.target.result);
-					load_achievement_set(data);
-				}
-				catch (e)
-				{
-					if (e instanceof LogicParseError) alert(e.message);
-					else console.error(e);
-				}
-			};
-		else if (file.name.endsWith('-Rich.txt'))
-			reader.onload = function(event)
-			{
-				try
-				{
-					let data = event.target.result;
-					load_rich_presence(data, true);
-				}
-				catch (e)
-				{
-					if (e instanceof LogicParseError) alert(e.message);
-					else console.error(e);
-				}
-			};
-		else if (file.name.endsWith('-User.txt'))
-			reader.onload = function(event)
-			{
-				try
-				{
-					let data = event.target.result;
-					load_user_file(data);
-				}
-				catch (e)
-				{
-					if (e instanceof LogicParseError) alert(e.message);
-					else console.error(e);
-				}
-			};
-		reader.readAsText(file);
-	}
+	load_files(event.dataTransfer.files);
 }
 
 document.onkeydown = function(event)
@@ -125,6 +108,132 @@ document.onkeydown = function(event)
 	{
 		event.preventDefault();
 		event.stopPropagation();
+	}
+}
+
+function add_file_cache(id, data, type)
+{
+	let cache = [];
+	if (localStorage.getItem('fileList')) {
+		cache = JSON.parse(localStorage.getItem('fileList'));
+	}
+	cache.push({id, data: JSON.stringify(data), type});
+    localStorage.setItem('fileList', JSON.stringify(cache));
+}
+
+function load_file_cache()
+{
+	if (localStorage.getItem('fileList'))
+	{
+		let fileList = JSON.parse(localStorage.getItem('fileList'));
+		for (const file of fileList)
+		{
+			if (file.id !== current.id)
+			{
+				current.id = file.id;
+				reset_loaded();
+			}
+			const data = JSON.parse(file.data);
+			if (file.type === 'notes')
+			{
+				load_code_notes(JSON.parse(data));
+			}
+			else if (file.type === 'set')
+			{
+				load_achievement_set(JSON.parse(data));
+			}
+			else if (file.type === 'rp')
+			{
+				load_rich_presence(data, true);
+			}
+			else if (file.type === 'local')
+			{
+				load_user_file(data);
+			}
+		}
+	}
+}
+
+function delete_file_cache()
+{
+	localStorage.removeItem('fileList');
+}
+
+function load_files(fileList)
+{
+	for (const file of fileList)
+	{
+		let idregex = file.name.match(/^(\d+)/);
+		let thisid = +idregex[1] || -1;
+		if (thisid != current.id)
+		{
+			current.id = thisid;
+			delete_file_cache();
+			reset_loaded();
+		}
+		
+		let reader = new FileReader();
+		if (file.name.endsWith('-Notes.json'))
+			reader.onload = function(event)
+			{
+				try
+				{
+					let data = JSON.parse(event.target.result);
+					add_file_cache(thisid, event.target.result, 'notes');
+					load_code_notes(data);
+				}
+				catch (e)
+				{
+					if (e instanceof LogicParseError) alert(e.message);
+					else console.error(e);
+				}
+			};
+		else if (file.name.endsWith('.json'))
+			reader.onload = function(event)
+			{
+				try
+				{
+					let data = JSON.parse(event.target.result);
+					add_file_cache(thisid, event.target.result, 'set');
+					load_achievement_set(data);
+				}
+				catch (e)
+				{
+					if (e instanceof LogicParseError) alert(e.message);
+					else console.error(e);
+				}
+			};
+		else if (file.name.endsWith('-Rich.txt'))
+			reader.onload = function(event)
+			{
+				try
+				{
+					let data = event.target.result;
+					add_file_cache(thisid, data, 'rp');
+					load_rich_presence(data, true);
+				}
+				catch (e)
+				{
+					if (e instanceof LogicParseError) alert(e.message);
+					else console.error(e);
+				}
+			};
+		else if (file.name.endsWith('-User.txt'))
+			reader.onload = function(event)
+			{
+				try
+				{
+					let data = event.target.result;
+					add_file_cache(thisid, data, 'local');
+					load_user_file(data);
+				}
+				catch (e)
+				{
+					if (e instanceof LogicParseError) alert(e.message);
+					else console.error(e);
+				}
+			};
+		reader.readAsText(file);
 	}
 }
 
@@ -846,6 +955,21 @@ function RichPresenceOverview()
 	</>);
 }
 
+function UnloadTab()
+{
+	if (!current.set && !current.local && !current.rp && current.notes.length == 0) return null;
+	return (<tr className="asset-row" id="unload" onClick={(e) => {
+		delete_file_cache();
+		reset_loaded();
+		rebuild_sidebar();
+		reset_to_instructions();
+	}}>
+		<td className="asset-name">
+			🗑️ Unload  Set Data
+		</td>
+	</tr>);
+}
+
 const SEVERITY_TO_CLASS = ['pass', 'warn', 'fail', 'fail'];
 function SetOverviewTab()
 {
@@ -935,12 +1059,13 @@ function SidebarTabs()
 	React.useEffect(() => {
 		if (document.querySelectorAll('#list-body .selected').length == 0)
 		{
-			let first = document.querySelector('#list-body .asset-row');
+			let first = document.querySelector('#list-body .asset-row:not(#unload)');
 			if (first) first.click();
 		}
 	})
 
 	return (<>
+		<UnloadTab />
 		<SetOverviewTab />
 		<CodeNotesTab />
 		<RichPresenceTab />
@@ -1005,3 +1130,5 @@ function rebuild_sidebar()
 {
 	sidebar.render(<SidebarTabs />);
 }
+
+load_file_cache();

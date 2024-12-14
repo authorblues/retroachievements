@@ -25,7 +25,10 @@
 			</div>
 			<div id="asset-info">
 				<div id="info-container">
-					<h1 id="ui-instructions">(Drag files here to load feedback)</h1>
+					<label>
+						<h1 id="ui-instructions">(Drag files here to load feedback or click to browse files)</h1>
+						<input type="file" id="file-picker" accept=".json,.txt,application/json,text/plain" style="display: none;" multiple>
+					</label>
 					<div class="instructions">
 						<ol>
 							<li>Load the game into RALibRetro (or equivalent)</li>
