@@ -433,7 +433,7 @@ function assess_logic(logic)
 		ReqFlag.ORNEXT,
 	]);
 
-	res.stats.pause_lock_alt_reset = 0;
+	res.stats.pauselock_alt_reset = 0;
 	for (const [gi, g] of logic.groups.entries())
 		for (const [ri, req] of g.entries())
 		{
@@ -836,7 +836,7 @@ function assess_set()
 	res.stats.using_hitcounts = achievements.filter(x => current.assessment.achievements.get(x.id).stats.hit_counts_many > 0);
 	res.stats.using_checkpoint_hits = achievements.filter(x => current.assessment.achievements.get(x.id).stats.hit_counts_one > 0);
 	res.stats.using_pauselock = achievements.filter(x => current.assessment.achievements.get(x.id).stats.pause_locks > 0);
-	res.stats.using_pauselock_alt_reset = achievements.filter(x => current.assessment.achievements.get(x.id).stats.pause_lock_alt_reset > 0);
+	res.stats.using_pauselock_alt_reset = achievements.filter(x => current.assessment.achievements.get(x.id).stats.pauselock_alt_reset > 0);
 
 	// count of achievements using each flag type
 	res.stats.using_flag = new Map(Object.values(ReqFlag).map(x => [x, 0]));
