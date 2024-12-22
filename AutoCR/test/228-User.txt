@@ -35,5 +35,7 @@ L111000001:"0xR000015=1":"0xQ000015=1":"0xQ000017=1_0xR000017=1":"M:0=0":VALUE:P
 111000031:"0xH000100=20_Z:0xH000dbf=50_N:d0xH000dd5=0_0xH000dd5=1.1.":[LOGIC] [PASS] Valid Use of ResetNextIf #1 (Hitcounts):ResetNextIf can be used to clear hitcounts:::::5:::::00000
 111000032:"N:d0xH000dd5=0_0xH000dd5=1_0xH000100=20_Z:0xH000dbf>50.1._P:1=1_R:0xH000100=7":[LOGIC] [PASS] Valid Use of ResetNextIf #2 (Pause Until):"ResetNextIf can be used to freeze an always-true PauseIf, called \"Pause Until\"":::::5:::::00000
 111000034:"P:0xH000100!=20_d0xH000dd5=0_0xH000dd5=1":[LOGIC] Useless Use of Pause #1:PauseIf should only be used with achievements that have hitcounts:::::5:::::00000
-111000035:"0xS000015=1.3600._d0xH000dd5=0_0xH000dd5=1_P:0xH000100!=20SR:0xH000100=7":[LOGIC] [PASS] Valid Use of Pause #1:PauseIf can be used to manage hitcounts:::::5:::::00000
-111000036:"d0xH000dd5=0_0xH000dd5=1SM:0xH000dbf>50_P:0xH0013c3!=0":[LOGIC] [PASS] Valid Use of Pause #2:PauseIf can be used to freeze display values for Measured checks:::::5:::::00000
+111000035:"0xS000015=1.3600._d0xH000dd5=0_0xH000dd5=1_P:0xH000100!=20SR:0xH000100=7":[LOGIC] [PASS] Valid Use of Pause #1 (Hitcounts):PauseIf can be used to manage hitcounts:::::5:::::00000
+111000036:"d0xH000dd5=0_0xH000dd5=1SM:0xH000dbf>50_P:0xH0013c3!=0":[LOGIC] [PASS] Valid Use of Pause #2 (Pausing Measured):PauseIf can be used to freeze display values for Measured checks:::::5:::::00000
+111000037:"N:d0xH000dd5=0_0xH000dd5=1.1._R:0xH000dbf=50.1.":[LOGIC] ResetIf with Hitcount=1:A hitcount of 1 on a ResetIf is unnecessary and can be confusing:::::5:::::00000
+111000038:"0xH000015=65_0xN000015=1_0x 000015=193_0xX000015=193_0x 000d85=0_0xX000d85=0_0xW0000ce=0_0xH0000ce=0_0xX0000ce=0":[LOGIC] Type Mismatch:Lines 1, 2, 5, and 7 should pass.::::authorblues:0:::::00000

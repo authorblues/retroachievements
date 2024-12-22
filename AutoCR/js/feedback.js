@@ -120,9 +120,9 @@ const Feedback = Object.freeze({
 		ref: ['https://docs.retroachievements.org/developer-docs/hit-counts.html',], },
 	NEGATIVE_OFFSET: { severity: FeedbackSeverity.WARN, desc: "Negative pointer offsets are wrong in the vast majority of cases and are incompatible with the way pointers actually work. At best, this will only work incidentally.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/addaddress.html#calculating-your-offset'], },
-	BAD_REGION_LOGIC: { severity: FeedbackSeverity.WARN, desc: "Some memory regions are unsafe, redundant, or should not otherwise be used for achievement logic.",
+	BAD_REGION_LOGIC: { severity: FeedbackSeverity.ERROR, desc: "Some memory regions are unsafe, redundant, or should not otherwise be used for achievement logic.",
 		ref: ['https://docs.retroachievements.org/developer-docs/console-specific-tips.html'], },
-	TYPE_MISMATCH: { severity: FeedbackSeverity.WARN, desc: "Memory accessor doesn't match size listed in code note.",
+	TYPE_MISMATCH: { severity: FeedbackSeverity.INFO, desc: "Memory accessor doesn't match size listed in code note.",
 		ref: [
 			'https://docs.retroachievements.org/developer-docs/memory-inspector.html',
 			'https://docs.retroachievements.org/guidelines/content/code-notes.html',
@@ -194,16 +194,18 @@ class Assessment
 function send_message_to(target)
 { return `https://retroachievements.org/messages/create?to=${target}`; }
 
+function get_note(addr, notes = [])
+{
+	const _notes = notes || [];
+	// reverse loop because in the case of overlapping code notes,
+	// the later one is likely more specific
+	for (let i = _notes.length - 1; i >= 0; i--)
+		if (_notes[i].contains(addr)) return _notes[i];
+	return null;
+}
+
 function* missing_notes(logic)
 {
-	function _is_missing(operand)
-	{
-		if (!operand || !operand.type.addr) return false;
-		for (const cn of current.notes || [])
-			if (cn.contains(operand.value)) return false;
-		return true;
-	}
-	
 	for (const [gi, g] of logic.groups.entries())
 	{
 		let prev_addaddress = false;
@@ -211,12 +213,15 @@ function* missing_notes(logic)
 		{
 			let lastreport = null;
 			for (const operand of [req.lhs, req.rhs])
-				if (!prev_addaddress && _is_missing(operand))
+			{
+				if (!operand || !operand.type || !operand.type.addr) continue;
+				if (!prev_addaddress && !get_note(operand.value, current.notes))
 				{
 					if (lastreport == operand.value) continue;
 					yield { addr: operand.value, req: req, };
 					lastreport = operand.value;
 				}
+			}
 			prev_addaddress = req.flag == ReqFlag.ADDADDRESS;
 		}
 	}
@@ -302,11 +307,41 @@ function assess_logic(logic)
 	// skip this if notes aren't loaded
 	if (current.notes.length)
 	{
-		for (const x of missing_notes(logic))
-			res.add(new Issue(Feedback.MISSING_NOTE, x.req,
-				<ul>
-					<li>Address <code>{toDisplayHex(x.addr)}</code> missing note</li>
-				</ul>));
+		for (const [gi, g] of logic.groups.entries())
+		{
+			let prev_addaddress = false;
+			for (const [ri, req] of g.entries())
+			{
+				let lastreport = null;
+				for (const operand of [req.lhs, req.rhs])
+				{
+					if (!operand || !operand.type || !operand.type.addr) continue;
+					const note = get_note(operand.value, current.notes);
+
+					if (!prev_addaddress && !note)
+					{
+						if (lastreport == operand.value) continue;
+						res.add(new Issue(Feedback.MISSING_NOTE, req,
+							<ul>
+								<li>Address <code>{toDisplayHex(operand.value)}</code> missing note</li>
+							</ul>));
+						lastreport = operand.value;
+					}
+
+					if (!prev_addaddress && note)
+					{
+						// if the note size info is unknown, give up I guess
+						if (note.type && operand.size && !PartialAccess.has(operand.size) && operand.size != note.type)
+							res.add(new Issue(Feedback.TYPE_MISMATCH, req,
+								<ul>
+									<li>Accessing <code>{toDisplayHex(operand.value)}</code> as <code>{operand.size.name}</code></li>
+									<li>Matching code note at <code>{toDisplayHex(note.addr)}</code> is marked as <code>{note.type.name}</code></li>
+								</ul>));
+					}
+				}
+				prev_addaddress = req.flag == ReqFlag.ADDADDRESS;
+			}
+		}
 	}
 
 	function is_acc_value(x, acc)
@@ -520,7 +555,7 @@ function assess_logic(logic)
 
 const EMOJI_RE = /(\p{Emoji_Presentation})/gu;
 const TYPOGRAPHY_PUNCT = /([\u2018\u2019\u201C\u201D])/gu;
-const FOREIGN_RE = /(\p{Script=Arabic}|\p{Script=Armenian}|\p{Script=Bengali}|\p{Script=Bopomofo}|\p{Script=Braille}|\p{Script=Buhid}|\p{Script=Canadian_Aboriginal}|\p{Script=Cherokee}|\p{Script=Cyrillic}|\p{Script=Devanagari}|\p{Script=Ethiopic}|\p{Script=Georgian}|\p{Script=Greek}|\p{Script=Gujarati}|\p{Script=Gurmukhi}|\p{Script=Han}|\p{Script=Hangul}|\p{Script=Hanunoo}|\p{Script=Hebrew}|\p{Script=Hiragana}|\p{Script=Inherited}|\p{Script=Kannada}|\p{Script=Katakana}|\p{Script=Khmer}|\p{Script=Lao}|\p{Script=Limbu}|\p{Script=Malayalam}|\p{Script=Mongolian}|\p{Script=Myanmar}|\p{Script=Ogham}|\p{Script=Oriya}|\p{Script=Runic}|\p{Script=Sinhala}|\p{Script=Syriac}|\p{Script=Tagalog}|\p{Script=Tagbanwa}|\p{Script=Tamil}|\p{Script=Telugu}|\p{Script=Thaana}|\p{Script=Thai}|\p{Script=Tibetan}|\p{Script=Yi})+/gu;
+const FOREIGN_RE = /([\p{Script=Arabic}\p{Script=Armenian}\p{Script=Bengali}\p{Script=Bopomofo}\p{Script=Braille}\p{Script=Buhid}\p{Script=Canadian_Aboriginal}\p{Script=Cherokee}\p{Script=Cyrillic}\p{Script=Devanagari}\p{Script=Ethiopic}\p{Script=Georgian}\p{Script=Greek}\p{Script=Gujarati}\p{Script=Gurmukhi}\p{Script=Han}\p{Script=Hangul}\p{Script=Hanunoo}\p{Script=Hebrew}\p{Script=Hiragana}\p{Script=Inherited}\p{Script=Kannada}\p{Script=Katakana}\p{Script=Khmer}\p{Script=Lao}\p{Script=Limbu}\p{Script=Malayalam}\p{Script=Mongolian}\p{Script=Myanmar}\p{Script=Ogham}\p{Script=Oriya}\p{Script=Runic}\p{Script=Sinhala}\p{Script=Syriac}\p{Script=Tagalog}\p{Script=Tagbanwa}\p{Script=Tamil}\p{Script=Telugu}\p{Script=Thaana}\p{Script=Thai}\p{Script=Tibetan}\p{Script=Yi}]+)/gu;
 const NON_ASCII_RE = /([^\x00-\x7F]+)/g;
 
 function HighlightedFeedback({text, pattern})
@@ -704,22 +739,57 @@ function assess_rich_presence()
 		res.add(new Issue(Feedback.NO_CONDITIONAL_DISPLAY, null));
 
 	if (current.notes.length)
+	{
+		function checkNotesIssues(logic, where)
+		{
+			for (const [gi, g] of logic.groups.entries())
+			{
+				let prev_addaddress = false;
+				for (const [ri, req] of g.entries())
+				{
+					let lastreport = null;
+					for (const operand of [req.lhs, req.rhs])
+					{
+						if (!operand || !operand.type || !operand.type.addr) continue;
+						const note = get_note(operand.value, current.notes);
+	
+						if (!prev_addaddress && !note)
+						{
+							if (lastreport == operand.value) continue;
+							res.add(new Issue(Feedback.MISSING_NOTE_RP, null,
+								<ul>
+									<li>Missing note for {where}: <code>{toDisplayHex(operand.value)}</code></li>
+								</ul>));
+							lastreport = operand.value;
+						}
+	
+						if (!prev_addaddress && note)
+						{
+							// if the note size info is unknown, give up I guess
+							if (note.type && operand.size && !PartialAccess.has(operand.size) && operand.size != note.type)
+								res.add(new Issue(Feedback.TYPE_MISMATCH, req,
+									<ul>
+										<li>Accessing <code>{toDisplayHex(operand.value)}</code> in {where} as <code>{operand.size.name}</code></li>
+										<li>Matching code note at <code>{toDisplayHex(note.addr)}</code> is marked as <code>{note.type.name}</code></li>
+										<ul>
+											<li>Correct accessor should be: <code>{note.type.prefix}{note.addr.toString(16).padStart(8, '0')}</code></li>
+										</ul>
+									</ul>));
+						}
+					}
+					prev_addaddress = req.flag == ReqFlag.ADDADDRESS;
+				}
+			}
+		}
+
 		for (const [di, d] of current.rp.display.entries())
 		{
 			if (d.condition != null)
-				for (const x of missing_notes(d.condition))
-					res.add(new Issue(Feedback.MISSING_NOTE_RP, null,
-						<ul>
-							<li>Missing note for condition of display #{di+1}: <code>{toDisplayHex(x.addr)}</code></li>
-						</ul>));
+				checkNotesIssues(d.condition, <>condition of display #{di+1}</>);
 			for (const [li, look] of d.lookups.entries())
-				for (const x of missing_notes(look.calc))
-					res.add(new Issue(Feedback.MISSING_NOTE_RP, null,
-						<ul>
-							<li>Missing note for <code>{look.name}</code> lookup of display #{di+1}: <code>{toDisplayHex(x.addr)}</code></li>
-						</ul>));
+				checkNotesIssues(look.calc, <><code>{look.name}</code> lookup of display #{di+1}</>);
 		}
-
+	}
 	return res;
 }
 

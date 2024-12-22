@@ -110,6 +110,20 @@ const BitProficiency = new Set([
 	MemSize.BITCOUNT,
 ]);
 
+const PartialAccess = new Set([
+	MemSize.BIT0,
+	MemSize.BIT1,
+	MemSize.BIT2,
+	MemSize.BIT3,
+	MemSize.BIT4,
+	MemSize.BIT5,
+	MemSize.BIT6,
+	MemSize.BIT7,
+	MemSize.BITCOUNT,
+	MemSize.LOWER4,
+	MemSize.UPPER4,
+]);
+
 const ValueWidth = 10;
 const ReqTypeWidth = Math.max(...Object.values(ReqType).map((x) => x.name.length));
 const ReqFlagWidth = Math.max(...Object.values(ReqFlag).map((x) => x.name.length));
