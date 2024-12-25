@@ -142,6 +142,42 @@ div.instructions
 	line-height: 150%;
 }
 
+#recently-loaded
+{
+	border-radius: 12px;
+	border: 1px solid black;
+}
+
+#recently-loaded > h2
+{
+	background-color: black;
+	color: white;
+	padding: 8px;
+	margin: 0;
+	border-top-left-radius: 12px;
+	border-top-right-radius: 12px;
+}
+
+#recently-loaded > ul
+{
+	list-style-type: none;
+	padding: 0;
+}
+
+#recently-loaded > ul > li
+{
+	padding: 5px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+}
+
+#recently-loaded > ul > li:nth-child(odd)
+{
+	background-color: #F8F8F8;
+}
+
 img.icon
 {
 	border: 1px solid black;

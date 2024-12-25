@@ -1,6 +1,7 @@
 const sidebar = ReactDOM.createRoot(document.getElementById('list-body'));
 const container = ReactDOM.createRoot(document.getElementById('info-container'));
 const filePicker = document.getElementById('file-picker');
+const recentsTable = ReactDOM.createRoot(document.getElementById('recently-loaded'));
 
 function clearSelected()
 {
@@ -112,6 +113,14 @@ function load_file_cache()
 function delete_file_cache()
 {
 	localStorage.removeItem('fileList');
+}
+
+function load_recent_sets()
+{
+	recentsTable.render(RecentlyLoaded([
+		{title: "hello", id: 1, time: Date.now()},
+		{title: "hello", id: 1, time: Date.now() - 1000},
+	]));
 }
 
 function load_files(fileList)
@@ -908,6 +917,42 @@ function RichPresenceOverview()
 	</>);
 }
 
+function RecentlyLoaded(data)
+{
+	function getRelativeTime(timestamp)
+	{
+		const seconds = (Date.now() - timestamp) / 1000;
+		const rtf = new Intl.RelativeTimeFormat();
+		const relTimeString =
+			seconds < 60
+				? rtf.format(-seconds, "second")
+				: seconds < 60 * 60
+				? rtf.format(-seconds / 60, "minute")
+				: seconds < 60 * 60 * 24
+				? rtf.format(-seconds / 60 / 60, "hour")
+				: seconds < 60 * 60 * 24 * 7
+				? rtf.format(-seconds / 60 / 60 / 24, "day")
+				: seconds < 60 * 60 * 24 * 30
+				? rtf.format(-seconds / 60 / 60 / 24 / 7, "week")
+				: seconds < 60 * 60 * 24 * 365
+				? rtf.format(-seconds / 60 / 60 / 24 / 30, "month")
+				: rtf.format(-seconds / 60 / 60 / 24 / 365, "year");
+		return relTimeString;
+	}
+	return (
+		<>
+		<h2>Recently Loaded</h2>
+		<ul>
+			{data.map((x) => <li key={x.id}>
+				<span>{x.title}</span>
+				<span>{x.id}</span>
+				<span>{getRelativeTime(x.time)}</span>
+			</li>)}
+			</ul>
+			</>
+	);
+}
+
 const SEVERITY_TO_CLASS = ['pass', 'warn', 'fail', 'fail'];
 function SetOverviewTab()
 {
@@ -1060,4 +1105,5 @@ function load_rich_presence(txt, from_file)
 	update();
 }
 
-load_file_cache();
+//load_file_cache();
+load_recent_sets();
