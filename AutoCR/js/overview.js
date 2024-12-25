@@ -2,51 +2,6 @@ const sidebar = ReactDOM.createRoot(document.getElementById('list-body'));
 const container = ReactDOM.createRoot(document.getElementById('info-container'));
 const filePicker = document.getElementById('file-picker');
 
-function reset_to_instructions()
-{
-	container.render(
-		<>
-			<label>
-				<h1 id="ui-instructions">(Drag files here to load feedback or click to browse files)</h1>
-				<input type="file"
-					onChange={e => load_files(e.target.files)}
-					id="file-picker"
-					accept=".json,.txt,application/json,text/plain"
-					style={{display: "none"}}
-					multiple
-				/>
-			</label>
-			<div className="instructions">
-				<ol>
-					<li>Load the game into RALibRetro (or equivalent)</li>
-					<li>Check the <code>RACache/Data/</code> folder for the following files</li>
-					<ul>
-						<li><code>[gameid].json</code></li>
-						<ul>
-							<li>contains achievement set logic</li>
-						</ul>
-						<li><code>[gameid]-Notes.json</code></li>
-						<ul>
-							<li>code notes database</li>
-						</ul>
-						<li><code>[gameid]-User.txt</code></li>
-						<ul>
-							<li>local, unpublished achievements, leaderboards, and code notes</li>
-						</ul>
-						<li><code>[gameid]-Rich.txt</code></li>
-						<ul>
-							<li>local or cached copy of rich presence script</li>
-						</ul>
-					</ul>
-					<li>Drag any/all files to this window</li>
-				</ol>
-				<p><strong>Important note #1:</strong> This tool is not a validator. If you submit a broken set, it might not parse correctly.</p>
-				<p><strong>Important note #2:</strong> All feedback is automated, and therefore imperfect. It is <em>not</em> advised to blindly make every change recommended, but rather to consider the nature of the feedback and determine for yourself whether a change might be appropriate.</p>
-			</div>
-		</>
-	);
-	}
-
 function clearSelected()
 {
 	for (let e of document.querySelectorAll('#list-body .selected'))
@@ -953,21 +908,6 @@ function RichPresenceOverview()
 	</>);
 }
 
-function UnloadTab()
-{
-	if (!current.set && !current.local && !current.rp && current.notes.length == 0) return null;
-	return (<tr className="asset-row" id="unload" onClick={(e) => {
-		delete_file_cache();
-		reset_loaded();
-		rebuild_sidebar();
-		reset_to_instructions();
-	}}>
-		<td className="asset-name">
-			🗑️ Unload  Set Data
-		</td>
-	</tr>);
-}
-
 const SEVERITY_TO_CLASS = ['pass', 'warn', 'fail', 'fail'];
 function SetOverviewTab()
 {
@@ -1057,13 +997,12 @@ function SidebarTabs()
 	React.useEffect(() => {
 		if (document.querySelectorAll('#list-body .selected').length == 0)
 		{
-			let first = document.querySelector('#list-body .asset-row:not(#unload)');
+			let first = document.querySelector('#list-body .asset-row');
 			if (first) first.click();
 		}
 	})
 
 	return (<>
-		<UnloadTab />
 		<SetOverviewTab />
 		<CodeNotesTab />
 		<RichPresenceTab />
