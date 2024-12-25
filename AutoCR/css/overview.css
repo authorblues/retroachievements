@@ -167,10 +167,8 @@ div.instructions
 #recently-loaded > ul > li
 {
 	padding: 5px;
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
-	align-items: center;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
 }
 
 #recently-loaded > ul > li:nth-child(odd)

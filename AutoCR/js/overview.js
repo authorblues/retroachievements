@@ -77,6 +77,16 @@ function add_file_cache(id, data, type)
     localStorage.setItem('fileList', JSON.stringify(cache));
 }
 
+function add_metadata_cache(id, title, numCheevos)
+{
+	let metadata = {};
+	if (localStorage.getItem('recentsMetadata')) {
+		metadata = JSON.parse(localStorage.getItem('recentsMetadata'));
+	}
+	metadata[id] = {title, numCheevos, time: Date.now()};
+    localStorage.setItem('recentsMetadata', JSON.stringify(metadata));
+}
+
 function load_file_cache()
 {
 	if (localStorage.getItem('fileList'))
@@ -117,10 +127,20 @@ function delete_file_cache()
 
 function load_recent_sets()
 {
-	recentsTable.render(RecentlyLoaded([
-		{title: "hello", id: 1, time: Date.now()},
-		{title: "hello", id: 1, time: Date.now() - 1000},
-	]));
+	const recentMetadata =
+		JSON.parse(localStorage.getItem("recentsMetadata")) ?? {};
+	recentsTable.render(
+		RecentlyLoaded(
+			Object.entries(recentMetadata)
+				.map(([id, { title, numCheevos, time }]) => ({
+					id,
+					title,
+					numCheevos,
+					time,
+				}))
+				.sort((a, b) => b.time - a.time),
+		),
+	);
 }
 
 function load_files(fileList)
@@ -944,8 +964,8 @@ function RecentlyLoaded(data)
 		<h2>Recently Loaded</h2>
 		<ul>
 			{data.map((x) => <li key={x.id}>
-				<span>{x.title}</span>
-				<span>{x.id}</span>
+				<span>{x.title} [{x.id}]</span>
+				<span>{x.numCheevos} Achievements</span>
 				<span>{getRelativeTime(x.time)}</span>
 			</li>)}
 			</ul>
@@ -1067,6 +1087,7 @@ function show_overview(e, node)
 
 function update()
 {
+	add_metadata_cache(current.id, get_game_title(), all_achievements().length);
 	current.assessment.achievements = new Map(all_achievements().map(x => [x.id, assess_achievement(x)]));
 	current.assessment.leaderboards = new Map(all_leaderboards().map(x => [x.id, assess_leaderboard(x)]));
 	current.assessment.notes = assess_code_notes(current.notes);
