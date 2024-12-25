@@ -70,11 +70,11 @@ document.onkeydown = function(event)
 function add_file_cache(id, data, type)
 {
 	let cache = [];
-	if (localStorage.getItem('fileList')) {
-		cache = JSON.parse(localStorage.getItem('fileList'));
+	if (localStorage.getItem('fileList-'+id)) {
+		cache = JSON.parse(localStorage.getItem('fileList-'+id));
 	}
 	cache.push({id, data: JSON.stringify(data), type});
-    localStorage.setItem('fileList', JSON.stringify(cache));
+    localStorage.setItem('fileList-'+id, JSON.stringify(cache));
 }
 
 function add_metadata_cache(id, title, numCheevos)
@@ -87,11 +87,11 @@ function add_metadata_cache(id, title, numCheevos)
     localStorage.setItem('recentsMetadata', JSON.stringify(metadata));
 }
 
-function load_file_cache()
+function load_file_cache(id)
 {
-	if (localStorage.getItem('fileList'))
+	if (localStorage.getItem('fileList-'+id))
 	{
-		let fileList = JSON.parse(localStorage.getItem('fileList'));
+		let fileList = JSON.parse(localStorage.getItem('fileList-'+id));
 		for (const file of fileList)
 		{
 			if (file.id !== current.id)
@@ -962,12 +962,20 @@ function RecentlyLoaded(data)
 	return (
 		<>
 		<h2>Recently Loaded</h2>
+			<div className="table-headings">
+				<span>Title [ID]</span>
+				<span># Achievements</span>
+				<span>Last Loaded</span>
+			</div>
 		<ul>
-			{data.map((x) => <li key={x.id}>
+			{data.length > 0 ? data.map((x) => <li key={x.id}
+					onClick={() => {
+					load_file_cache(x.id);
+					}}>
 				<span>{x.title} [{x.id}]</span>
 				<span>{x.numCheevos} Achievements</span>
 				<span>{getRelativeTime(x.time)}</span>
-			</li>)}
+			</li>) : <li><em>None</em></li>}
 			</ul>
 			</>
 	);
