@@ -142,6 +142,64 @@ div.instructions
 	line-height: 150%;
 }
 
+#recently-loaded
+{
+	border-radius: 12px;
+	border: 1px solid black;
+	overflow: hidden;
+}
+
+#recently-loaded > h2
+{
+	background-color: black;
+	color: white;
+	padding: 8px;
+	margin: 0;
+	border-top-left-radius: 12px;
+	border-top-right-radius: 12px;
+}
+
+#recently-loaded > .table-headings
+{
+	padding: 5px;
+	font-size: 90%;
+	color: #333;
+	text-transform: uppercase;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	font-family: monospace;
+}
+
+#recently-loaded > ul
+{
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+#recently-loaded > ul > li
+{
+	padding: 8px;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	cursor: pointer;
+}
+
+#recently-loaded > ul > li:hover
+{
+	background-color: #EEEEEE;
+}
+
+#recently-loaded > ul > li:nth-child(odd)
+{
+	background-color: #F8F8F8;
+}
+
+#recently-loaded > ul > li:nth-child(odd):hover
+{
+	background-color: #E8E8E8;
+}
+
 img.icon
 {
 	border: 1px solid black;
