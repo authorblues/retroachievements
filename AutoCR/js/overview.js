@@ -1,5 +1,7 @@
 const sidebar = ReactDOM.createRoot(document.getElementById('list-body'));
 const container = ReactDOM.createRoot(document.getElementById('info-container'));
+const filePicker = document.getElementById('file-picker');
+const recentsTable = ReactDOM.createRoot(document.getElementById('recently-loaded'));
 
 function clearSelected()
 {
@@ -18,6 +20,10 @@ function reset_loaded()
 	clearSelected();
 }
 
+filePicker.addEventListener('change', () => {
+	load_files(filePicker.files);
+});
+
 function __noop(event)
 {
 	event.stopPropagation();
@@ -27,78 +33,11 @@ function __noop(event)
 document.ondragover = __noop;
 document.ondragenter = __noop;
 
+
 document.ondrop = function(event)
 {
 	event.preventDefault();
-	for (const file of event.dataTransfer.files)
-	{
-		let idregex = file.name.match(/^(\d+)/);
-		let thisid = +idregex[1] || -1;
-		if (thisid != current.id)
-		{
-			current.id = thisid;
-			reset_loaded();
-		}
-		
-		let reader = new FileReader();
-		if (file.name.endsWith('-Notes.json'))
-			reader.onload = function(event)
-			{
-				try
-				{
-					let data = JSON.parse(event.target.result);
-					load_code_notes(data);
-				}
-				catch (e)
-				{
-					if (e instanceof LogicParseError) alert(e.message);
-					else console.error(e);
-				}
-			};
-		else if (file.name.endsWith('.json'))
-			reader.onload = function(event)
-			{
-				try
-				{
-					let data = JSON.parse(event.target.result);
-					load_achievement_set(data);
-				}
-				catch (e)
-				{
-					if (e instanceof LogicParseError) alert(e.message);
-					else console.error(e);
-				}
-			};
-		else if (file.name.endsWith('-Rich.txt'))
-			reader.onload = function(event)
-			{
-				try
-				{
-					let data = event.target.result;
-					load_rich_presence(data, true);
-				}
-				catch (e)
-				{
-					if (e instanceof LogicParseError) alert(e.message);
-					else console.error(e);
-				}
-			};
-		else if (file.name.endsWith('-User.txt'))
-			reader.onload = function(event)
-			{
-				try
-				{
-					let data = event.target.result;
-					load_user_file(data);
-				}
-				catch (e)
-				{
-					if (e instanceof LogicParseError) alert(e.message);
-					else console.error(e);
-				}
-			};
-		reader.readAsText(file);
-	}
+	load_files(event.dataTransfer.files);
 }
 
 document.onkeydown = function(event)
@@ -125,6 +64,160 @@ document.onkeydown = function(event)
 	{
 		event.preventDefault();
 		event.stopPropagation();
+	}
+}
+
+function add_file_cache(id, data, type)
+{
+	let cache = [];
+	if (localStorage.getItem('fileList-'+id)) {
+		cache = JSON.parse(localStorage.getItem('fileList-'+id));
+	}
+	cache.push({id, data: JSON.stringify(data), type});
+    localStorage.setItem('fileList-'+id, JSON.stringify(cache));
+}
+
+function add_metadata_cache(id, title, numCheevos)
+{
+	let metadata = {};
+	if (localStorage.getItem('recentsMetadata')) {
+		metadata = JSON.parse(localStorage.getItem('recentsMetadata'));
+	}
+	metadata[id] = {title, numCheevos, time: Date.now()};
+    localStorage.setItem('recentsMetadata', JSON.stringify(metadata));
+}
+
+function load_file_cache(id)
+{
+	if (localStorage.getItem('fileList-'+id))
+	{
+		let fileList = JSON.parse(localStorage.getItem('fileList-'+id));
+		for (const file of fileList)
+		{
+			if (file.id !== current.id)
+			{
+				current.id = file.id;
+				reset_loaded();
+			}
+			const data = JSON.parse(file.data);
+			if (file.type === 'notes')
+			{
+				load_code_notes(JSON.parse(data));
+			}
+			else if (file.type === 'set')
+			{
+				load_achievement_set(JSON.parse(data));
+			}
+			else if (file.type === 'rp')
+			{
+				load_rich_presence(data, true);
+			}
+			else if (file.type === 'local')
+			{
+				load_user_file(data);
+			}
+		}
+	}
+}
+
+function delete_file_cache()
+{
+	localStorage.removeItem('fileList');
+}
+
+function load_recent_sets()
+{
+	const recentMetadata =
+		JSON.parse(localStorage.getItem("recentsMetadata")) ?? {};
+	recentsTable.render(
+		RecentlyLoaded(
+			Object.entries(recentMetadata)
+				.map(([id, { title, numCheevos, time }]) => ({
+					id,
+					title,
+					numCheevos,
+					time,
+				}))
+				.sort((a, b) => b.time - a.time),
+		),
+	);
+}
+
+function load_files(fileList)
+{
+	for (const file of fileList)
+	{
+		let idregex = file.name.match(/^(\d+)/);
+		let thisid = +idregex[1] || -1;
+		if (thisid != current.id)
+		{
+			current.id = thisid;
+			delete_file_cache();
+			reset_loaded();
+		}
+		
+		let reader = new FileReader();
+		if (file.name.endsWith('-Notes.json'))
+			reader.onload = function(event)
+			{
+				try
+				{
+					let data = JSON.parse(event.target.result);
+					add_file_cache(thisid, event.target.result, 'notes');
+					load_code_notes(data);
+				}
+				catch (e)
+				{
+					if (e instanceof LogicParseError) alert(e.message);
+					else console.error(e);
+				}
+			};
+		else if (file.name.endsWith('.json'))
+			reader.onload = function(event)
+			{
+				try
+				{
+					let data = JSON.parse(event.target.result);
+					add_file_cache(thisid, event.target.result, 'set');
+					load_achievement_set(data);
+				}
+				catch (e)
+				{
+					if (e instanceof LogicParseError) alert(e.message);
+					else console.error(e);
+				}
+			};
+		else if (file.name.endsWith('-Rich.txt'))
+			reader.onload = function(event)
+			{
+				try
+				{
+					let data = event.target.result;
+					add_file_cache(thisid, data, 'rp');
+					load_rich_presence(data, true);
+				}
+				catch (e)
+				{
+					if (e instanceof LogicParseError) alert(e.message);
+					else console.error(e);
+				}
+			};
+		else if (file.name.endsWith('-User.txt'))
+			reader.onload = function(event)
+			{
+				try
+				{
+					let data = event.target.result;
+					add_file_cache(thisid, data, 'local');
+					load_user_file(data);
+				}
+				catch (e)
+				{
+					if (e instanceof LogicParseError) alert(e.message);
+					else console.error(e);
+				}
+			};
+		reader.readAsText(file);
 	}
 }
 
@@ -844,6 +937,50 @@ function RichPresenceOverview()
 	</>);
 }
 
+function RecentlyLoaded(data)
+{
+	function getRelativeTime(timestamp)
+	{
+		const seconds = (Date.now() - timestamp) / 1000;
+		const rtf = new Intl.RelativeTimeFormat();
+		const relTimeString =
+			seconds < 60
+				? rtf.format(-seconds, "second")
+				: seconds < 60 * 60
+				? rtf.format(-seconds / 60, "minute")
+				: seconds < 60 * 60 * 24
+				? rtf.format(-seconds / 60 / 60, "hour")
+				: seconds < 60 * 60 * 24 * 7
+				? rtf.format(-seconds / 60 / 60 / 24, "day")
+				: seconds < 60 * 60 * 24 * 30
+				? rtf.format(-seconds / 60 / 60 / 24 / 7, "week")
+				: seconds < 60 * 60 * 24 * 365
+				? rtf.format(-seconds / 60 / 60 / 24 / 30, "month")
+				: rtf.format(-seconds / 60 / 60 / 24 / 365, "year");
+		return relTimeString;
+	}
+	return (
+		<>
+		<h2>Recently Loaded</h2>
+			<div className="table-headings">
+				<span>Title [ID]</span>
+				<span># Achievements</span>
+				<span>Last Loaded</span>
+			</div>
+		<ul>
+			{data.length > 0 ? data.map((x) => <li key={x.id}
+					onClick={() => {
+					load_file_cache(x.id);
+					}}>
+				<span>{x.title} [{x.id}]</span>
+				<span>{x.numCheevos} Achievements</span>
+				<span>{getRelativeTime(x.time)}</span>
+			</li>) : <li><em>None</em></li>}
+			</ul>
+			</>
+	);
+}
+
 const SEVERITY_TO_CLASS = ['pass', 'warn', 'fail', 'fail'];
 function SetOverviewTab()
 {
@@ -958,6 +1095,7 @@ function show_overview(e, node)
 
 function update()
 {
+	add_metadata_cache(current.id, get_game_title(), all_achievements().length);
 	current.assessment.achievements = new Map(all_achievements().map(x => [x.id, assess_achievement(x)]));
 	current.assessment.leaderboards = new Map(all_leaderboards().map(x => [x.id, assess_leaderboard(x)]));
 	current.assessment.notes = assess_code_notes(current.notes);
@@ -995,3 +1133,6 @@ function load_rich_presence(txt, from_file)
 		current.rp = RichPresence.fromText(txt);
 	update();
 }
+
+//load_file_cache();
+load_recent_sets();
