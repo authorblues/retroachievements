@@ -391,16 +391,19 @@ function OperandCells({operand, skipNote = false, chainInfo = []})
 		// if this is a memory read, add the code note, if possible
 		else if (operand.type.addr)
 		{
+			let memaddr = operand.toValueString();
+			if (chainInfo.length) memaddr = (<React.Fragment>{memaddr}<span className="AddAddressIndicator">**</span></React.Fragment>);
+			
 			const note_text = get_note_text(operand.value, chainInfo);
 			if (!skipNote && note_text) return (
 				<span className="tooltip">
-					{operand.toValueString()}
+					{memaddr}
 					<span className="tooltip-info">
 						<pre>{note_text}</pre>
 					</span>
 				</span>
 			);
-			else return operand.toValueString();
+			else return memaddr;
 		}
 		// if it is a value, integers need both representations
 		else if (Number.isInteger(operand.value) && operand.type != ReqType.FLOAT)
@@ -468,7 +471,7 @@ function LogicGroup({group, gi, logic, issues})
 				chain_context = [];
 			}
 			
-			return (<tr key={`g${gi}-r${ri}`} className={`${match.some(([_, issue]) => issue.type.severity >= FeedbackSeverity.WARN) ? 'warn ' : ''}${req.toRefString()}`}>
+			return (<tr key={`g${gi}-r${ri}`} className={`${match.some(([_, issue]) => issue.type.severity >= FeedbackSeverity.WARN) ? 'warn' : ''} ${req.toRefString()} ${req.flag ? ('flag-' + req.flag.name) : ''}`}>
 				<td>{ri + 1} {match.map(([ndx, _]) => 
 					<React.Fragment key={ndx}>{' '} <sup key={ndx}>(#{ndx+1})</sup></React.Fragment>)}</td>
 				<td>{req.flag ? req.flag.name : ''}</td>
@@ -487,22 +490,30 @@ function LogicGroup({group, gi, logic, issues})
 function LogicTable({logic, issues = []})
 {
 	const [isHex, setIsHex] = React.useState(false);
+	const [collapseAddAddress, setCollapseAddAddress] = React.useState(false);
 	issues = [].concat(...issues);
+	const collapseID = "collapse-addaddress-" + crypto.randomUUID();
 
 	return (<div className="logic-table">
-		<table className={isHex ? 'show-hex' : ''}>
+		<table className={`${isHex ? 'show-hex' : ''} ${collapseAddAddress ? 'collapse-addaddress' : ''}`}>
 			<tbody>
 				{[...logic.groups.entries()].map(([gi, g]) => {
 					return (<LogicGroup key={gi} group={g} gi={gi} logic={logic} issues={issues} />);
 				})}
 			</tbody>
 		</table>
-		<button className="float-right" onClick={() => setIsHex(!isHex)}>
-			Toggle Hex Values
-		</button>
-		<button className="float-right" onClick={() => copy_to_clipboard(logic.toMarkdown())}>
-			Copy Markdown
-		</button>
+		<div className="logic-panel">
+			<div style={{display: "inline-block"}}>
+				<input type="checkbox" id={collapseID} onChange={(e) => setCollapseAddAddress(e.currentTarget.checked)}></input>
+				<label for={collapseID}>Collapse AddAddress</label>
+			</div>
+			<button onClick={() => setIsHex(!isHex)}>
+				Toggle Hex Values
+			</button>
+			<button onClick={() => copy_to_clipboard(logic.toMarkdown())}>
+				Copy Markdown
+			</button>
+		</div>
 	</div>);
 }
 

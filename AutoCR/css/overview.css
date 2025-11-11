@@ -318,6 +318,9 @@ img.float-left
 .logic-table table.show-hex .in-dec { display: none; }
 .logic-table table:not(.show-hex) .in-dec { display: inline; }
 
+.logic-table table.collapse-addaddress .flag-AddAddress { display: none; }
+.logic-table table:not(.collapse-addaddress) .AddAddressIndicator { display: none; }
+
 #info-container .data-table table tbody tr.warn td:first-child
 {
 	background-repeat: no-repeat;
@@ -365,6 +368,16 @@ img.float-left
 .logic-table [data-hits="0"]
 {
 	opacity: 20%;
+}
+
+.logic-panel
+{
+	float: right;
+}
+
+.logic-panel *
+{
+	margin-left: 5px;
 }
 
 .code-notes pre,
