@@ -392,7 +392,12 @@ function OperandCells({operand, skipNote = false, chainInfo = []})
 		else if (operand.type.addr)
 		{
 			let memaddr = operand.toValueString();
-			if (chainInfo.length) memaddr = (<React.Fragment>{memaddr}<span className="AddAddressIndicator">**</span></React.Fragment>);
+			if (chainInfo.length) memaddr = (
+				<React.Fragment>
+					<span className="AddAddressIndicator">[+</span>
+					{memaddr}
+					<span className="AddAddressIndicator">]</span>
+				</React.Fragment>);
 			
 			const note_text = get_note_text(operand.value, chainInfo);
 			if (!skipNote && note_text) return (
