@@ -33,11 +33,11 @@ with open(infn, 'r') as inf:
 		outf.write(data.get('Title', '') + '\n')
 		for ach in data.get('Achievements', []):
 			make_achievement_row(ach, outf)
-		for set in data.get('Sets', []):
+		for set in data.get('Sets', dict()):
 			for ach in set.get('Achievements', []):
 				make_achievement_row(ach, outf)
 		for lb in data.get('Leaderboards', []):
 			make_leaderboard_row(lb, outf)
-		for set in data.get('Sets', []):
+		for set in data.get('Sets', dict()):
 			for lb in set.get('Leaderboards', []):
 				make_leaderboard_row(lb, outf)
