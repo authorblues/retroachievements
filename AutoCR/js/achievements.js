@@ -93,6 +93,13 @@ class Asset
 		this.#ref = crypto.randomUUID();
 	}
 
+	shouldSkip()
+	{
+		if (this.title.toUpperCase().includes('[VOID]')) return true;
+		if (this.id >= 101000000) return true; // emulator warnings
+		return false;
+	}
+
 	toRefString(){ return `asset-${this.#ref}`; }
 }
 
@@ -231,22 +238,18 @@ class AchievementSet
 
 		for (const [i, x] of achJson.entries())
 		{
-			if (x.Title.toUpperCase().includes('[VOID]')) continue;
-			let ach = Achievement.fromJSON(x);
-			ach.index = i; // to preserve order from json file
-			let achIdx = ach.id;
-			if (achIdx === 0) achIdx = ach.index;
-			this.achievements.set(achIdx, ach);
+			let asset = Achievement.fromJSON(x);
+			if (asset.shouldSkip()) continue;
+			asset.index = i; // to preserve order from json file
+			this.achievements.set(asset.id || asset.index, asset);
 		}
 
 		for (let [i, x] of ldbJson.entries())
 		{
-			if (x.Hidden || x.Title.toUpperCase().includes('[VOID]')) continue;
-			let lb = Leaderboard.fromJSON(x);
-			lb.index = i; // to preserve order from json file
-			let lbIdx = lb.id;
-			if (lbIdx === 0) lbIdx = lb.index;
-			this.leaderboards.set(lbIdx, lb);
+			let asset = Leaderboard.fromJSON(x);
+			if (x.Hidden || asset.shouldSkip()) continue;
+			asset.index = i; // to preserve order from json file
+			this.leaderboards.set(asset.id || asset.index, asset);
 		}
 		
 		return this;
@@ -296,18 +299,14 @@ class AchievementSet
 				case 'L': // leaderboard
 					asset = Leaderboard.fromLocal(row);
 					asset.index = i + 1000000; // preserve order from file
-					if (asset.title.toUpperCase().includes('[VOID]')) continue;
-					let lbIdx = asset.id;
-					if (lbIdx === 0) lbIdx = asset.index;
-					this.leaderboards.set(lbIdx, asset);
+					if (asset.shouldSkip()) continue;
+					this.leaderboards.set(asset.id || asset.index, asset);
 					break;
 				default: // achievement
 					asset = Achievement.fromLocal(row);
 					asset.index = i + 1000000; // preserve order from file
-					if (asset.title.toUpperCase().includes('[VOID]')) continue;
-					let achIdx = asset.id;
-					if (achIdx === 0) achIdx = asset.index;
-					this.achievements.set(achIdx, asset);
+					if (asset.shouldSkip()) continue;
+					this.achievements.set(asset.id || asset.index, asset);
 					break;
 			}
 		}
