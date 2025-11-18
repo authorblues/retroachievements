@@ -308,6 +308,13 @@ function cheating() => (
 
 function in_game() => __game_state_raw() == STATE_PLAYING && lives() > 0
 
+function time_up() => (
+	time_minutes() == 9 &&
+	time_seconds() == 59 &&
+	time_frames() == 59 &&
+	prev(time_frames()) == 59
+)
+
 function start_level_no_checkpoint(x) => (
 	// loaded into the level (loading+playing -> playing)
 	prev(__game_state_raw()) == 0x8c && __game_state_raw() == 0x0c && 
@@ -315,7 +322,7 @@ function start_level_no_checkpoint(x) => (
 	current_stage() == x && active_checkpoint() == 0
 )
 
-function complete_level(x) => in_game() && current_stage() == x && prev(level_incomplete()) == 1 && level_incomplete() == 0
+function complete_level(x) => in_game() && current_stage() == x && prev(level_incomplete()) == 1 && level_incomplete() == 0 && !time_up()
 
 function range_complete(start, end) => (
 	// set a checkpoint hit from being in the correct stage
