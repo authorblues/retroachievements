@@ -133,6 +133,7 @@ const Feedback = Object.freeze({
 	HIT_NO_RESET: { severity: FeedbackSeverity.WARN, desc: "Hit counts require a reset, either via ResetIf or ResetNextIf.",
 		ref: ['https://docs.retroachievements.org/developer-docs/hit-counts.html',], },
 	USELESS_ANDNEXT: { severity: FeedbackSeverity.WARN, desc: "Combining requirements with AND is the default behavior. Useless AndNext flags should be removed.",
+	USELESS_ANDNEXT: { severity: FeedbackSeverity.INFO, desc: "Combining requirements with AND is the default behavior. Useless AndNext flags should be removed.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/andnext-ornext.html',], },
 	USELESS_ALT: { severity: FeedbackSeverity.ERROR, desc: "A Reset-only Alt group is considered satisfied, making all other Alt groups useless.",
 		ref: [], },
@@ -822,6 +823,34 @@ function* check_uncleared_hits(logic)
 		}
 }
 
+function* check_uuo_andnext(logic)
+{
+	for (const [gi, g] of logic.groups.entries())
+	{
+		let andnext_chain = [], valid = false;
+		for (const [ri, req] of g.entries())
+		{
+			// add all AndNexts to a chain
+			if (req.flag == ReqFlag.ANDNEXT) andnext_chain.push(req);
+			// if there's an OrNext flag, I'm just going to let this go
+			if (req.flag == ReqFlag.ORNEXT) valid = true;
+			// if there are hitcounts *anywhere* in this chain, valid
+			if (req.hits != 0) valid = true;
+			
+			if (req.isTerminating())
+			{
+				// if the chain terminates at any actual flag, valid
+				if (req.flag || req.hits > 0) valid = true;
+
+				if (andnext_chain.length && !valid)
+					for (const andreq of andnext_chain)
+						yield new Issue(Feedback.USELESS_ANDNEXT, andreq);
+				andnext_chain = []; valid = false;
+			}
+		}
+	}
+}
+
 function* check_uuo_pause(logic)
 {
 	let has_hits = false;
@@ -1231,6 +1260,7 @@ const BASIC_LOGIC_TESTS = [
 	check_priors,
 	check_stale_addaddress,
 	check_uncleared_hits,
+	check_uuo_andnext,
 	check_pauselocks,
 	check_uuo_pause,
 	check_uuo_reset,
