@@ -93,11 +93,11 @@ class Asset
 		this.#ref = crypto.randomUUID();
 	}
 
-	shouldSkip()
+	needsFeedback()
 	{
-		if (this.title.toUpperCase().includes('[VOID]')) return true;
-		if (this.id >= 101000000) return true; // emulator warnings
-		return false;
+		if (this.title.toUpperCase().includes('[VOID]')) return false;
+		if (this.id >= 101000000) return false; // emulator warnings
+		return true;
 	}
 
 	toRefString(){ return `asset-${this.#ref}`; }
@@ -239,7 +239,7 @@ class AchievementSet
 		for (const [i, x] of achJson.entries())
 		{
 			let asset = Achievement.fromJSON(x);
-			if (asset.shouldSkip()) continue;
+			if (!asset.needsFeedback()) continue;
 			asset.index = i; // to preserve order from json file
 			this.achievements.set(asset.id || asset.index, asset);
 		}
@@ -247,7 +247,7 @@ class AchievementSet
 		for (let [i, x] of ldbJson.entries())
 		{
 			let asset = Leaderboard.fromJSON(x);
-			if (x.Hidden || asset.shouldSkip()) continue;
+			if (x.Hidden || !asset.needsFeedback()) continue;
 			asset.index = i; // to preserve order from json file
 			this.leaderboards.set(asset.id || asset.index, asset);
 		}
@@ -299,13 +299,13 @@ class AchievementSet
 				case 'L': // leaderboard
 					asset = Leaderboard.fromLocal(row);
 					asset.index = i + 1000000; // preserve order from file
-					if (asset.shouldSkip()) continue;
+					if (!asset.needsFeedback()) continue;
 					this.leaderboards.set(asset.id || asset.index, asset);
 					break;
 				default: // achievement
 					asset = Achievement.fromLocal(row);
 					asset.index = i + 1000000; // preserve order from file
-					if (asset.shouldSkip()) continue;
+					if (!asset.needsFeedback()) continue;
 					this.achievements.set(asset.id || asset.index, asset);
 					break;
 			}
