@@ -125,13 +125,22 @@ achievement(
 )
 
 achievement(
-	title="A Hop, a Skip, and a Jump",
-	description="Complete stage 10",
+	title="Swinging Through the Trees",
+	description="Complete stage 05",
 	type="progression",
-	points=5,
+	points=10,
+	trigger=complete_stage(5)
+)
+
+achievement(
+	title="King of Child Park",
+	description="Complete stage 10",
+	type="win_condition",
+	points=50,
 	trigger=complete_stage(10)
 )
 
+/*
 achievement(
 	title="Swinging Through the Trees",
 	description="Complete stage 20",
@@ -147,6 +156,7 @@ achievement(
 	points=25,
 	trigger=complete_stage(30)
 )
+*/
 
 achievement(
 	title="A Playdate in the Park",
