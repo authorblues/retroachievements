@@ -90,6 +90,11 @@ function stage_progress() => word(addr_offset() + 0x002203)
 //        14 = Venom's Ship
 function stage() => byte(addr_offset() + 0x002206)
 
+// $220A: Route Direction [8 bit]
+//        0 = outbound
+//        1 = inbound
+function direction() => byte(addr_offset() + 0x00220A)
+
 // $220F: Unlocked Powerups [8 bit]
 //        0 = default powerups
 //        1 = unlocked up laser
@@ -264,6 +269,14 @@ function sanity_check() => game_active() == 1 && player_turn() == prev(player_tu
 function has_temp_powerup() => special_powerup_id() != 0 && special_powerup_seconds() > 0
 function activate_temp_powerup(x) => special_powerup_id() == x && prev(special_powerup_seconds()) < 15 && special_powerup_seconds() == 15
 
+// inferring the level number from the map number
+function fixed_stage() => max_of(
+	measured(map(),           when=direction() == 0 && map() != MAP_CORE_INVADE),
+	measured(prior(map()),    when=direction() == 0 && map() == MAP_CORE_INVADE),
+	measured(14-map(),        when=direction() == 1 && map() != MAP_CORE_INVADE),
+	measured(14-prior(map()), when=direction() == 1 && map() == MAP_CORE_INVADE)
+)
+
 function start_new_game() => game_active() == 1 && prev(game_state()) == MODE_NEWGAME && game_state() == MODE_LOADING
 
 function win_the_game() => (
@@ -273,9 +286,9 @@ function win_the_game() => (
 
 // --- RICH PRESENCE -------------------------------------------------------------------
 
-rich_presence_conditional_display(game_active() == 1,
-	"Stage {0} ({1}) · Metalion{2} 🛩️x{3} · 🔫 {4} · 💯 {5}00",
-	rich_presence_number(stage()),
+rich_presence_conditional_display(game_active() == 1 && map() >= MAP_HIDDEN_1,
+	"Stage ??? (Hidden Stage) · Metalion{2} 🛩️x{3} · 🔫 {4} · 💯 {5}00",
+	rich_presence_number(fixed_stage()),
 	rich_presence_lookup("Map", map(), MAP_NAMES, fallback="Hidden Stage"),
 	rich_presence_lookup("OptionInfo", option_count(), OPTION_INFO, fallback=""),
 	rich_presence_number(lives()),
@@ -283,9 +296,9 @@ rich_presence_conditional_display(game_active() == 1,
 	rich_presence_value("_S", current_player_score(), "SCORE")
 )
 
-rich_presence_conditional_display(game_active() == 1 && map() >= MAP_HIDDEN_1,
-	"Stage ??? ({1}) · Metalion{2} 🛩️x{3} · 🔫 {4} · 💯 {5}00",
-	rich_presence_number(stage()),
+rich_presence_conditional_display(game_active() == 1,
+	"Stage {0} ({1}) · Metalion{2} 🛩️x{3} · 🔫 {4} · 💯 {5}00",
+	rich_presence_number(fixed_stage()),
 	rich_presence_lookup("Map", map(), MAP_NAMES, fallback="Hidden Stage"),
 	rich_presence_lookup("OptionInfo", option_count(), OPTION_INFO, fallback=""),
 	rich_presence_number(lives()),
@@ -299,21 +312,28 @@ rich_presence_display(
 
 // --- ACHIEVEMENTS -------------------------------------------------------------------
 
+DIRECTION_NAME = ["outbound", "inbound"]
+DIRECTION_OFFSET = [1, -1]
 function progression_achievement(id, title, points)
 {
 	map = id
-	dir = "outbound"
+	dir = 0
 	if (id > 7)
 	{
 		map = 14 - id
-		dir = "inbound"
+		dir = 1
 	}
 	achievement(
 		title=title,
-		description=format("Complete stage {0}, {1} through the {2}", id, dir, MAP_NAMES[map]),
+		description=format("Complete stage {0}, {1} through the {2}", id, DIRECTION_NAME[dir], MAP_NAMES[map]),
 		type="progression",
 		points=points,
-		trigger=sanity_check() && prev(stage()) == id && stage() == id+1
+		trigger=(
+			// should only fire if the map is changing
+			sanity_check() && map() != prev(map()) &&
+			// the map we are looking for is reaching this specific map in this specific direction
+			direction() == dir && map() == map+DIRECTION_OFFSET[dir]
+		)
 	)
 }
 
@@ -330,7 +350,7 @@ achievement(
 	type="progression",
 	points=25,
 	trigger=(
-		sanity_check() && stage() == 7 && stage_progress() == 0x02ff &&
+		sanity_check() && map() == MAP_FORTRESS && stage_progress() == 0x02ff &&
 		prev(game_state()) == MODE_PLAYING && game_state() == MODE_CUTSCENE
 	)
 )
