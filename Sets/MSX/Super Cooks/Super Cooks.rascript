@@ -398,7 +398,7 @@ achievement(
 
 achievement(
 	title="A Taste of Takoyaki",
-	description="Defeat the cotopus and earn your third diploma",
+	description="Defeat the octopus and earn your third diploma",
 	type="progression",
 	points=10,
 	trigger=loc_check(2, 0x07) && map_type() == MAP_TOPDOWN && is_set(boss_killed(BOSS_3_OCTOPUS))
