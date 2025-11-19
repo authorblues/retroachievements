@@ -557,7 +557,7 @@ leaderboard(
 	description="Give praise to these RNG gods who have been blessed to reveal the hidden RNG room and enter it. It only appears with a 1/65535 chance!",
 
 	start=(
-		overworld_screen() == 4 && is_overworld_cave_opened() == 1 &&
+		overworld_screen() == 5 && is_overworld_cave_opened() == 1 &&
 		prev(map_type()) == MAP_OVERWORLD && map_type() == MAP_SINGLECAVE
 	),
 	cancel=always_false(),
