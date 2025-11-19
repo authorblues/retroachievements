@@ -510,7 +510,7 @@ function LogicTable({logic, issues = []})
 		<div className="logic-panel">
 			<div style={{display: "inline-block"}}>
 				<input type="checkbox" id={collapseID} onChange={(e) => setCollapseAddAddress(e.currentTarget.checked)}></input>
-				<label for={collapseID}>Collapse AddAddress</label>
+				<label htmlFor={collapseID}>Collapse AddAddress</label>
 			</div>
 			<button onClick={() => setIsHex(!isHex)}>
 				Toggle Hex Values
