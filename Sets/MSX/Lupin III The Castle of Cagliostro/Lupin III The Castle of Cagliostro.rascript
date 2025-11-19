@@ -10,8 +10,11 @@ function if_else(p, t, f) { if (p) { return t } else return f }
 
 // --- MEMORY -------------------------------------------------------------------
 
-// $171B: In Game [8 bit] (0/1)
-function in_game_flag() => byte(0x00171B)
+// $1A97: In Game [8 bit] (0/1)
+//        0 on title screen
+//        1 in game
+//        0 at the end in the clock tower, for some reason
+function in_game_flag() => byte(0x001A97)
 
 // $1AB1: Stage [8 bit]
 //        0 = title screen
@@ -117,7 +120,7 @@ function in_game() => stage() > STAGE_TITLE && stage() < STAGE_ENDING
 
 function score() => score_hi()*10000 + score_lo()
 
-function level_progression(x) => in_game_flag() != 0 && prev(stage()) == x && stage() == x+1
+function level_progression(x, flag=1) => in_game_flag() == flag && prev(stage()) == x && stage() == x+1
 
 // --- RICH PRESENCE -------------------------------------------------------------------
 
@@ -198,7 +201,7 @@ achievement(
 	description="Complete stage 7, the clock tower",
 	type="win_condition",
 	points=25,
-	trigger=level_progression(7)
+	trigger=level_progression(7, flag=0)
 )
 
 achievement(
