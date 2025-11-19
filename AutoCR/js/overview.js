@@ -247,61 +247,63 @@ function get_game_title()
 function find_relevant_note_text(full_note, offsets) {
     let lines = full_note.split(/\r\n|\n/);
     let current_search_space = lines;
-    // Default to the first line if nothing else is found.
     let last_found_block = [lines[0]];
 
     if (offsets.length === 0) {
         return last_found_block.join('\n');
     }
 
-    // This regex will find lines starting with optional dots or pluses and a +0x... offset.
-    // It captures the indentation, the hex value, and the rest of the line.
-    const offset_line_re = /^(\s*[\.\+]*)\+0x([a-f0-9]+)\s*\|(.*)$/i;
+    const offset_line_re = /^(\s*[\s\.+-]*)\+0x([a-f0-9]+)(.*)$/i;
+    let context_indentation = -1;
 
     for (const target_offset of offsets) {
-        let block_for_next_iteration = null;
+        let best_match = { index: -1, indent: Infinity };
 
+        // Pass 1: Find the best candidate (the direct child) for the current offset.
         for (let i = 0; i < current_search_space.length; i++) {
             const line = current_search_space[i];
-            const match = line.trim().match(offset_line_re);
+            const match = line.match(offset_line_re);
 
             if (match) {
+                const current_indentation = (match[1] || '').length;
                 const line_offset_val = parseInt(match[2], 16);
 
-                if (line_offset_val === target_offset) {
-                    // We found the starting line for our target offset.
-                    const start_indentation = (match[1] || '').replace(/\s/g, '').length;
-                    
-                    // Now, find where this block ends. A block ends when we encounter
-                    // another offset at the same or a lesser indentation level.
-                    let end_of_block_index = i + 1;
-                    while (end_of_block_index < current_search_space.length) {
-                        const next_line = current_search_space[end_of_block_index];
-                        const next_match = next_line.trim().match(offset_line_re);
-                        if (next_match) {
-                            const next_indentation = (next_match[1] || '').replace(/\s/g, '').length;
-                            if (next_indentation <= start_indentation) {
-                                break; // The next block starts, so our current block ends here.
-                            }
-                        }
-                        end_of_block_index++;
+                // A candidate must match the offset and be deeper than the current context.
+                if (line_offset_val === target_offset && current_indentation > context_indentation) {
+                    // If this candidate is less indented than our current best, it's a better "direct child".
+                    if (current_indentation < best_match.indent) {
+                        best_match = { index: i, indent: current_indentation };
                     }
-
-                    const found_block = current_search_space.slice(i, end_of_block_index);
-                    last_found_block = found_block;
-                    block_for_next_iteration = found_block;
-                    break; // Found the block for this offset, move to the next offset.
                 }
             }
         }
 
-        if (block_for_next_iteration) {
-            // Set the search space for the next offset to be the block we just found.
-            current_search_space = block_for_next_iteration;
-        } else {
-            // We couldn't find the target_offset in the current space, so we must stop.
+        // If no valid child was found, the chain is broken. Stop processing.
+        if (best_match.index === -1) {
             break;
         }
+
+        // Pass 2: Now that we have the correct direct child, define its block.
+        const start_index = best_match.index;
+        const start_indentation = best_match.indent;
+        let end_of_block_index = start_index + 1;
+
+        while (end_of_block_index < current_search_space.length) {
+            const next_line = current_search_space[end_of_block_index];
+            const next_match = next_line.match(offset_line_re);
+            if (next_match) {
+                const next_indentation = (next_match[1] || '').length;
+                if (next_indentation <= start_indentation) {
+                    break; // The next block at or above this level starts here.
+                }
+            }
+            end_of_block_index++;
+        }
+
+        const found_block = current_search_space.slice(start_index, end_of_block_index);
+        last_found_block = found_block;
+        current_search_space = found_block; // The new search space is the content of the block we just found.
+        context_indentation = start_indentation; // The new context is the indentation of the found block.
     }
     
     return last_found_block.join('\n');
@@ -343,28 +345,35 @@ function get_note_text(addr, chainInfo = [])
 	const subtree_text = find_relevant_note_text(note.note, offsets_in_chain);
 	const subtree_lines = subtree_text.split(/\r\n|\n/);
 
-	// Now, trim this sub-tree to only include the description for the current level,
-	// stopping before any sub-offsets.
-	
 	// The first line of the subtree is the definition line for our current offset.
-	// We want to extract the description part of it.
-	const first_line_text = (subtree_lines[0] || '').replace(/^.*\|/, '').trim();
+	// We want to extract the description part of it, but only if a valid separator is used.
+	const first_line = (subtree_lines[0] || '');
+	let first_line_text = '';
+	const offset_match = first_line.match(/\+0x([a-f0-9]+)/i);
+	if (offset_match) {
+		const rest_of_line = first_line.substring(offset_match.index + offset_match[0].length).trim();
+		// A separator must exist for the description to be valid.
+		const separator_match = rest_of_line.match(/^([|:=\-])\s*(.*)$/);
+		if (separator_match) {
+			first_line_text = separator_match[2];
+		}
+	}
 	let display_lines = [first_line_text];
 	
 	// Look at the following lines and add them to the description until a sub-offset is found.
+	const sub_offset_re = /^\s*[\s\.+-]*\+0x/i; // A lenient check for a sub-offset line.
 	for (let i = 1; i < subtree_lines.length; i++) {
 		const line = subtree_lines[i];
-		const trimmed_line = line.trim();
 		
-		// A sub-offset is marked by starting with '.' or '+'.
-		if (trimmed_line.startsWith('.') || trimmed_line.startsWith('+')) {
-			break; // Stop, we've reached a child offset.
+		// Stop if we find a line that looks like another offset (a child).
+		if (sub_offset_re.test(line)) {
+			break; 
 		}
 		
 		display_lines.push(line);
 	}
 	
-	const final_description = display_lines.join('\n');
+	const final_description = display_lines.join('\n').trim();
 	
 	return header + final_description;
 }
@@ -483,8 +492,8 @@ function LogicGroup({group, gi, logic, issues})
 				{/* For the LHS operand, pass the context. It's either a base or an offset. */}
 				<OperandCells operand={req.lhs} skipNote={false} chainInfo={operand_chain_context_for_this_row} />
 				<td>{req.op ? req.op : ''}</td>
-				{/* For the RHS operand, it can't be part of the same chain. Treat it as a new lookup. */}
-				<OperandCells operand={req.rhs} skipNote={false} chainInfo={[]} />
+				{/* The RHS operand can also use the same chain context if it references a memory address. */}
+				<OperandCells operand={req.rhs} skipNote={false} chainInfo={operand_chain_context_for_this_row} />
 				<td data-hits={req.hits}>{req.hasHits() ? `(${req.hits})` : ''}</td>
 			</tr>);
 		})}
