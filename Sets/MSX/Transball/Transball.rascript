@@ -443,7 +443,7 @@ achievement(
 achievement(
 	title="No Time for Petrol",
 	description="Complete Level 12 in under 60 seconds",
-	points=5,
+	points=25,
 	trigger=level_complete(12) && total_centiseconds() < 6000
 )
 
