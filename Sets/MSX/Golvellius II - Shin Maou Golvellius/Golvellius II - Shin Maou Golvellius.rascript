@@ -327,7 +327,7 @@ ZONES = {
 // --- AUX FUNCTIONS  -------------------------------------------------------------------
 
 // set to zero in the title screen, obviously any in-game map would have to be wider than 0
-function in_game() => current_zone_width() != 0
+function in_game() => current_zone_width() != 0 && current_zone_width() != 0xFF
 
 // check zone and screen
 function loc_check(zone, screen) => in_game() && current_zone() == zone && overworld_screen() == screen
@@ -444,7 +444,7 @@ achievement(
 	description="Defeat the Mantrap Plant guarding Doran's Cavern",
 	type="progression",
 	points=2,
-	trigger=map_type() == MAP_OVERWORLD && loc_check(8, 0x20) && is_set(event_plant_monster_dead())
+	trigger=map_type() == MAP_OVERWORLD && loc_check(8, 0x0b) && is_set(event_plant_monster_dead())
 )
 
 achievement(
@@ -502,7 +502,7 @@ achievement(
 	title="Trading In for a Newer Model",
 	description="Find the Remedia Shield",
 	points=5,
-	trigger=loc_check(7, 0x20) && is_set(has_alzas_shield())
+	trigger=loc_check(7, 0x20) && is_set(has_remedia_shield())
 )
 
 achievement(
@@ -527,6 +527,7 @@ achievement(
 )
 
 BRAVE_RING_WOMEN_LOCATIONS = [
+	loc_check(6, 0x24), // harp is hidden
 	loc_check(9, 0x0d), // bring crystal to knight
 	loc_check(9, 0x19), // look into my crystal
 	loc_check(7, 0x31), // golvellius' minions were fake!
@@ -534,12 +535,12 @@ BRAVE_RING_WOMEN_LOCATIONS = [
 
 achievement(
 	title="Let My Haters Be My Motivators",
-	description="Find and speak to the three wise women who only recognize the mark of a hero, the Brave Ring",
+	description="Find and speak to the four wise women who only recognize the mark of a hero, the Brave Ring",
 	points=5,
 	trigger=(
-		tally_of(BRAVE_RING_WOMEN_LOCATIONS, length(BRAVE_RING_WOMEN_LOCATIONS), p => (
+		measured(tally_of(BRAVE_RING_WOMEN_LOCATIONS, length(BRAVE_RING_WOMEN_LOCATIONS), p => (
 			once(p && prev(map_type()) == MAP_OVERWORLD && map_type() == MAP_TALKING && has_brave_ring() == 1)
-		)) &&
+		))) &&
 		never(!in_game())
 	)
 )
