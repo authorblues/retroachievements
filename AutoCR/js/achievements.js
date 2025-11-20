@@ -224,7 +224,7 @@ class AchievementSet
 	{
 		this.id = json.ID;
 		this.title = json.Title;
-		this.icon = json.ImageIconURL;
+		this.icon = json.ImageIconUrl || json.ImageIconURL;
 		this.console = json.ConsoleID in ConsoleMap ? ConsoleMap[json.ConsoleID] : null;
 
 		let achJson = [], ldbJson = [];
