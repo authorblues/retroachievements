@@ -26,7 +26,7 @@ var current = { id: -1, };
 function reset_loaded()
 {
 	current.set = new AchievementSet();
-	current.notes = [];
+	current.notes = new CodeNoteSet();
 	current.rp = null;
 	clearSelected();
 }
@@ -307,68 +307,6 @@ function find_relevant_note_text(full_note, offsets) {
     return last_found_block.join('\n');
 }
 
-function get_note_text(addr, chainInfo = [])
-{
-	let note, base_addr, offsets_in_chain;
-	
-	if (chainInfo.length > 0) {
-		// This is a chained address from the logic table
-		const base_obj = chainInfo[0];
-		note = get_note(base_obj.value, current.notes);
-		base_addr = base_obj.value;
-		offsets_in_chain = [
-			...chainInfo.slice(1).map(c => c.value),
-			addr // The currently hovered operand's value is the final offset.
-		];
-	} else {
-		// This is a direct lookup or an indirect lookup without a chain
-		note = get_note(addr, current.notes);
-		if (note && addr !== note.addr) {
-			base_addr = note.addr;
-			offsets_in_chain = [addr - note.addr];
-		} else {
-			// It's a direct hover on a base address, no offsets.
-			return note ? note.note : null;
-		}
-	}
-	
-	if (!note) return null;
-
-	// Build the header for the tooltip
-	const base_hex = '0x' + base_addr.toString(16);
-	const offsets_str = offsets_in_chain.map(o => `+0x${o.toString(16)}`).join(' ');
-	const header = `[Indirect from ${base_hex} ${offsets_str}]\n`;
-	
-	// Find the entire relevant sub-tree for the full chain
-	const subtree_text = find_relevant_note_text(note.note, offsets_in_chain);
-	const subtree_lines = subtree_text.split(/\r\n|\n/);
-
-	// Now, trim this sub-tree to only include the description for the current level,
-	// stopping before any sub-offsets.
-	
-	// The first line of the subtree is the definition line for our current offset.
-	// We want to extract the description part of it.
-	const first_line_text = (subtree_lines[0] || '').replace(/^.*\|/, '').trim();
-	let display_lines = [first_line_text];
-	
-	// Look at the following lines and add them to the description until a sub-offset is found.
-	for (let i = 1; i < subtree_lines.length; i++) {
-		const line = subtree_lines[i];
-		const trimmed_line = line.trim();
-		
-		// A sub-offset is marked by starting with '.' or '+'.
-		if (trimmed_line.startsWith('.') || trimmed_line.startsWith('+')) {
-			break; // Stop, we've reached a child offset.
-		}
-		
-		display_lines.push(line);
-	}
-	
-	const final_description = display_lines.join('\n');
-	
-	return header + final_description;
-}
-
 async function copy_to_clipboard(text)
 {
 	try {
@@ -399,7 +337,7 @@ function OperandCells({operand, skipNote = false, chainInfo = []})
 					<span className="AddAddressIndicator">]</span>
 				</React.Fragment>);
 			
-			const note_text = get_note_text(operand.value, chainInfo);
+			const note_text = current.notes.get_text(operand.value, chainInfo);
 			if (!skipNote && note_text) return (
 				<span className="tooltip">
 					{memaddr}
@@ -1568,7 +1506,7 @@ function load_user_file(txt)
 function load_code_notes(json)
 {
 	for (const obj of json) if (obj.Note)
-		current.notes.push(new CodeNote(obj.Address, obj.Note, obj.User));
+		current.notes.add(new CodeNote(obj.Address, obj.Note, obj.User));
 	update();
 }
 

@@ -294,7 +294,7 @@ class AchievementSet
 			switch (row[0][0])
 			{
 				case 'N': // local code note
-					notes.push(new CodeNote(row[1], row[2], null))
+					notes.add(new CodeNote(row[1], row[2], null))
 					break;
 				case 'L': // leaderboard
 					asset = Leaderboard.fromLocal(row);
@@ -576,6 +576,89 @@ class CodeNote
 			e.value = Number.parseInt(e.literal, isHex ? 16 : 10);
 		enumerations = enumerations.filter(x => !Number.isNaN(x));
 		return enumerations.length ? enumerations : null;
+	}
+}
+
+class CodeNoteSet extends Array
+{
+	clear() { this.length = 0; }
+
+	add(note)
+	{
+		for (let i = 0; i < this.length; i++)
+			if (this[i].addr == note.addr) return this[i] = note;
+
+		this.push(note);
+		for (let i = this.length - 1; i > 0 && this[i].addr < this[i-1].addr; i--)
+		{ let t = this[i]; this[i] = this[i-1]; this[i-1] = t; }
+	}
+
+	get(addr)
+	{
+		for (let i = this.length - 1; i >= 0; i--)
+			if (this[i].contains(addr)) return this[i];
+		return null;
+	}
+
+	get_text(addr, chainInfo = [])
+	{
+		let note, base_addr, offsets_in_chain;
+		
+		if (chainInfo.length > 0) {
+			// This is a chained address from the logic table
+			const base_obj = chainInfo[0];
+			note = this.get(base_obj.value);
+			base_addr = base_obj.value;
+			offsets_in_chain = [
+				...chainInfo.slice(1).map(c => c.value),
+				addr // The currently hovered operand's value is the final offset.
+			];
+		} else {
+			// This is a direct lookup or an indirect lookup without a chain
+			note = this.get(addr);
+			if (note && addr !== note.addr) {
+				base_addr = note.addr;
+				offsets_in_chain = [addr - note.addr];
+			} else {
+				// It's a direct hover on a base address, no offsets.
+				return note ? note.note : null;
+			}
+		}
+		
+		if (!note) return null;
+
+		// Build the header for the tooltip
+		const base_hex = '0x' + base_addr.toString(16);
+		const offsets_str = offsets_in_chain.map(o => `+0x${o.toString(16)}`).join(' ');
+		const header = `[Indirect from ${base_hex} ${offsets_str}]\n`;
+		
+		// Find the entire relevant sub-tree for the full chain
+		const subtree_text = find_relevant_note_text(note.note, offsets_in_chain);
+		const subtree_lines = subtree_text.split(/\r\n|\n/);
+
+		// Now, trim this sub-tree to only include the description for the current level,
+		// stopping before any sub-offsets.
+		
+		// The first line of the subtree is the definition line for our current offset.
+		// We want to extract the description part of it.
+		const first_line_text = (subtree_lines[0] || '').replace(/^.*\|/, '').trim();
+		let display_lines = [first_line_text];
+		
+		// Look at the following lines and add them to the description until a sub-offset is found.
+		for (let i = 1; i < subtree_lines.length; i++) {
+			const line = subtree_lines[i];
+			const trimmed_line = line.trim();
+			
+			// A sub-offset is marked by starting with '.' or '+'.
+			if (trimmed_line.startsWith('.') || trimmed_line.startsWith('+')) {
+				break; // Stop, we've reached a child offset.
+			}
+			
+			display_lines.push(line);
+		}
+		
+		const final_description = display_lines.join('\n');
+		return header + final_description;
 	}
 }
 

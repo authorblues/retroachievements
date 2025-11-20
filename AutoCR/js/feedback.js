@@ -200,16 +200,6 @@ class Assessment
 	pass() { return this.status() < FeedbackSeverity.WARN; }
 }
 
-function get_note(addr, notes = [])
-{
-	const _notes = notes ?? [];
-	// reverse loop because in the case of overlapping code notes,
-	// the later one is likely more specific
-	for (let i = _notes.length - 1; i >= 0; i--)
-		if (_notes[i].contains(addr)) return _notes[i];
-	return null;
-}
-
 function* missing_notes(logic)
 {
 	for (const [gi, g] of logic.groups.entries())
@@ -221,7 +211,7 @@ function* missing_notes(logic)
 			for (const operand of [req.lhs, req.rhs])
 			{
 				if (!operand || !operand.type || !operand.type.addr) continue;
-				if (!prev_addaddress && !get_note(operand.value, current.notes))
+				if (!prev_addaddress && !current.notes.get(operand.value))
 				{
 					if (lastreport == operand.value) continue;
 					yield { addr: operand.value, req: req, };
@@ -638,7 +628,7 @@ function* check_missing_notes(logic)
 			if (!prev_addaddress) for (const operand of [req.lhs, req.rhs])
 			{
 				if (!operand || !operand.type || !operand.type.addr) continue;
-				const note = get_note(operand.value, current.notes);
+				const note = current.notes.get(operand.value);
 				if (note) continue;
 
 				if (lastreport == operand.value) continue;
@@ -667,7 +657,7 @@ function* check_mismatch_notes(logic)
 			if (!prev_addaddress) for (const operand of [req.lhs, req.rhs])
 			{
 				if (!operand?.type?.addr) continue;
-				const note = get_note(operand.value, current.notes);
+				const note = current.notes.get(operand.value);
 				if (!note) continue;
 
 				// if the note size info is unknown, give up I guess
@@ -691,7 +681,7 @@ function* check_pointers(logic)
 		for (const [ri, req] of g.entries())
 		{
 			if (!req.lhs?.type?.addr) continue;
-			const note = get_note(req.lhs.value, current.notes);
+			const note = current.notes.get(req.lhs.value);
 			if (!note) continue;
 
 			if (note.isProbablePointer() && req.isComparisonOperator() && req.rhs.type == ReqType.VALUE && req.rhs.value != 0)
@@ -1123,7 +1113,7 @@ function* check_rp_notes(rp)
 				for (const operand of [req.lhs, req.rhs])
 				{
 					if (!operand || !operand.type || !operand.type.addr) continue;
-					const note = get_note(operand.value, current.notes);
+					const note = current.notes.get(operand.value);
 
 					if (!prev_addaddress && !note)
 					{
