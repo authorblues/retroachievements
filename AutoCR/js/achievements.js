@@ -10,6 +10,7 @@ const Console = Object.freeze({
 	SNES: { id: 3, name: "SNES/Super Famicom", icon: "snes", },
 	N64: { id: 2, name: "Nintendo 64", icon: "n64", },
 	GCN: { id: 16, name: "GameCube", icon: "gc", },
+	WII: { id: 19, name: "Wii", icon: "wii", },
 	DS: { id: 18, name: "Nintendo DS", icon: "ds", },
 	DSI: { id: 78, name: "Nintendo DSi", icon: "dsi", },
 	PKMN: { id: 24, name: "Pokemon Mini", icon: "mini", },
@@ -68,6 +69,7 @@ const Console = Object.freeze({
 	WASM4: { id: 72, name: "WASM-4", icon: "wasm4", },
 	WSV: { id: 63, name: "Watara Supervision", icon: "wsv", },
 	WS: { id: 53, name: "WonderSwan", icon: "ws", },
+	ZXS: { id: 59, name: "ZX Spectrum", icon: "zxs", },
 });
 
 const ConsoleMap = Object.fromEntries(
@@ -225,7 +227,8 @@ class AchievementSet
 		this.id = json.ID;
 		this.title = json.Title;
 		this.icon = json.ImageIconUrl || json.ImageIconURL;
-		this.console = json.ConsoleID in ConsoleMap ? ConsoleMap[json.ConsoleID] : null;
+		this.consoleId = json.ConsoleId || json.ConsoleID;
+		this.console = this.consoleId in ConsoleMap ? ConsoleMap[this.consoleId] : null;
 
 		let achJson = [], ldbJson = [];
 		if ('Achievements' in json) achJson.push(...json.Achievements);
