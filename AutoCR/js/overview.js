@@ -566,29 +566,46 @@ function SetBadge({href = null})
 	</a>);
 }
 
-function AchievementBadge({ach})
+function AchievementBadge({ach, className=""})
 {
-	return (<a href={`https://retroachievements.org/achievement/${ach.id}`}>
-		<img className="icon float-left" src={ach.badge ? ach.badge : "https://media.retroachievements.org/Images/000001.png"} />
-	</a>);
+	if (ach == null) return null;
+	return (<img className={"icon " + className} src={ach.badge ? ach.badge : "https://media.retroachievements.org/Images/000001.png"} />);
 }
 
-function AchievementCard({ach, warn})
+function LinkedAchievementBadge({ach, className=""})
 {
-	let icon = null;
-	if (ach.achtype == 'progression')   icon = <span title="progression">✅</span>;
-	if (ach.achtype == 'win_condition') icon = <span title="win_condition">🏅</span>;
-	if (ach.achtype == 'missable')      icon = <span title="missable">⚠️</span>;
+	return (<a href={`https://retroachievements.org/achievement/${ach.id}`}><AchievementBadge ach={ach} className={className} /></a>);
+}
 
-	return (<div className={"asset-card" + (warn ? " warning" : "")} onClick={() => { jump_to_asset(ach); }}>
-		<div>
-			<img className="icon" src={ach.badge ? ach.badge : "https://media.retroachievements.org/Images/000001.png"} />
-		</div>
-		<div>
-			<p>🏆 <strong>{ach.title}</strong> ({ach.points}) {icon}</p>
-			<p><em>{ach.desc}</em></p>
-		</div>
-	</div>);
+function AssetCard({asset, warn})
+{
+	let body = null;
+	if (asset instanceof Achievement)
+	{
+		let icon = null;
+		if (asset.achtype == 'progression')   icon = <span title="progression">✅</span>;
+		if (asset.achtype == 'win_condition') icon = <span title="win_condition">🏅</span>;
+		if (asset.achtype == 'missable')      icon = <span title="missable">⚠️</span>;
+		body = (<>
+			<div>
+				<AchievementBadge ach={asset} />
+			</div>
+			<div>
+				<p>🏆 <strong>{asset.title}</strong> ({asset.points}) {icon}</p>
+				<p><em>{asset.desc}</em></p>
+			</div>
+		</>);
+	}
+	else if (asset instanceof Leaderboard)
+	{
+		body = (<>
+			<div>
+				<p>📊 <strong>{asset.title}</strong></p>
+				<p><em>{asset.desc}</em></p>
+			</div>
+		</>);
+	}
+	return (<div className={"asset-card" + (warn ? " warning" : "")} onClick={() => { jump_to_asset(asset); }}>{body}</div>);
 }
 
 function AchievementInfo({ach})
@@ -598,7 +615,7 @@ function AchievementInfo({ach})
 
 	return (<>
 		<div className="main-header">
-			<AchievementBadge ach={ach} />
+			<LinkedAchievementBadge ach={ach} className="float-left" />
 			<div>
 				<button className="float-right" onClick={() => copy_to_clipboard(`[${ach.title}](https://retroachievements.org/achievement/${ach.id})`)}>
 					Copy Markdown Link
@@ -865,25 +882,25 @@ function CodeReviewOverview()
 		[leaderboards.length, 'leaderboard'],
 	];
 
-	function AchievementCardList({achs, label, warn = []})
+	function AssetCardList({assets, label, warn = []})
 	{
-		let body = achs.map(ach => (
-			<AchievementCard key={ach.id} ach={ach} 
-				warn={ach.feedback.issues.some(g => g.some(issue => warn.includes(issue.type) && issue.type.severity > FeedbackSeverity.PASS))}
+		let body = assets.map(asset => (
+			<AssetCard key={asset.id} asset={asset} 
+				warn={asset.feedback.issues.some(g => g.some(issue => warn.includes(issue.type) && issue.type.severity > FeedbackSeverity.PASS))}
 			/>
 		));
 
 		return (<li><details>
-			<summary>{label}: {achs.length} asset{achs.length == 1 ? "" : "s"}</summary>
+			<summary>{label}: {assets.length} asset{assets.length == 1 ? "" : "s"}</summary>
 			<ul>{body}</ul>
 		</details></li>);
 	}
 
-	function AchievementsByFlag({flag, warn = []})
+	function AssetsByFlag({flag, warn = []})
 	{
 		return (
-			<AchievementCardList
-				achs={[...stats.using_flag.get(flag)]}
+			<AssetCardList
+				assets={[...stats.using_flag.get(flag)]}
 				label={<><code>{flag.name}</code></>}
 				warn={warn}
 			/>
@@ -908,59 +925,59 @@ function CodeReviewOverview()
 			<ul>
 				<li>Comparison Operators used: ({stats.all_cmps.size}): <KeywordList list={[...stats.all_cmps]} /></li>
 				<ul>
-					<AchievementCardList
-						achs={achievements.filter(ach => ach.feedback.stats.unique_cmps.size > 1 || !ach.feedback.stats.unique_cmps.has('='))}
+					<AssetCardList
+						assets={achievements.filter(ach => ach.feedback.stats.unique_cmps.size > 1 || !ach.feedback.stats.unique_cmps.has('='))}
 						label={<>Using non-equality comparators</>}
 					/>
 				</ul>
 				<li>Memory Sizes used ({stats.all_sizes.size}): <KeywordList list={[...stats.all_sizes].map(x => x.name)} /></li>
 				<ul>
-					<AchievementCardList
-						achs={achievements.filter(ach => ach.feedback.stats.unique_sizes.size > 1 || !ach.feedback.stats.unique_sizes.has(MemSize.BYTE))}
+					<AssetCardList
+						assets={achievements.filter(ach => ach.feedback.stats.unique_sizes.size > 1 || !ach.feedback.stats.unique_sizes.has(MemSize.BYTE))}
 						label={<>Using sizes other than <code>8-bit</code></>}
 						warn={[Feedback.TYPE_MISMATCH, ]}
 					/>
-					<AchievementCardList
-						achs={stats.using_bit_ops}
+					<AssetCardList
+						assets={stats.using_bit_ops}
 						label={<>Using bit operations (<code>BitX</code> or <code>BitCount</code>)</>}
 					/>
 				</ul>
 				<li><code>Mem</code> & <code>Delta</code> Usage</li>
 				<ul>
-					<AchievementCardList
-						achs={achievements.filter(ach => ach.feedback.issues.some(g => g.some(x => x.type == Feedback.MISSING_DELTA)))} 
+					<AssetCardList
+						assets={achievements.filter(ach => ach.feedback.issues.some(g => g.some(x => x.type == Feedback.MISSING_DELTA)))} 
 						label={<>Lacking <code>Delta</code></>}
 					/>
-					<AchievementCardList
-						achs={achievements.filter(ach => ach.feedback.issues.some(g => g.some(x => x.type == Feedback.IMPROPER_DELTA)))}
+					<AssetCardList
+						assets={achievements.filter(ach => ach.feedback.issues.some(g => g.some(x => x.type == Feedback.IMPROPER_DELTA)))}
 						label={<>Using <code>Delta</code> improperly or insufficiently</>}
 					/>
 				</ul>
-				<AchievementCardList
-					achs={stats.using_alt_groups}
+				<AssetCardList
+					assets={stats.using_alt_groups}
 					label={<>Using Alt groups</>}
 					warn={[Feedback.COMMON_ALT, Feedback.USELESS_ALT, ]}
 				/>
 				<li>Hitcounts</li>
 				<ul>
-					<AchievementCardList
-						achs={stats.using_checkpoint_hits}
+					<AssetCardList
+						assets={stats.using_checkpoint_hits}
 						label={<>Using Checkpoint hits</>}
 						warn={[Feedback.HIT_NO_RESET, Feedback.RESET_HITCOUNT_1, ]}
 					/>
-					<AchievementCardList
-						achs={stats.using_hitcounts}
+					<AssetCardList
+						assets={stats.using_hitcounts}
 						label={<>Using hitcounts (<code>&gt;1</code>)</>}
 						warn={[Feedback.HIT_NO_RESET, ]}
 					/>
 				</ul>
 				<li>Specific Flags</li>
 				<ul>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.RESETIF}
 						warn={[Feedback.PAUSELOCK_NO_RESET, Feedback.HIT_NO_RESET, Feedback.UUO_RESET, Feedback.RESET_HITCOUNT_1, ]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.PAUSEIF}
 						warn={[Feedback.PAUSELOCK_NO_RESET, Feedback.UUO_PAUSE, Feedback.PAUSING_MEASURED, ]}
 					/>
@@ -968,18 +985,18 @@ function CodeReviewOverview()
 			</ul>
 			<h1>Intermediate Toolkit</h1>
 			<ul>
-				<AchievementCardList
-					achs={achievements.filter(ach => ach.feedback.stats.priors > 0)}
+				<AssetCardList
+					assets={achievements.filter(ach => ach.feedback.stats.priors > 0)}
 					label={<>Using <code>Prior</code></>}
 					warn={[Feedback.BAD_PRIOR, ]}
 				/>
 				<li>Specific Flags</li>
 				<ul>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.ANDNEXT}
 						warn={[Feedback.USELESS_ANDNEXT, ]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.ADDHITS}
 						warn={[Feedback.HIT_NO_RESET, ]}
 					/>
@@ -989,80 +1006,80 @@ function CodeReviewOverview()
 			<ul>
 				<li>PauseLocks</li>
 				<ul>
-					<AchievementCardList
-						achs={stats.using_pauselock}
+					<AssetCardList
+						assets={stats.using_pauselock}
 						label={<>PauseLocks</>}
 						warn={[Feedback.PAUSELOCK_NO_RESET, ]}
 					/>
-					<AchievementCardList
-						achs={stats.using_pauselock_alt_reset}
+					<AssetCardList
+						assets={stats.using_pauselock_alt_reset}
 						label={<>PauseLocks (with Alt resets)</>}
 						warn={[Feedback.PAUSELOCK_NO_RESET, ]}
 					/>
 				</ul>
-				<AchievementCardList
-					achs={achievements.filter(ach => ach.feedback.stats.mem_del > 0)}
+				<AssetCardList
+					assets={achievements.filter(ach => ach.feedback.stats.mem_del > 0)}
 					label={<>Using a <code>Mem</code> &ne; <code>Delta</code> counter</>}
 					warn={[]}
 				/>
 				<li>Specific Flags</li>
 				<ul>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.RESETNEXTIF}
 						warn={[Feedback.PAUSELOCK_NO_RESET, Feedback.HIT_NO_RESET, Feedback.UUO_RNI, ]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.SUBHITS}
 						warn={[Feedback.HIT_NO_RESET, ]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.ADDADDRESS}
 						warn={[Feedback.STALE_ADDADDRESS, ]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.ADDSOURCE}
 						warn={[]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.SUBSOURCE}
 						warn={[]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.MEASURED}
 						warn={[Feedback.PAUSING_MEASURED, ]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.MEASUREDP}
 						warn={[Feedback.PAUSING_MEASURED, ]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.MEASUREDIF}
 						warn={[]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.TRIGGER}
 						warn={[]}
 					/>
-					<AchievementsByFlag
+					<AssetsByFlag
 						flag={ReqFlag.ORNEXT}
 						warn={[]}
 					/>
 				</ul>
-				<AchievementCardList
-					achs={achievements.filter(ach => [...ach.feedback.stats.source_modification.values()].some(x => x > 0))}
+				<AssetCardList
+					assets={achievements.filter(ach => [...ach.feedback.stats.source_modification.values()].some(x => x > 0))}
 					label={<>Using source modification</>}
 					warn={[]}
 				/>
 			</ul>
 			<h1>Other Details</h1>
 			<ul>
-				<AchievementCardList
-					achs={achievements.filter(ach => ach.points == 25)}
+				<AssetCardList
+					assets={achievements.filter(ach => ach.points == 25)}
 					label={<>Achievements worth 25 points</>}
 					warn={[]}
 				/>
-				<AchievementCardList
-					achs={achievements.filter(ach => ach.points > 25)}
+				<AssetCardList
+					assets={achievements.filter(ach => ach.points > 25)}
 					label={<>Achievements worth &gt;25 points</>}
 					warn={[]}
 				/>
