@@ -1084,6 +1084,8 @@ function CodeReviewOverview()
 					warn={[]}
 				/>
 			</ul>
+			<h1>Badge Grid</h1>
+			<BadgeGrid set={current.set} />
 		</div>
 	</>)
 }
@@ -1249,7 +1251,7 @@ function HighlightedRichPresence({script, update = null})
 				const logic = Logic.fromString(elt.innerText, elt.classList.contains('value'));
 				update(<LogicTable logic={logic} />);
 			}
-	});
+	}, []);
 
 	function addLookups(t)
 	{ return t.replaceAll(/(@([ _a-z][ _a-z0-9]*)\((.+?)\))/gi, '<span class="lookup">@<span class="link">$2</span>(<span class="value logic">$3</span>)</span>'); }
@@ -1319,6 +1321,75 @@ function RichPresenceOverview()
 
 		<AssetFeedback issues={feedback.issues} />
 	</>);
+}
+
+function BadgeGrid({set = current.set})
+{
+	const PADDING = 10;
+	const ROWLEN = 10;
+	let achs = set.getAchievements();
+
+	const HEIGHT = PADDING + 96 + PADDING + (64 + PADDING) * Math.ceil(achs.length / ROWLEN);
+	const WIDTH = 2 * PADDING + (64 + PADDING) * ROWLEN;
+
+	let canvasRef = React.useRef();
+	React.useEffect(() => {
+		const canvas = canvasRef.current;
+		if (canvas) { // Ensure the canvas element exists
+			const ctx = canvas.getContext('2d');
+			function drawTo(url, x, y)
+			{
+				const img = new Image();
+				img.src = url;
+				img.onload = () => { ctx.drawImage(img, x, y); }
+			}
+
+			ctx.fillStyle = '#2b374a';
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+			drawTo(set.icon, PADDING, PADDING);
+			ctx.fillStyle = '#111111';
+			ctx.fillRect(PADDING+3, PADDING+3, 96, 96);
+			let x = 2 * PADDING, y = PADDING + 96 - 64;
+
+			let authorlist = [];
+			for (let [i, ach] of achs.entries())
+			{
+				if (i % ROWLEN == 0) { x = 2 * PADDING; y += 64 + PADDING; }
+				ctx.fillStyle = '#111111';
+				ctx.fillRect(x+3, y+3, 64, 64);
+				drawTo(ach.badge, x, y);
+				x += 64 + PADDING;
+				if (ach.author) authorlist.push(ach.author);
+			}
+
+			let authcount = [], authors = new Set(authorlist);
+			for (let auth of authors) authcount.push([auth, authorlist.filter((x) => x == auth).length]);
+			authcount.sort(([a, _1], [b, _2]) => b-a)
+
+			function dropShadow(text, x, y, font=null, maxwidth=10000)
+			{
+				if (font) ctx.font = font;
+				ctx.fillStyle = 'black';
+				ctx.fillText(text, x + 2, y + 2, maxwidth);
+				ctx.fillStyle = 'white';
+				ctx.fillText(text, x, y, maxwidth);
+			}
+
+			ctx.textBaseline = 'top';
+			dropShadow(set.title, 
+				PADDING + 96 + PADDING + 5, PADDING + 5, 'bold 32px serif', WIDTH - (x - 200));
+			dropShadow("Set developed by " + authcount.map(([a, _]) => a).join(', '), 
+				PADDING + 96 + PADDING + 10, PADDING + 48, '18px serif', WIDTH - (x - 200));
+
+			ctx.textBaseline = 'middle';
+			ctx.textAlign = 'right';
+			dropShadow(set.console.name, WIDTH - (2 * PADDING + 32 + PADDING), PADDING + 16, '12px serif');
+			drawTo(`https://static.retroachievements.org/assets/images/system/${set.console.icon}.png`, WIDTH - 2 * PADDING - 32, PADDING);
+		}
+	}, []);
+
+	return (<canvas ref={canvasRef} width={WIDTH} height={HEIGHT}></canvas>);
 }
 
 function RecentlyLoaded(data)
@@ -1416,6 +1487,7 @@ function AchievementTabs()
 	if (achievements.length == 0) return null;
 
 	// preload all images
+	new Image().src = current.set.icon;
 	for (let ach of achievements) new Image().src = ach.badge;
 
 	achievements = achievements.sort((a, b) => a.state.rank - b.state.rank);
@@ -1463,7 +1535,7 @@ function SidebarTabs()
 			let first = document.querySelector('#list-body .asset-row');
 			if (first) first.click();
 		}
-	})
+	}, []);
 
 	return (<>
 		<SetOverviewTab />
