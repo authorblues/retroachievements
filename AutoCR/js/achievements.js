@@ -1,12 +1,48 @@
+class MemRegion
+{
+	start;
+	end;
+	name;
+	isError = false;
+
+	constructor(start, end, name, isError=false)
+	{
+		this.start = start;
+		this.end = end;
+		this.name = name;
+		this.isError = isError;
+	}
+}
+
+// region data should be cross-referenced with
+// https://github.com/RetroAchievements/rcheevos/blob/develop/src/rcheevos/consoleinfo.c
 const Console = Object.freeze({
 	// Nintendo
 	GB: { id: 4, name: "Game Boy", icon: "gb", 
 		regions: [
-			
+			new MemRegion(0x0000, 0x7FFF, "ROM Data", true),
+			new MemRegion(0x8000, 0x9FFF, "Graphics Data", false),
+			new MemRegion(0xE000, 0xFDFF, "Echo RAM", true),
+			new MemRegion(0xFE00, 0xFE9F, "Graphics Data", false),
+			new MemRegion(0xFEA0, 0xFF7F, "Unusable Memory", true),
 		]},
-	GBC: { id: 6, name: "Game Boy Color", icon: "gbc", },
+	GBC: { id: 6, name: "Game Boy Color", icon: "gbc", 
+		regions: [
+			new MemRegion(0x0000, 0x3FFF, "ROM Bank", true),
+			new MemRegion(0x4000, 0x7FFF, "Switchable ROM Bank", true),
+			new MemRegion(0x8000, 0x9FFF, "Graphics Data", false),
+			new MemRegion(0xE000, 0xFDFF, "Echo RAM", true),
+			new MemRegion(0xFE00, 0xFE9F, "Graphics Data", false),
+			new MemRegion(0xFEA0, 0xFF7F, "Unusable Memory", true),
+		]},
 	GBA: { id: 5, name: "Game Boy Advance", icon: "gba", },
-	NES: { id: 7, name: "NES/Famicom", icon: "nes", },
+	NES: { id: 7, name: "NES/Famicom", icon: "nes", 
+		regions: [
+    		new MemRegion(0x0800, 0x0FFF, "Mirror RAM", true),
+    		new MemRegion(0x1000, 0x17FF, "Mirror RAM", true),
+    		new MemRegion(0x1800, 0x1FFF, "Mirror RAM", true),
+    		new MemRegion(0x2008, 0x3FFF, "Mirrored PPU Registers", true),
+		]},
 	SNES: { id: 3, name: "SNES/Super Famicom", icon: "snes", },
 	N64: { id: 2, name: "Nintendo 64", icon: "n64", },
 	GCN: { id: 16, name: "GameCube", icon: "gc", },
@@ -18,12 +54,20 @@ const Console = Object.freeze({
 
 	// Sony
 	PSX: { id: 12, name: "PlayStation", icon: "ps1", },
-	PS2: { id: 21, name: "PlayStation 2", icon: "ps2", },
+	PS2: { id: 21, name: "PlayStation 2", icon: "ps2",
+		regions: [
+			new MemRegion(0x1FE0000, 0x1FFFFFF, "Probable Stack", false),
+		]},
 	PSP: { id: 41, name: "PlayStation Portable", icon: "psp", },
 	
 	// Atari
 	A2600: { id: 25, name: "Atari 2600", icon: "2600", },
-	A7800: { id: 51, name: "Atari 7800", icon: "7800", },
+	A7800: { id: 51, name: "Atari 7800", icon: "7800", 
+		regions: [
+    		new MemRegion(0x002800, 0x002FFF, "Mirror RAM", true),
+    		new MemRegion(0x003000, 0x0037FF, "Mirror RAM", true),
+    		new MemRegion(0x003800, 0x003FFF, "Mirror RAM", true),
+		]},
 	JAG: { id: 17, name: "Atari Jaguar", icon: "jag", },
 	JCD: { id: 77, name: "Atari Jaguar CD", icon: "jcd", },
 	LYNX: { id: 13, name: "Atari Lynx", icon: "lynx", },
@@ -56,7 +100,10 @@ const Console = Object.freeze({
 	A2001: { id: 73, name: "Arcadia 2001", icon: "a2001", },
 	ARD: { id: 71, name: "Arduboy", icon: "ard", },
 	CV: { id: 44, name: "ColecoVision", icon: "cv", },
-	ELEK: { id: 75, name: "Elektor TV Games Computer", icon: "elek", },
+	ELEK: { id: 75, name: "Elektor TV Games Computer", icon: "elek",
+		regions: [
+    		new MemRegion(0x001400, 0x0014FF, "Unused / Mirror", true),
+		]},
 	CHF: { id: 57, name: "Fairchild Channel F", icon: "chf", },
 	INTV: { id: 45, name: "Intellivision", icon: "intv", },
 	VC4000: { id: 74, name: "Interton VC 4000", icon: "vc4000", },
@@ -227,8 +274,9 @@ class AchievementSet
 		this.id = json.ID;
 		this.title = json.Title;
 		this.icon = json.ImageIconUrl || json.ImageIconURL;
-		this.consoleId = json.ConsoleId || json.ConsoleID;
-		this.console = this.consoleId in ConsoleMap ? ConsoleMap[this.consoleId] : null;
+
+		let cid = json.ConsoleId || json.ConsoleID;
+		this.console = cid in ConsoleMap ? ConsoleMap[cid] : null;
 
 		let achJson = [], ldbJson = [];
 		if ('Achievements' in json) achJson.push(...json.Achievements);

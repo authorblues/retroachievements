@@ -414,7 +414,7 @@ function LogicGroup({group, gi, logic, issues})
 				chain_context = [];
 			}
 			
-			return (<tr key={`g${gi}-r${ri}`} className={`${match.some(([_, issue]) => issue.type.severity >= FeedbackSeverity.WARN) ? 'warn' : ''} ${req.toRefString()} ${req.flag ? ('flag-' + req.flag.name) : ''}`}>
+			return (<tr key={`g${gi}-r${ri}`} className={`${match.some(([_, issue]) => issue.severity >= FeedbackSeverity.WARN) ? 'warn' : ''} ${req.toRefString()} ${req.flag ? ('flag-' + req.flag.name) : ''}`}>
 				<td>{ri + 1} {match.map(([ndx, _]) => 
 					<React.Fragment key={ndx}>{' '} <sup key={ndx}>(#{ndx+1})</sup></React.Fragment>)}</td>
 				<td>{req.flag ? req.flag.name : ''}</td>
@@ -886,7 +886,7 @@ function CodeReviewOverview()
 	{
 		let body = assets.map(asset => (
 			<AssetCard key={asset.id} asset={asset} 
-				warn={asset.feedback.issues.some(g => g.some(issue => warn.includes(issue.type) && issue.type.severity > FeedbackSeverity.PASS))}
+				warn={asset.feedback.issues.some(g => g.some(issue => warn.includes(issue.type) && issue.severity > FeedbackSeverity.PASS))}
 			/>
 		));
 

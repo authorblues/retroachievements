@@ -161,10 +161,12 @@ class Issue
 {
 	type;
 	target;
+	severity;
 	detail = [];
 	constructor(type, target, detail = null)
 	{
 		this.type = type;
+		this.severity = type.severity;
 		this.target = target;
 		this.detail = detail;
 	}
@@ -196,7 +198,7 @@ class Assessment
 	constructor() {  }
 
 	#allissues() { return [].concat(...this.issues); }
-	status() { return Math.max(FeedbackSeverity.PASS, ...this.#allissues().map(x => x.type.severity)); }
+	status() { return Math.max(FeedbackSeverity.PASS, ...this.#allissues().map(x => x.severity)); }
 	pass() { return this.status() < FeedbackSeverity.WARN; }
 }
 
@@ -1035,6 +1037,30 @@ function* check_brackets(asset)
 		yield new Issue(Feedback.DESC_BRACKETS, 'desc');
 }
 
+function* check_notes_bad_regions(notes)
+{
+	const regions = current.set?.console?.regions || [];
+	let ri = 0;
+	for (let note of notes)
+	{
+		while (ri < regions.length && note.addr > regions[ri].end) ri++;
+		if (ri >= regions.length) return;
+
+		const r = regions[ri];
+		if (note.addr >= r.start)
+		{
+			let issue = new Issue(Feedback.BAD_REGION_NOTE, note,
+				<ul>
+					<li>Code note at <code className="ref-link" data-ref={note.addr}>{toDisplayHex(note.addr)}</code></li>
+					<li>Appears in the {r.name} region (<code>{toDisplayHex(r.start)}-{toDisplayHex(r.end)}</code>)</li>
+				</ul>);
+			// dynamically adjust severity of the issue depending on the region
+			issue.severity = r.isError ? FeedbackSeverity.WARN : FeedbackSeverity.INFO;
+			yield issue;
+		}
+	}
+}
+
 function* check_notes_missing_size(notes)
 {
 	for (const note of notes)
@@ -1271,6 +1297,7 @@ const PRESENTATION_TESTS = [
 ];
 
 const CODE_NOTE_TESTS = [
+	check_notes_bad_regions,
 	check_notes_missing_size,
 	check_notes_enum_hex,
 	check_notes_enum_size_mismatch,
