@@ -175,7 +175,10 @@ class Achievement extends Asset
 		ach.state = AssetState.CORE;
 		if (json.Flags == 5) ach.state = AssetState.UNOFFICIAL;
 
-		ach.logic = Logic.fromString(json.MemAddr, false);
+		try {
+			ach.logic = Logic.fromString(json.MemAddr, false);
+		}
+		catch (e) { console.error(e); return null; }
 		return ach;
 	}
 	
@@ -191,7 +194,10 @@ class Achievement extends Asset
 		ach.badge = `https://media.retroachievements.org/Badge/${row[13]}.png`
 		
 		ach.state = AssetState.LOCAL;
-		ach.logic = Logic.fromString(row[1], false);
+		try {
+			ach.logic = Logic.fromString(row[1], false);
+		}
+		catch (e) { console.error(e); return null; }
 		return ach;
 	}
 }
@@ -216,12 +222,16 @@ class Leaderboard extends Asset
 		lb.lower_is_better = json.LowerIsBetter;
 
 		lb.components = {};
-		for (let part of json.Mem.split("::"))
-		{
-			let tag = part.substring(0, 3);
-			let mem = part.substring(4);
-			lb.components[tag] = Logic.fromString(mem, tag == 'VAL');
+		try {
+			for (let part of json.Mem.split("::"))
+			{
+				let tag = part.substring(0, 3);
+				let mem = part.substring(4);
+				lb.components[tag] = Logic.fromString(mem, tag == 'VAL');
+			}
 		}
+		catch (e) { console.error(e); return null; }
+
 		lb.state = AssetState.CORE;
 		return lb;
 	}
@@ -235,12 +245,16 @@ class Leaderboard extends Asset
 		lb.format = FormatTypeMap[row[5]];
 		lb.lower_is_better = row[8] == '1';
 
-		lb.components = {
-			'STA': Logic.fromString(row[1], false),
-			'CAN': Logic.fromString(row[2], false),
-			'SUB': Logic.fromString(row[3], false),
-			'VAL': Logic.fromString(row[4], true),
+		try {
+			lb.components = {
+				'STA': Logic.fromString(row[1], false),
+				'CAN': Logic.fromString(row[2], false),
+				'SUB': Logic.fromString(row[3], false),
+				'VAL': Logic.fromString(row[4], true),
+			}
 		}
+		catch (e) { console.error(e); return null; }
+
 		lb.state = AssetState.LOCAL;
 		return lb;
 	}
@@ -290,7 +304,7 @@ class AchievementSet
 		for (const [i, x] of achJson.entries())
 		{
 			let asset = Achievement.fromJSON(x);
-			if (!asset.needsFeedback()) continue;
+			if (!asset || !asset.needsFeedback()) continue;
 			asset.index = i; // to preserve order from json file
 			this.achievements.set(asset.id || asset.index, asset);
 		}
@@ -298,7 +312,7 @@ class AchievementSet
 		for (let [i, x] of ldbJson.entries())
 		{
 			let asset = Leaderboard.fromJSON(x);
-			if (x.Hidden || !asset.needsFeedback()) continue;
+			if (x.Hidden || !asset || !asset.needsFeedback()) continue;
 			asset.index = i; // to preserve order from json file
 			this.leaderboards.set(asset.id || asset.index, asset);
 		}
@@ -350,13 +364,13 @@ class AchievementSet
 				case 'L': // leaderboard
 					asset = Leaderboard.fromLocal(row);
 					asset.index = i + 1000000; // preserve order from file
-					if (!asset.needsFeedback()) continue;
+					if (!asset || !asset.needsFeedback()) continue;
 					this.leaderboards.set(asset.id || asset.index, asset);
 					break;
 				default: // achievement
 					asset = Achievement.fromLocal(row);
 					asset.index = i + 1000000; // preserve order from file
-					if (!asset.needsFeedback()) continue;
+					if (!asset || !asset.needsFeedback()) continue;
 					this.achievements.set(asset.id || asset.index, asset);
 					break;
 			}

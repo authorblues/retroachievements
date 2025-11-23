@@ -1631,7 +1631,7 @@ function main(event)
 						for (const obj of data.notes) if (obj.Note)
 							current.notes.add(new CodeNote(obj.Address, obj.Note, obj.User));
 						update();
-						document.querySelectorAll('#list-body .asset-row')[0].click();
+						document.querySelectorAll('#list-body .asset-row')[0]?.click();
 					})
 					.catch(error => {
 						console.error('Error fetching data:', error);
