@@ -131,6 +131,13 @@ footer
 	overflow-x: scroll;
 }
 
+#load-by-game-id
+{
+	font-size: 125%;
+	text-align: center;
+	padding-bottom: 25px;
+}
+
 #ui-instructions
 {
 	color: red;

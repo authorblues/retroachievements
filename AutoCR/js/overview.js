@@ -30,6 +30,10 @@ function reset_loaded()
 	clearSelected();
 }
 
+document.getElementById('load-game-id').addEventListener('click', () => {
+	location.hash = '#!/game/' + document.getElementById('game-id').value;
+});
+
 filePicker.addEventListener('change', () => {
 	load_files(filePicker.files);
 });
@@ -42,7 +46,6 @@ function __noop(event)
 
 document.ondragover = __noop;
 document.ondragenter = __noop;
-
 
 document.ondrop = function(event)
 {
