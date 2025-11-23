@@ -1396,9 +1396,6 @@ function show_overview(e, node)
 
 function update()
 {
-	// save data to localstorage so it can be reloaded on later visits
-	add_metadata_cache(current.id, get_game_title(), current.set.getAchievements().length);
-
 	// assess all code notes
 	current.notes.sort((a, b) => a.addr - b.addr);
 	assess_code_notes(current.notes);
