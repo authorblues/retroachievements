@@ -1,0 +1,11 @@
+{
+  "name": "vercel-bun-express",
+  "type": "module",
+  "scripts": {
+    "start": "bun index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.0"
+  }
+}

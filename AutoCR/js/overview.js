@@ -1606,5 +1606,39 @@ function load_rich_presence(txt, from_file)
 	update();
 }
 
-//load_file_cache();
-load_recent_sets();
+function main(event)
+{
+	reset_loaded();
+	if (location.hash.startsWith('#!/'))
+	{
+		let parts = location.hash.toLowerCase().split('/');
+		switch (parts[1])
+		{
+			case 'game':
+				console.log('fetching', parts[2]);
+				fetch('https://autocr-tools.vercel.app/pack/' + parts[2])
+					.then(response => {
+						if (!response.ok)
+							throw new Error(`HTTP error! status: ${response.status}`);
+						return response.json();
+					})
+					.then(data => {
+						current.set.addJSON(data.game);
+						if (data.game.RichPresencePatch)
+							load_rich_presence(data.game.RichPresencePatch, false);
+						for (const obj of data.notes) if (obj.Note)
+							current.notes.add(new CodeNote(obj.Address, obj.Note, obj.User));
+						update();
+						document.querySelectorAll('#list-body .asset-row')[0].click();
+					})
+					.catch(error => {
+						console.error('Error fetching data:', error);
+					});
+				return;
+		}
+	}
+	else load_recent_sets();
+}
+
+main();
+window.onhashchange = main;
