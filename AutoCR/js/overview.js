@@ -1623,6 +1623,7 @@ function main(event)
 						return response.json();
 					})
 					.then(data => {
+						current.id = data.game?.GameId;
 						current.set.addJSON(data.game);
 						if (data.game.RichPresencePatch)
 							load_rich_presence(data.game.RichPresencePatch, false);
