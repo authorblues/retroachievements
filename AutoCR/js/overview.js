@@ -1616,6 +1616,7 @@ function main(event)
 		{
 			case 'game':
 				console.log('fetching', parts[2]);
+				document.getElementById("loading-overlay").classList.add('shown');
 				fetch('https://autocr-tools.vercel.app/pack/' + parts[2])
 					.then(response => {
 						if (!response.ok)
@@ -1634,6 +1635,9 @@ function main(event)
 					})
 					.catch(error => {
 						console.error('Error fetching data:', error);
+					})
+					.finally(() => {
+						document.getElementById("loading-overlay").classList.remove('shown');
 					});
 				return;
 		}

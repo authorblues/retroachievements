@@ -549,6 +549,39 @@ input:checked + .slider:before {
 	transform: translateX(24px);
 }
 
+#loading-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+
+	background: rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(2px);
+
+	display: none;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+}
+
+#loading-overlay.shown {
+	display: flex !important;
+}
+
+#loading-overlay .spinner {
+	width: 60px;
+	height: 60px;
+	border: 8px solid #ccc;
+	border-top: 8px solid #4aa3ff;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
 /* --- Dark Theme --- */
 body.dark-theme {
 	background-color: #1E1E1E;
