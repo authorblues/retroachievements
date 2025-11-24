@@ -206,7 +206,7 @@ async function copy_to_clipboard(text)
 }
 
 function jump_to_asset(asset)
-{ document.getElementById('asset-list').getElementsByClassName(asset?.toRefString?.()).item(0)?.click(); }
+{ document.getElementById(asset?.toRefString?.())?.click(); }
 
 function OperandCells({operand, skipNote = false, chainInfo = []})
 {
@@ -303,7 +303,7 @@ function LogicGroup({group, gi, logic, issues})
 				chain_context = [];
 			}
 			
-			return (<tr key={`g${gi}-r${ri}`} className={`${match.some(([_, issue]) => issue.severity >= FeedbackSeverity.WARN) ? 'warn' : ''} ${req.toRefString()} ${req.flag ? ('flag-' + req.flag.name) : ''}`}>
+			return (<tr key={`g${gi}-r${ri}`} id={req.toRefString()} className={`${match.some(([_, issue]) => issue.severity >= FeedbackSeverity.WARN) ? 'warn' : ''} ${req.flag ? ('flag-' + req.flag.name) : ''}`}>
 				<td>{ri + 1} {match.map(([ndx, _]) => 
 					<React.Fragment key={ndx}>{' '} <sup key={ndx}>(#{ndx+1})</sup></React.Fragment>)}</td>
 				<td>{req.flag ? req.flag.name : ''}</td>
@@ -415,7 +415,7 @@ function IssueList({issues = []})
 		<li key={i}>
 			<sup>(<a href="#" onClick={() => {
 				let ctarget = typeof issue.target == 'string' ? `asset-${issue.target}` : issue.target?.toRefString();
-				if (ctarget) scrollTo(document.getElementsByClassName(ctarget).item(0));
+				if (ctarget) scrollTo(document.getElementById(ctarget));
 			}}>#{i+1}</a>)</sup> {issue.type.desc}
 			{issue.type.ref.map((ref, i) => <React.Fragment key={i}>
 				<sup key={ref}>[<a href={ref}>ref</a>]</sup>
@@ -510,13 +510,13 @@ function AchievementInfo({ach})
 					Copy Markdown Link
 				</button>
 			</div>
-			<h2 className="asset-title">
+			<h2 id="asset-title">
 				🏆 <span className={`${feedback_targets.has("title") ? 'warn' : ''}`}>{ach.title}</span> ({ach.points})
 			</h2>
 			<div className="float-right">
 				<em>{`[${[ach.state.name, ach.achtype].filter(x => x).join(', ')}]`}</em>
 			</div>
-			<p className="asset-desc">
+			<p id="asset-desc">
 				<span className={`${feedback_targets.has("desc") ? 'warn' : ''}`}>{ach.desc}</span>
 			</p>
 		</div>
@@ -564,13 +564,13 @@ function LeaderboardInfo({lb})
 	return (<>
 		<div className="main-header">
 			<SetBadge href={`https://retroachievements.org/leaderboardinfo.php?i=${lb.id}`} />
-			<h2 className="asset-title">
+			<h2 id="asset-title">
 				📊 <span className={`${feedback_targets.has("title") ? 'warn' : ''}`}>{lb.title}</span>
 			</h2>
 			<div className="float-right">
 				<em>{`[${[lb.state.name, ].filter(x => x).join(', ')}]`}</em>
 			</div>
-			<p className="asset-desc">
+			<p id="asset-desc">
 				<span className={`${feedback_targets.has("desc") ? 'warn' : ''}`}>{lb.desc}</span>
 			</p>
 		</div>
@@ -679,7 +679,7 @@ function AchievementSetOverview()
 				<ConsoleIcon />
 			</div>
 			<SetBadge />
-			<h1 className="asset-title">
+			<h1 id="asset-title">
 				{get_game_title()}
 			</h1>
 			<p>
@@ -802,7 +802,7 @@ function CodeReviewOverview()
 				<ConsoleIcon />
 			</div>
 			<SetBadge />
-			<h1 className="asset-title">
+			<h1 id="asset-title">
 				{get_game_title()}
 			</h1>
 			<p>
@@ -1000,7 +1000,7 @@ function CodeNotesTable({notes = [], issues = []})
 			</thead>
 			<tbody>
 				{notes.map(note => (
-					<tr key={note.addr} className={`${issues.some(x => x.target == note) ? 'warn ' : ''}${note.toRefString()}`}>
+					<tr key={note.addr} id={note.toRefString()} className={issues.some(x => x.target == note) ? 'warn' : ''}>
 						<td>{toDisplayHex(note.addr)}{note.isArray() ? (<><br/>&#x2010;&nbsp;{toDisplayHex(note.addr + note.size - 1)}</>) : <></>}</td>
 						<td><pre>{note.note}</pre></td>
 						<td>
@@ -1042,7 +1042,7 @@ function CodeNotesOverview()
 				<ConsoleIcon />
 			</div>
 			<SetBadge href={`https://retroachievements.org/codenotes.php?g=${current.id}`} />
-			<h1 className="asset-title">
+			<h1 id="asset-title">
 				{get_game_title()}
 			</h1>
 			<ul className="list-inside">
@@ -1182,7 +1182,7 @@ function RichPresenceOverview()
 				<ConsoleIcon />
 			</div>
 			<SetBadge />
-			<h1 className="asset-title">
+			<h1 id="asset-title">
 				{get_game_title()}
 			</h1>
 		</div>
@@ -1286,7 +1286,12 @@ function SetOverviewTab()
 {
 	if (current.set == null) return null;
 	let warn = SEVERITY_TO_CLASS[current.set.feedback.status()];
-	return (<tr className={`asset-row asset-set-overview ${warn}`} onClick={(e) => show_overview(e, <AchievementSetOverview />)}>
+	return (
+	<tr
+		id="asset-set-overview" className={`asset-row ${warn}`}
+		data-route=""
+		onClick={(e) => show_overview(e, <AchievementSetOverview />)}
+	>
 		<td className="asset-name">
 			🗺️ Set Overview
 		</td>
@@ -1296,7 +1301,12 @@ function SetOverviewTab()
 function CodeReviewTab()
 {
 	if (current.set == null) return null;
-	return (<tr className={`asset-row asset-code-review`} onClick={(e) => show_overview(e, <CodeReviewOverview />)}>
+	return (
+	<tr
+		id="asset-code-review" className={`asset-row`} 
+		data-route="/review"
+		onClick={(e) => show_overview(e, <CodeReviewOverview />)}
+	>
 		<td className="asset-name">
 			🔍 Detailed Set Breakdown
 		</td>
@@ -1307,7 +1317,12 @@ function CodeNotesTab()
 {
 	if (current.notes.length == 0) return null;
 	let warn = SEVERITY_TO_CLASS[current.notes.feedback.status()];
-	return (<tr className={`asset-row asset-code-notes ${warn}`} onClick={(e) => show_overview(e, <CodeNotesOverview />)}>
+	return (
+	<tr 
+		id="asset-code-notes" className={`asset-row ${warn}`} 
+		data-route="/notes"
+		onClick={(e) => show_overview(e, <CodeNotesOverview />)}
+	>
 		<td className="asset-name">
 			📝 Code Notes
 		</td>
@@ -1318,7 +1333,12 @@ function RichPresenceTab()
 {
 	if (!current.rp) return null;
 	let warn = SEVERITY_TO_CLASS[current.rp.feedback.status()];
-	return (<tr className={`asset-row asset-rich-presence ${warn}`} onClick={(e) => show_overview(e, <RichPresenceOverview />)}>
+	return (
+	<tr 
+		id="asset-rich-presence" className={`asset-row ${warn}`} 
+		data-route="/richp"
+		onClick={(e) => show_overview(e, <RichPresenceOverview />)}
+	>
 		<td className="asset-name">
 			🎮 Rich Presence
 		</td>
@@ -1341,7 +1361,12 @@ function AchievementTabs()
 		</tr>
 		{achievements.map((ach) => {
 			let warn = SEVERITY_TO_CLASS[ach.feedback.status()];
-			return (<tr key={`a${ach.id}`} className={`asset-row ${ach.toRefString()} ${warn}`} onClick={(e) => show_overview(e, <AchievementInfo ach={ach} />)}>
+			return (
+			<tr 
+				key={`a${ach.id}`} id={ach.toRefString()} className={`asset-row ${warn}`} 
+				data-route={`/achievement/${ach.id}`}
+				onClick={(e) => show_overview(e, <AchievementInfo ach={ach} />)}
+			>
 				<td className="asset-name">
 					🏆 {ach.state.marker}{ach.title} ({ach.points})
 				</td>
@@ -1362,7 +1387,12 @@ function LeaderboardTabs()
 		</tr>
 		{leaderboards.map((lb) => {
 			let warn = SEVERITY_TO_CLASS[lb.feedback.status()];
-			return (<tr key={`b${lb.id}`} className={`asset-row ${lb.toRefString()} ${warn}`} onClick={(e) => show_overview(e, <LeaderboardInfo lb={lb} />)}>
+			return (
+			<tr 
+				key={`b${lb.id}`} id={lb.toRefString()} className={`asset-row ${warn}`} 
+				data-route={`/leaderboard/${lb.id}`}
+				onClick={(e) => show_overview(e, <LeaderboardInfo lb={lb} />)}
+			>
 				<td className="asset-name">
 					📊 {lb.state.marker}{lb.title}
 				</td>
@@ -1373,13 +1403,8 @@ function LeaderboardTabs()
 
 function SidebarTabs()
 {
-	React.useEffect(() => {
-		if (document.querySelectorAll('#list-body .selected').length == 0)
-		{
-			let first = document.querySelector('#list-body .asset-row');
-			if (first) first.click();
-		}
-	}, []);
+	// when the sidebar updates, trigger a route change
+	React.useEffect(route_change, []);
 
 	return (<>
 		<SetOverviewTab />
@@ -1395,6 +1420,9 @@ function show_overview(e, node)
 {
 	container.render(node);
 	selectTab(e.currentTarget);
+
+	let route = e.currentTarget.getAttribute('data-route');
+	history.pushState({}, '', `#!/game/${current.id}${route}`);
 }
 
 function update()
@@ -1447,16 +1475,50 @@ function load_rich_presence(txt, from_file)
 	update();
 }
 
+function route_change()
+{
+	let parts = location.hash.toLowerCase().split('/');
+	switch (parts[3] ?? "") // choose a route
+	{
+		case 'ach':
+		case 'achievement':
+			jump_to_asset(current.set.achievements.get(+parts[4]));
+			break;
+		case 'lb':
+		case 'leaderboard':
+			jump_to_asset(current.set.leaderboards.get(+parts[4]));
+			break;
+		case 'notes':
+		case 'codenotes':
+		case 'code-notes':
+		case 'memory':
+			document.getElementById('asset-code-notes')?.click();
+			break;
+		case 'richp':
+		case 'richpresence':
+		case 'rich-presence':
+		case 'rp':
+			document.getElementById('asset-rich-presence')?.click();
+			break;
+		case 'review':
+			document.getElementById('asset-code-review')?.click();
+			break;
+		default:
+			document.querySelectorAll('#list-body .asset-row')?.[0]?.click();
+	}
+}
+
 function main(event)
 {
-	reset_loaded();
 	if (location.hash.startsWith('#!/'))
 	{
 		let parts = location.hash.toLowerCase().split('/');
 		switch (parts[1])
 		{
 			case 'game':
-				console.log('fetching', parts[2]);
+				if (parts[2] == current.id) return route_change();
+				
+				reset_loaded();
 				document.getElementById("loading-overlay").classList.add('shown');
 				fetch('https://autocr-tools.vercel.app/pack/' + parts[2])
 					.then(response => {
@@ -1472,7 +1534,6 @@ function main(event)
 						for (const obj of data.notes) if (obj.Note)
 							current.notes.add(new CodeNote(obj.Address, obj.Note, obj.User));
 						update();
-						document.querySelectorAll('#list-body .asset-row')[0]?.click();
 					})
 					.catch(error => {
 						console.error('Error fetching data:', error);
@@ -1485,5 +1546,6 @@ function main(event)
 	}
 }
 
+reset_loaded();
 main();
 window.onhashchange = main;
