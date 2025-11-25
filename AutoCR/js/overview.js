@@ -1267,14 +1267,17 @@ function BadgeGrid({set = current.set})
 
 			ctx.textBaseline = 'top';
 			dropShadow(set.title, 
-				PADDING + 96 + PADDING + 5, PADDING + 5, 'bold 32px serif', WIDTH - (x - 200));
+				PADDING + 96 + PADDING + 5, PADDING + 5, 'bold 32px serif', WIDTH - (PADDING + 96 + PADDING + 5) - PADDING);
 			dropShadow("Set developed by " + authcount.map(([a, _]) => a).join(', '), 
-				PADDING + 96 + PADDING + 10, PADDING + 48, '18px serif', WIDTH - (x - 200));
+				PADDING + 96 + PADDING + 10, PADDING + 48, '18px serif', WIDTH - (PADDING + 96 + PADDING + 10) - PADDING);
 
-			ctx.textBaseline = 'middle';
-			ctx.textAlign = 'right';
-			dropShadow(set.console.name, WIDTH - (2 * PADDING + 32 + PADDING), PADDING + 16, '12px serif');
-			drawTo(`https://static.retroachievements.org/assets/images/system/${set.console.icon}.png`, WIDTH - 2 * PADDING - 32, PADDING);
+			if (set.console)
+			{
+				ctx.textBaseline = 'middle';
+				ctx.textAlign = 'right';
+				dropShadow(set.console.name, WIDTH - (2 * PADDING + 32 + PADDING), PADDING + 96 - 16, '12px serif');
+				drawTo(`https://static.retroachievements.org/assets/images/system/${set.console.icon}.png`, WIDTH - 2 * PADDING - 32, PADDING + 96 - 32);
+			}
 		}
 	}, []);
 
