@@ -145,7 +145,7 @@ class Asset
 	needsFeedback()
 	{
 		if (this.title.toUpperCase().includes('[VOID]')) return false;
-		if (this.id >= 101000000) return false; // emulator warnings
+		if (this.id >= 101000000 && this.id < 111000000) return false; // emulator warnings
 		return true;
 	}
 
@@ -191,6 +191,8 @@ class Achievement extends Asset
 		ach.points = +row[8];
 		ach.author = row[7];
 		ach.achtype = row[6];
+
+		if (!row[13] || row[13].startsWith('local\\')) row[13] = '00000';
 		ach.badge = `https://media.retroachievements.org/Badge/${row[13]}.png`
 		
 		ach.state = AssetState.LOCAL;
