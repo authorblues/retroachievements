@@ -1445,6 +1445,9 @@ function update()
 
 	// re-render the sidebar with any newly-loaded assets
 	sidebar.render(<SidebarTabs />);
+
+	// change document title to match loaded game
+	document.title = '[AutoCR] ' + (get_game_title() ?? "");
 }
 
 function load_achievement_set(json)
