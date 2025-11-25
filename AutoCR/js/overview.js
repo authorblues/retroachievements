@@ -1404,7 +1404,7 @@ function LeaderboardTabs()
 function SidebarTabs()
 {
 	// when the sidebar updates, trigger a route change
-	React.useEffect(route_change, []);
+	React.useEffect(route_change);
 
 	return (<>
 		<SetOverviewTab />
