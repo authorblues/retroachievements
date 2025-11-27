@@ -2,6 +2,8 @@ const sidebar = ReactDOM.createRoot(document.getElementById('list-body'));
 const container = ReactDOM.createRoot(document.getElementById('info-container'));
 const filePicker = document.getElementById('file-picker');
 
+var current = { id: -1, };
+
 function clearSelected()
 {
 	for (let e of document.querySelectorAll('#list-body .selected'))
@@ -21,7 +23,6 @@ function selectTab(tab)
 	document.getElementById('asset-info').scrollTop = 0;
 }
 
-var current = { id: -1, };
 function reset_loaded()
 {
 	current.set = new AchievementSet();
@@ -29,6 +30,11 @@ function reset_loaded()
 	current.rp = null;
 	clearSelected();
 }
+
+document.getElementById('unload-set').addEventListener('click', () => {
+	history.pushState(null, '', location.pathname);
+    location.reload();
+});
 
 document.getElementById('load-game-id').addEventListener('click', () => {
 	location.hash = '#!/game/' + document.getElementById('game-id').value;
@@ -1267,9 +1273,9 @@ function BadgeGrid({set = current.set})
 
 			ctx.textBaseline = 'top';
 			dropShadow(set.title, 
-				PADDING + 96 + PADDING + 5, PADDING + 5, 'bold 32px serif', WIDTH - (PADDING + 96 + PADDING + 5) - PADDING);
+				x = PADDING + 96 + PADDING + 5, PADDING + 5, 'bold 32px serif', WIDTH - x - PADDING);
 			dropShadow("Set developed by " + authcount.map(([a, _]) => a).join(', '), 
-				PADDING + 96 + PADDING + 10, PADDING + 48, '18px serif', WIDTH - (PADDING + 96 + PADDING + 10) - PADDING);
+				x = PADDING + 96 + PADDING + 10, PADDING + 48, '18px serif', WIDTH - x - PADDING);
 
 			if (set.console)
 			{
