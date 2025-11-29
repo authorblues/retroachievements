@@ -422,7 +422,7 @@ achievement(
 	title="The Wok of Ages",
 	description="Find an upgrade to the flame weapon",
 	points=5,
-	trigger=loc_check(3, 0x0a) && is_set(has_fire())
+	trigger=loc_check(3, 0x0c) && is_set(upgrade_fire())
 )
 
 achievement(
