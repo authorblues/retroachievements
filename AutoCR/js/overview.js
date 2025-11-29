@@ -133,75 +133,6 @@ function get_game_title()
 	return null;
 }
 
-/**
- * Parses a multi-line code note to find the specific block of text corresponding to a chain of offsets.
- * @param {string} full_note - The entire text of the code note.
- * @param {number[]} offsets - An array of numerical offsets to follow into the note.
- * @returns {string} The relevant block of text for the final offset.
- */
-function find_relevant_note_text(full_note, offsets) {
-    let lines = full_note.split(/\r\n|\n/);
-    let current_search_space = lines;
-    // Default to the first line if nothing else is found.
-    let last_found_block = [lines[0]];
-
-    if (offsets.length === 0) {
-        return last_found_block.join('\n');
-    }
-
-    // This regex will find lines starting with optional dots or pluses and a +0x... offset.
-    // It captures the indentation, the hex value, and the rest of the line.
-    const offset_line_re = /^(\s*[\.\+]*)\+0x([a-f0-9]+)\s*\|(.*)$/i;
-
-    for (const target_offset of offsets) {
-        let block_for_next_iteration = null;
-
-        for (let i = 0; i < current_search_space.length; i++) {
-            const line = current_search_space[i];
-            const match = line.trim().match(offset_line_re);
-
-            if (match) {
-                const line_offset_val = parseInt(match[2], 16);
-
-                if (line_offset_val === target_offset) {
-                    // We found the starting line for our target offset.
-                    const start_indentation = (match[1] || '').replace(/\s/g, '').length;
-                    
-                    // Now, find where this block ends. A block ends when we encounter
-                    // another offset at the same or a lesser indentation level.
-                    let end_of_block_index = i + 1;
-                    while (end_of_block_index < current_search_space.length) {
-                        const next_line = current_search_space[end_of_block_index];
-                        const next_match = next_line.trim().match(offset_line_re);
-                        if (next_match) {
-                            const next_indentation = (next_match[1] || '').replace(/\s/g, '').length;
-                            if (next_indentation <= start_indentation) {
-                                break; // The next block starts, so our current block ends here.
-                            }
-                        }
-                        end_of_block_index++;
-                    }
-
-                    const found_block = current_search_space.slice(i, end_of_block_index);
-                    last_found_block = found_block;
-                    block_for_next_iteration = found_block;
-                    break; // Found the block for this offset, move to the next offset.
-                }
-            }
-        }
-
-        if (block_for_next_iteration) {
-            // Set the search space for the next offset to be the block we just found.
-            current_search_space = block_for_next_iteration;
-        } else {
-            // We couldn't find the target_offset in the current space, so we must stop.
-            break;
-        }
-    }
-    
-    return last_found_block.join('\n');
-}
-
 async function copy_to_clipboard(text)
 {
 	try {
@@ -232,7 +163,9 @@ function OperandCells({operand, skipNote = false, chainInfo = []})
 					<span className="AddAddressIndicator">]</span>
 				</React.Fragment>);
 			
+			// Use the new local get_note_text function
 			const note_text = current.notes.get_text(operand.value, chainInfo);
+			
 			if (!skipNote && note_text) return (
 				<span className="tooltip">
 					{memaddr}
@@ -316,8 +249,8 @@ function LogicGroup({group, gi, logic, issues})
 				{/* For the LHS operand, pass the context. It's either a base or an offset. */}
 				<OperandCells operand={req.lhs} skipNote={false} chainInfo={operand_chain_context_for_this_row} />
 				<td>{req.op ? req.op : ''}</td>
-				{/* For the RHS operand, it can't be part of the same chain. Treat it as a new lookup. */}
-				<OperandCells operand={req.rhs} skipNote={false} chainInfo={[]} />
+				{/* For the RHS operand, pass the same context. Pointer chains apply to both sides of a comparison. */}
+				<OperandCells operand={req.rhs} skipNote={false} chainInfo={operand_chain_context_for_this_row} />
 				<td data-hits={req.hits}>{req.hasHits() ? `(${req.hits})` : ''}</td>
 			</tr>);
 		})}
