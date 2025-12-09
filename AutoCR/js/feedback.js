@@ -634,24 +634,82 @@ function* check_missing_notes(logic)
 	
 	for (const [gi, g] of logic.groups.entries())
 	{
-		let prev_addaddress = false;
+		let chain = [];
+		let chainIsDynamic = false;
+
 		for (const [ri, req] of g.entries())
 		{
+			// Pointer Chain Logic:
+			// If this requirement is an Add Address, we build up the chain context
+			// and skip validation, as these are intermediate steps.
+			if (req.flag == ReqFlag.ADDADDRESS)
+			{
+				// If the AddAddress uses a Recall operand, the pointer becomes dynamic/unknown at static analysis time.
+				// We mark the chain as dynamic so we can skip validating the subsequent leaf.
+				if (req.lhs && req.lhs.type == ReqType.RECALL) {
+					chainIsDynamic = true;
+				}
+
+				// If the chain starts with a small memory read (8-bit/16-bit), 
+				// it is likely an Array Indexing operation (Index + Base) rather than a Pointer (Base + Offset).
+				// In this case, we do not add it to the pointer chain context, so the next line is validated 
+				// as a standalone Base address.
+				// We must still validate the Index address itself here.
+				if (chain.length === 0 && req.lhs && req.lhs.type.addr && req.lhs.size && req.lhs.size.bytes < 3) {
+					if (!current.notes.get(req.lhs.value)) {
+						yield new Issue(Feedback.MISSING_NOTE, req,
+							<ul>
+								<li>Address {toDisplayHex(req.lhs.value)} missing note</li>
+							</ul>);
+					}
+					// Do not add to chain; treat as index adjustment
+					continue;
+				}
+
+				if (chain.length === 0 && req.lhs && req.lhs.type.addr) {
+					chain.push({ type: 'base', value: req.lhs.value });
+				} else if (req.lhs && req.lhs.type.addr) { 
+					chain.push({ type: 'offset', value: req.lhs.value });
+				}
+				if (req.rhs && req.rhs.type.addr) {
+					chain.push({ type: 'offset', value: req.rhs.value });
+				}
+				continue;
+			}
+
+			// Processing Leaf (or non-pointer instruction).
+			// If the chain involves dynamic components (Recall), we cannot statically verify notes.
+			if (chainIsDynamic) {
+				chain = [];
+				chainIsDynamic = false;
+				continue;
+			}
+
 			let lastreport = null;
-			if (!prev_addaddress) for (const operand of [req.lhs, req.rhs])
+			for (const operand of [req.lhs, req.rhs])
 			{
 				if (!operand || !operand.type || !operand.type.addr) continue;
-				const note = current.notes.get(operand.value);
-				if (note) continue;
+
+				// Use the existing note parsing logic to see if this address (with chain context)
+				// resolves to any note text.
+				const noteText = current.notes.get_text(operand.value, chain);
+				if (noteText) continue;
 
 				if (lastreport == operand.value) continue;
 				lastreport = operand.value;
+				
+				let msg = `Address ${toDisplayHex(operand.value)} missing note`;
+				if (chain.length > 0) msg += " (or pointer base missing)";
+
 				yield new Issue(Feedback.MISSING_NOTE, req,
 					<ul>
-						<li>Address <code>{toDisplayHex(operand.value)}</code> missing note</li>
+						<li>{msg}</li>
 					</ul>);
 			}
-			prev_addaddress = req.flag == ReqFlag.ADDADDRESS;
+			
+			// Reset chain after processing the leaf
+			chain = [];
+			chainIsDynamic = false;
 		}
 	}
 }
