@@ -36,9 +36,9 @@ document.getElementById('unload-set').addEventListener('click', () => {
     location.reload();
 });
 
-document.getElementById('load-game-id').addEventListener('click', () => {
-	location.hash = '#!/game/' + document.getElementById('game-id').value;
-});
+let submit_gameid = () => {	location.hash = '#!/game/' + document.getElementById('game-id').value; }
+document.getElementById('load-game-id').addEventListener('click', submit_gameid);
+document.getElementById('game-id').addEventListener('keyup', ({key}) => { if (key == 'Enter') submit_gameid(); });
 
 filePicker.addEventListener('change', () => {
 	load_files(filePicker.files);
