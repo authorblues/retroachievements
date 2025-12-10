@@ -384,6 +384,237 @@ class AchievementSet
 	getLeaderboards() { return [...this.leaderboards.values()]; }
 }
 
+// Represents a node in the pointer tree structure (e.g., +0x4).
+class NoteNode
+{
+	offset = "";
+	description = "";
+	size = 1; // Size in bytes covered by this note (default 1)
+	rawLineIndex = 0;
+	indentLevel = 0;
+	content = "";
+	parent = null;
+	children = [];
+
+	constructor() { }
+
+	toString()
+	{
+		if (!this.description || this.description.trim() === "") return this.offset;
+		return `${this.offset} | ${this.description}`;
+	}
+}
+
+// Parses raw Code Note text into a hierarchical tree of NoteNodes.
+// Handles standard RetroAchievements pointer notation (indentation with dots/pluses).
+class PointerTreeParser
+{
+	// Main entry point: Converts a multiline string into a flat list of nodes
+	// preserving hierarchy via Parent/Children references.
+	static parseNoteText(noteText)
+	{
+		if (!noteText) return [];
+
+		const lines = noteText.split(/\r\n|\r|\n/);
+		const flatList = [];
+
+		// Create a root node that represents the "Base" of the note.
+		// IndentLevel -2 signifies it is the absolute root container.
+		const root = new NoteNode();
+		root.offset = "(Default)";
+		root.description = "Full Note";
+		root.indentLevel = -2;
+		root.content = noteText;
+
+		// Attempt to parse the size of the root data from the first line
+		if (lines.length > 0) root.size = PointerTreeParser.parseSizeFromDescription(lines[0]);
+
+		flatList.push(root);
+
+		// Always attempt to parse, even if "Pointer" isn't strictly in text, 
+		// because structure is determined by symbols.
+		// Stack used to track the current parent at each indentation level.
+		const stack = [];
+
+		// Logical Root acts as the parent for top-level pointer offsets (Indent 0).
+		const logicalRoot = new NoteNode();
+		logicalRoot.indentLevel = -1;
+		stack.push(logicalRoot);
+
+		let lastAddedNode = null;
+
+		// Regex to parse specific pointer lines.
+		// Group 1: Indentation (e.g., "+", ".+", "..", "++")
+		// Group 2: Sign (+ or -). Optional capture.
+		// Group 3: Hex value (0x...).
+		// Group 4: Separator (|, =, :). Optional capture.
+		// Group 5: Description/Remainder.
+		const offsetRegex = /^([.\+\s]*)([-+]?)(0x[0-9A-Fa-f]+)\s*([|=:])?\s*(.*)$/;
+
+		// Helper regex to strip indentation characters from description lines.
+		const prefixStripRegex = /^([.\+\s]+)/;
+
+		for (let i = 0; i < lines.length; i++)
+		{
+			const line = lines[i].trim(); // Trim for regex matching but handle indent carefully
+			if (!line) continue;
+
+			// We need raw indentation from original line logic, but regex handles it via capture group 1
+			const match = lines[i].trim().match(offsetRegex);
+			let isNode = false;
+
+			if (match)
+			{
+				const indentStr = match[1];
+				const sign = match[2];
+				const separator = match[4];
+
+				const hasSign = !!sign; // e.g. +0x10 is definitely an offset
+				const hasIndent = indentStr.includes(".") || indentStr.includes("+");
+
+				if (hasSign)
+				{
+					isNode = true;
+				}
+				else if (indentStr.includes("+"))
+				{
+					// Treat any indentation with '+' as a node
+					isNode = true;
+				}
+				else if (hasIndent)
+				{
+					// Indented with dots only, no sign (e.g. "..0x04").
+					// If separator is '|', it is a description -> Node.
+					if (separator === "|")
+					{
+						isNode = true;
+					}
+					// If separator is '=' or ':', it is a value definition -> Content.
+				}
+			}
+
+			if (isNode)
+			{
+				const indentStr = match[1];
+				let indent = 0;
+
+				if (indentStr.includes("+"))
+				{
+					// Standard/Mixed format
+					if (indentStr.includes("."))
+					{
+						// Dot-based (e.g., ".+") -> count dots
+						indent = (indentStr.match(/\./g) || []).length;
+					}
+					else
+					{
+						// Pure plus-based (e.g., "++") -> count pluses minus 1
+						indent = (indentStr.match(/\+/g) || []).length - 1;
+						if (indent < 0) indent = 0;
+					}
+				}
+				else
+				{
+					// Non-standard format: just dots.
+					indent = (indentStr.match(/\./g) || []).length;
+				}
+
+				const sign = match[2];
+				const hex = match[3];
+				let desc = match[5];
+
+				// Strip leading separators (- : =) just in case
+				while (desc.length > 0 && (desc[0] === '-' || desc[0] === ':' || desc[0] === '=' || /\s/.test(desc[0])))
+				{
+					desc = desc.substring(1);
+				}
+				desc = desc.trim();
+
+				// Normalization
+				let offset = sign + hex;
+				if (!offset.startsWith("+") && !offset.startsWith("-")) offset = "+" + offset;
+
+				const size = PointerTreeParser.parseSizeFromDescription(desc);
+
+				const node = new NoteNode();
+				node.offset = offset;
+				node.description = desc;
+				node.rawLineIndex = i;
+				node.indentLevel = indent;
+				node.size = size;
+
+				// Tree Construction
+				while (stack.length > 0 && stack[stack.length - 1].indentLevel >= indent)
+				{
+					stack.pop();
+				}
+
+				if (stack.length === 0) stack.push(logicalRoot);
+
+				const parent = stack[stack.length - 1];
+				node.parent = parent;
+				parent.children.push(node);
+
+				stack.push(node);
+				lastAddedNode = node;
+			}
+			else
+			{
+				// Append to content of most recent node
+				if (lastAddedNode)
+				{
+					if (lastAddedNode.content.length > 0) lastAddedNode.content += "\n";
+					const cleanContentLine = lines[i].trim().replace(prefixStripRegex, "");
+					lastAddedNode.content += cleanContentLine;
+				}
+			}
+		}
+
+		// Flatten the tree for the list, excluding the logical root
+		PointerTreeParser.collectAllNodes(logicalRoot, flatList);
+		
+		// Add the base 'root' node we created at the start (Indent -2)
+		// But ensure it's not duplicated if logicalRoot children cover everything.
+		// Reconstruct final list: Root, then all children of LogicalRoot recursively.
+		const resultList = [root];
+		const parsedNodes = [];
+		PointerTreeParser.collectAllNodes(logicalRoot, parsedNodes);
+		resultList.push(...parsedNodes);
+
+		return resultList;
+	}
+
+	static parseSizeFromDescription(desc)
+	{
+		if (!desc) return 1;
+
+		// 1. Check for explicit byte count
+		const bytesMatch = desc.match(/\[.*?(\d+)\s*[-]?\s*bytes?.*?\]/i);
+		if (bytesMatch && bytesMatch[1])
+		{
+			const bSize = parseInt(bytesMatch[1], 10);
+			if (!isNaN(bSize)) return bSize;
+		}
+
+		// 2. Check for standard type tags
+		if (desc.includes("[32-bit") || desc.includes("[Float")) return 4;
+		if (desc.includes("[24-bit")) return 3;
+		if (desc.includes("[16-bit")) return 2;
+		if (desc.includes("[8-bit")) return 1;
+
+		return 1;
+	}
+
+	static collectAllNodes(node, flatList)
+	{
+		if (node.indentLevel !== -1) flatList.push(node);
+		for (const child of node.children)
+		{
+			PointerTreeParser.collectAllNodes(child, flatList);
+		}
+	}
+}
+
 class CodeNote
 {
 	addr;
@@ -393,6 +624,9 @@ class CodeNote
 	author = "";
 	enum = null;
 	assetCount = 0;
+	
+	// Holds the parsed tree structure of the note
+	noteNodes = [];
 
 	constructor(addr, note, author)
 	{
@@ -403,6 +637,9 @@ class CodeNote
 		[this.type, this.size] = CodeNote.getSize(note);
 		if (!this.isProbablePointer())
 			this.enum = CodeNote.parseEnumerations(note);
+
+		// Parse the note into a structure tree for the explainer
+		this.noteNodes = PointerTreeParser.parseNoteText(note);
 	}
 
 	toRefString() { return `note-${this.addr}`; }
@@ -417,18 +654,11 @@ class CodeNote
 	isProbablePointer()
 	{
 		const lines = this.note.toLowerCase().split('\n');
-
-		// if the first line includes 'ptr' or 'pointer'
 		if (['ptr', 'pointer'].some(x => lines[0].includes(x))) return true;
-
-		// if 2 or more lines after the first line start with a "+"
 		if (lines.filter((x, i) => i > 0 && x.trim().startsWith('+')).length >= 2) return true;
-
 		return false;
 	}
 
-	// transliterated closely from CodeNoteModel::ExtractSize for maximum compatability
-	// https://github.com/RetroAchievements/RAIntegration/blob/8a26afb6adb27e22c737a6006344abce8f24c21f/src/data/models/CodeNoteModel.cpp#L242
 	static getSize(note)
 	{
 		let bytes = 1;
@@ -469,7 +699,6 @@ class CodeNote
 					wordIsSize = true;
 					foundSize = true;
 				}
-				// deviation from ExtractSize() - identify lower4/upper4 as 8-bit
 				else if (num == 4 && ['lower', 'upper'].includes(prevWord))
 				{
 					bytes = 1;
@@ -604,7 +833,9 @@ class CodeNote
 
 	static parseEnumerations(note)
 	{
-		const ENUMERATION_RE = /((?:(?:0x)?[0-9a-f]+)+)([^\w\d]*[^\w\d\s][^\w\d]*).+$/i;
+        // Allow dots in values (e.g., 0.5)
+        // Group 1: 0x1234 OR 0.5 OR -1.0
+		const ENUMERATION_RE = /((?:(?:0x)?[0-9a-f]+|[-+]?[0-9]*\.?[0-9]+)+)([^\w\d]*[^\w\d\s][^\w\d]*).+$/i;
 
 		const lines = note.split('\n');
 		let delim_count = new Map();
@@ -629,19 +860,26 @@ class CodeNote
 			let [lhs, ...rhs] = lines[i].split(delim);
 			rhs = rhs.join(delim).trim();
 
-			for (const m of lhs.matchAll(/\b(0x)?([0-9a-f]+)\b/gi))
+            // Match Hex OR Float
+			for (const m of lhs.matchAll(/\b(?:(0x[0-9a-f]+)|([-+]?[0-9]*\.?[0-9]+))\b/gi))
 			{
+                // m[0] is full match, m[1] is hex, m[2] is float/dec
 				enumerations.push({literal: m[0], meaning: rhs});
-				isHex ||= m[1] || m[0].match(/[a-f]/i);
+				isHex ||= !!m[1]; // if 0x captured, it's hex
 			}
 		}
 
-		// there just doesn't seem to be enough to go on here
 		if (dcount == 1 || linecount < 3) return null;
 
-		for (let e of enumerations)
-			e.value = Number.parseInt(e.literal, isHex ? 16 : 10);
-		enumerations = enumerations.filter(x => !Number.isNaN(x));
+		for (let e of enumerations) {
+            if (e.literal.includes('.') && !e.literal.startsWith('0x')) {
+                e.value = parseFloat(e.literal);
+            } else {
+			    e.value = Number.parseInt(e.literal, isHex ? 16 : 10);
+            }
+        }
+		
+        enumerations = enumerations.filter(x => !Number.isNaN(x.value));
 		return enumerations.length ? enumerations : null;
 	}
 }
@@ -669,79 +907,127 @@ class CodeNoteSet extends Array
 
 	get_text(addr, chainInfo = [])
 	{
-		let note, base_addr, offsets_in_chain;
-		
+		// 1. Determine Chain Context
+		let baseAddr;
+		let offsets = [];
+
 		if (chainInfo.length > 0) {
-			// This is a chained address from the logic table
-			const base_obj = chainInfo[0];
-			note = this.get(base_obj.value);
-			base_addr = base_obj.value;
-			offsets_in_chain = [
-				...chainInfo.slice(1).map(c => c.value),
-				addr // The currently hovered operand's value is the final offset.
-			];
+			// Chain Logic: Base -> Intermediate Offsets -> Final Offset (addr)
+			const baseObj = chainInfo[0];
+			baseAddr = baseObj.value;
+			offsets = chainInfo.slice(1).map(c => c.value);
+			offsets.push(addr);
 		} else {
-			// This is a direct lookup or an indirect lookup without a chain
-			note = this.get(addr);
-			if (note && addr !== note.addr) {
-				base_addr = note.addr;
-				offsets_in_chain = [addr - note.addr];
-			} else {
-				// It's a direct hover on a base address, no offsets.
-				return note ? note.note : null;
-			}
+			// Direct Lookup
+			const note = this.get(addr);
+			if (note) return note.note;
+			return null; 
 		}
-		
+
+		// 2. Resolve Base Note & Redirects
+		let note = this.get(baseAddr);
+        
+        // Handle "refer to" Redirects
+        let redirects = 0;
+        while (note && redirects < 5) {
+             const match = note.note.match(/refer to \$0x([0-9a-fA-F]+)/i);
+             if (match) {
+                 const target = parseInt(match[1], 16);
+                 const targetNote = this.get(target);
+                 if (targetNote) {
+                     note = targetNote;
+                     redirects++;
+                     continue;
+                 }
+             }
+             break;
+        }
+
 		if (!note) return null;
 
-		// Build the header for the tooltip
-		const base_hex = '0x' + base_addr.toString(16);
-		const offsets_str = offsets_in_chain.map(o => `+0x${o.toString(16)}`).join(' ');
-		const header = `[Indirect from ${base_hex} ${offsets_str}]\n`;
-		
-		// Find the entire relevant sub-tree for the full chain
-		const subtree_text = CodeNoteSet.find_relevant_note_text(note.note, offsets_in_chain);
-		const subtree_lines = subtree_text.split(/\r\n|\n/);
+        // 3. Traverse Note Node Tree
+        let currentNodes = null;
+        if (note.noteNodes) {
+             // Filter for nodes attached to the Logical Root (Indent -1).
+             // This correctly captures top-level nodes even if they start with indentation (e.g. ".+0x10").
+             currentNodes = note.noteNodes.filter(n => n.parent && n.parent.indentLevel === -1);
+        }
 
-		// Now, trim this sub-tree to only include the description for the current level,
-		// stopping before any sub-offsets.
-		
-		const first_line = (subtree_lines[0] || '');
-		let first_line_text = '';
-		const offset_match = first_line.match(/\+0x([a-f0-9]+)/i);
-		if (offset_match) {
-			const rest_of_line = first_line.substring(offset_match.index + offset_match[0].length).trim();
-			const separator_match = rest_of_line.match(/^([|:=\-])\s*(.*)$/);
-			if (separator_match) {
-				first_line_text = separator_match[2];
-			}
-		}
-		let display_lines = [first_line_text];
-		
-		// Look at the following lines and add them to the description until a sub-offset is found.
-		const sub_offset_re = /^\s*[\s\.+-]*\+0x/i; 
-		for (let i = 1; i < subtree_lines.length; i++) {
-			const line = subtree_lines[i];
-			if (sub_offset_re.test(line)) {
-				break; // Stop, we've reached a child offset.
-			}
-			display_lines.push(line);
-		}
-		
-		const final_description = display_lines.join('\n').trim();
-		return header + final_description;
+        if (!currentNodes || currentNodes.length === 0) {
+            return null;
+        }
+
+        // Helper to parse offset string like "+0x10" or "-0x4" -> integer
+        const parseOff = (s) => {
+            let clean = s.replace(/[+\-\s]/g, '');
+            if (clean.toLowerCase().startsWith("0x")) clean = clean.substring(2);
+            let v = parseInt(clean, 16);
+            if (s.includes('-')) v = -v;
+            return isNaN(v) ? 0 : v;
+        };
+
+        let foundNode = null;
+
+        // Header for tooltip display
+		const base_hex = '0x' + baseAddr.toString(16);
+		const offsets_str = offsets.map(o => `+0x${o.toString(16)}`).join(' ');
+		const header = `[Indirect from ${base_hex} ${offsets_str}]\n`;
+
+        // Iterate through offsets (Intermediates -> Leaf)
+        for (let i = 0; i < offsets.length; i++) {
+            const offVal = offsets[i];
+            const isLeaf = (i === offsets.length - 1);
+            let match = null;
+
+            for (const n of currentNodes) {
+                const nOff = parseOff(n.offset);
+                
+                // Range check: Is the offset within [NodeStart, NodeStart + NodeSize)?
+                // n.size defaults to 1 if not specified, or parses from e.g. "[32 bytes]"
+                if (offVal >= nOff && offVal < nOff + n.size) {
+                    match = n;
+                    break;
+                }
+            }
+
+            if (match) {
+                if (isLeaf) {
+                    // We found the node covering the final offset
+                    foundNode = match;
+                } else {
+                    // Intermediate offset: drill down to children
+                    if (match.children && match.children.length > 0) {
+                        currentNodes = match.children;
+                    } else {
+                        // Node matches, but has no children to satisfy deeper offsets.
+                        // We must return null to allow "missing note" feedback to fire.
+                        // Returning the parent node causes misleading tooltips and suppresses warnings.
+                        return null;
+                    }
+                }
+            } else {
+                // No node at this level covers the offset
+                return null;
+            }
+        }
+
+        if (foundNode) {
+             let desc = foundNode.description || "";
+             // Append content (enumerations/details) if available, rather than choosing one or the other
+             if (foundNode.content) {
+                 if (desc.length > 0) desc += "\n";
+                 desc += foundNode.content;
+             }
+             return header + desc;
+        }
+
+		return null;
 	}
 
-	/**
-	 * Parses a multi-line code note to find the specific block of text corresponding to a chain of offsets.
-	 * @param {string} full_note - The entire text of the code note.
-	 * @param {number[]} offsets - An array of numerical offsets to follow into the note.
-	 * @returns {string} The relevant block of text for the final offset.
-	 */
 	static find_relevant_note_text(full_note, offsets) {
 		let lines = full_note.split(/\r\n|\n/);
 		let current_search_space = lines;
-		let last_found_block = [lines[0]];
+		let last_found_block = lines; 
 
 		if (offsets.length === 0) {
 			return last_found_block.join('\n');
@@ -753,7 +1039,6 @@ class CodeNoteSet extends Array
 		for (const target_offset of offsets) {
 			let best_match = { index: -1, indent: Infinity };
 
-			// Pass 1: Find the best candidate (the direct child) for the current offset.
 			for (let i = 0; i < current_search_space.length; i++) {
 				const line = current_search_space[i];
 				const match = line.match(offset_line_re);
@@ -762,9 +1047,7 @@ class CodeNoteSet extends Array
 					const current_indentation = (match[1] || '').length;
 					const line_offset_val = parseInt(match[2], 16);
 
-					// A candidate must match the offset and be deeper than the current context.
 					if (line_offset_val === target_offset && current_indentation > context_indentation) {
-						// If this candidate is less indented than our current best, it's a better "direct child".
 						if (current_indentation < best_match.indent) {
 							best_match = { index: i, indent: current_indentation };
 						}
@@ -772,12 +1055,8 @@ class CodeNoteSet extends Array
 				}
 			}
 
-			// If no valid child was found, the chain is broken. Stop processing.
-			if (best_match.index === -1) {
-				break;
-			}
+			if (best_match.index === -1) return null;
 
-			// Pass 2: Now that we have the correct direct child, define its block.
 			const start_index = best_match.index;
 			const start_indentation = best_match.indent;
 			let end_of_block_index = start_index + 1;
@@ -788,7 +1067,7 @@ class CodeNoteSet extends Array
 				if (next_match) {
 					const next_indentation = (next_match[1] || '').length;
 					if (next_indentation <= start_indentation) {
-						break; // The next block at or above this level starts here.
+						break; 
 					}
 				}
 				end_of_block_index++;
@@ -796,8 +1075,8 @@ class CodeNoteSet extends Array
 
 			const found_block = current_search_space.slice(start_index, end_of_block_index);
 			last_found_block = found_block;
-			current_search_space = found_block; // The new search space is the content of the block we just found.
-			context_indentation = start_indentation; // The new context is the indentation of the found block.
+			current_search_space = found_block;
+			context_indentation = start_indentation;
 		}
 		
 		return last_found_block.join('\n');

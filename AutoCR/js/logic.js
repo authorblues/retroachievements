@@ -421,3 +421,419 @@ class Logic
 		return output;
 	}
 }
+
+// Port of LogicFormatter.cs and ConditionFormatter.cs.
+class LogicFormatter
+{
+	static formatDisplayValue(operand, showDecimal, sizeReference = "")
+	{
+		if (!operand || operand.value === null) return "";
+
+		// Logic to handle Values vs Addresses/Floats
+		// Since operand.value in JS is usually a Number, we handle it directly
+		if (typeof operand.value === 'number')
+		{
+			if (operand.type === ReqType.VALUE)
+			{
+				if (showDecimal) return operand.value.toString();
+				const padding = LogicFormatter.getPaddingForSize(sizeReference);
+				const mask = LogicFormatter.getMaskForSize(sizeReference);
+				
+				// Handle potential negative masking or large numbers
+				let val = operand.value;
+				if (mask !== -1) val = val & mask;
+				
+				// Convert to unsigned for hex display if negative
+				if (val < 0) val = val >>> 0;
+				
+				return "0x" + val.toString(16).padStart(padding, '0');
+			}
+			else if (operand.type !== ReqType.FLOAT)
+			{
+				return "0x" + operand.value.toString(16).padStart(8, '0');
+			}
+		}
+
+		if (operand.type === ReqType.FLOAT)
+		{
+			// operand.value might be string or number
+			return operand.value.toString();
+		}
+		
+		return operand.value.toString();
+	}
+
+	static getPaddingForSize(size)
+	{
+		if (!size) return 8;
+		const name = size.name || size;
+		if (name.includes("8-bit") || name.includes("Bit") || name.includes("4")) return 2;
+		if (name.includes("16-bit")) return 4;
+		if (name.includes("24-bit")) return 6;
+		return 8;
+	}
+
+	static getMaskForSize(size)
+	{
+		if (!size) return -1;
+		const name = size.name || size;
+		if (name.includes("8-bit") || name.includes("Bit") || name.includes("4")) return 0xFF;
+		if (name.includes("16-bit")) return 0xFFFF;
+		if (name.includes("24-bit")) return 0xFFFFFF;
+		return -1;
+	}
+
+	static normalizeAddress(address)
+	{
+		if (address === null || address === undefined) return "";
+		// In JS, address is typically a Number. If so, return 0xString
+		if (typeof address === 'number') return "0x" + address.toString(16).toLowerCase();
+		
+		let clean = address.toString().trim();
+		if (clean.toLowerCase().startsWith("0x")) clean = clean.substring(2);
+		return "0x" + clean.toLowerCase();
+	}
+}
+
+class ConditionFormatter
+{
+	// Helper to resolve "refer to $0x..." redirects
+	static getEffectiveNote(notesLookup, addrVal)
+	{
+		// Safety check for notesLookup type
+        let note = null;
+        if (notesLookup && typeof notesLookup.get === 'function') {
+		    note = notesLookup.get(addrVal);
+        } else if (Array.isArray(notesLookup)) {
+            // Fallback if notesLookup is a plain array
+            note = notesLookup.find(n => (n.contains && n.contains(addrVal)) || n.addr === addrVal);
+        }
+
+		let redirects = 0;
+
+		while (note && redirects < 5)
+		{
+			const text = note.note || "";
+			const match = text.match(/refer to \$0x([0-9a-fA-F]+)/i);
+			
+			if (match)
+			{
+				const targetAddr = parseInt(match[1], 16);
+				let targetNote = null;
+                
+                if (notesLookup && typeof notesLookup.get === 'function') {
+                    targetNote = notesLookup.get(targetAddr);
+                } else if (Array.isArray(notesLookup)) {
+                    targetNote = notesLookup.find(n => (n.contains && n.contains(targetAddr)) || n.addr === targetAddr);
+                }
+				
+				if (targetNote)
+				{
+					note = targetNote;
+					redirects++;
+					continue;
+				}
+			}
+			break;
+		}
+		return note;
+	}
+
+    // Helper: Parse specific value from text (Updated for Floats)
+    static parseValueFromText(text, targetVal) {
+        if (!text) return null;
+        const lines = text.split(/\r\n|\r|\n/);
+        
+        // Regex matches: 
+        // 1. "0x10 = Label" (Hex)
+        // 2. "16 : Label" (Dec)
+        // 3. "0.5 = Label" (Float)
+        // 4. "-1.0 = Label" (Signed Float)
+        const regex = /^\s*((?:0x[0-9a-fA-F]+)|(?:[-+]?[0-9]*\.?[0-9]+))\s*[:=]\s*(.+)$/;
+        
+        // Tolerance for float comparison
+        const EPSILON = 0.000001; 
+
+        for (const line of lines) {
+            const match = line.match(regex);
+            if (match) {
+                const rawVal = match[1];
+                let lineVal;
+
+                if (rawVal.toLowerCase().startsWith("0x")) {
+                    lineVal = parseInt(rawVal, 16);
+                } else if (rawVal.includes('.')) {
+                    lineVal = parseFloat(rawVal);
+                } else {
+                    lineVal = parseInt(rawVal, 10);
+                }
+
+                // Comparison logic
+                if (typeof targetVal === 'number') {
+                    if (!Number.isInteger(targetVal) || !Number.isInteger(lineVal)) {
+                        if (Math.abs(lineVal - targetVal) < EPSILON) return match[2].trim();
+                    } else {
+                        if (lineVal === targetVal) return match[2].trim();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // Helper: Parse Bit label
+    static parseBitLabelFromText(text, bitIndex) {
+        if (!text) return null;
+        const lines = text.split(/\r\n|\r|\n/);
+        const regex = new RegExp(`^\\s*Bit\\s*${bitIndex}\\s*[:=]\s*(.+)`, "i");
+
+        for (const line of lines) {
+            const match = line.match(regex);
+            if (match) return match[1].trim();
+        }
+        return null;
+    }
+
+    // Resolve Enum OR Bit Values
+    static resolveEnum(value, contextAddr, contextSize, notesLookup, chainInfo = [])
+    {
+        if (contextAddr === null || contextAddr === undefined) return null;
+
+        // 1. Determine Base Address and Offsets
+        let baseAddr = contextAddr;
+        let offsets = [];
+
+        if (chainInfo && chainInfo.length > 0) {
+            const baseObj = chainInfo.find(x => x.type === 'base');
+            if (baseObj) {
+                baseAddr = baseObj.value;
+                offsets = chainInfo.filter(x => x.type === 'offset').map(x => x.value);
+                offsets.push(contextAddr);
+            }
+        }
+
+        // 2. Get the Base Note
+        const note = ConditionFormatter.getEffectiveNote(notesLookup, baseAddr);
+        if (!note) return null;
+
+        // 3. Pointer Traversal Logic
+        let targetNode = null;
+        let foundNoteContent = null;
+
+        if (offsets.length === 0) {
+            if (note.noteNodes) {
+                targetNode = note.noteNodes.find(n => n.indentLevel === -2) || note.noteNodes[0];
+            }
+            if (!targetNode) foundNoteContent = note.note;
+        } else if (note.noteNodes) {
+            let currentLevelNodes = note.noteNodes.filter(n => n.indentLevel !== -2 && (!n.parent || n.parent.indentLevel === -1));
+            
+            const parseOff = (s) => {
+                let clean = s.replace('+', '').replace('-', '').trim();
+                if (clean.startsWith("0x")) clean = clean.substring(2);
+                let v = parseInt(clean, 16);
+                if (s.includes('-')) v = -v;
+                return v;
+            };
+
+            for (let i = 0; i < offsets.length; i++) {
+                const off = offsets[i];
+                let match = null;
+                for (const n of currentLevelNodes) {
+                    const nOff = parseOff(n.offset);
+                    if (off >= nOff && off < nOff + n.size) {
+                        match = n;
+                        break;
+                    }
+                }
+                if (match) {
+                    if (i === offsets.length - 1) targetNode = match;
+                    else currentLevelNodes = match.children;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        if (targetNode) foundNoteContent = targetNode.content;
+
+        // 4. BITFIELD LOGIC
+        if (contextSize && contextSize.name && contextSize.name.startsWith("Bit")) {
+            const bitChar = contextSize.name.charAt(contextSize.name.length - 1);
+            const bitIndex = parseInt(bitChar, 10);
+            
+            if (!isNaN(bitIndex)) {
+                if (value === 0) return "false";
+                if (value === 1) {
+                    if (foundNoteContent) {
+                        const label = ConditionFormatter.parseBitLabelFromText(foundNoteContent, bitIndex);
+                        if (label) return label;
+                    }
+                    return "true";
+                }
+            }
+        }
+
+        // 5. ENUM LOGIC
+        // Only use pre-parsed if not float
+        if (offsets.length === 0 && note.enum && Number.isInteger(value)) {
+            const match = note.enum.find(e => e.value === value);
+            if (match) return match.meaning;
+        }
+
+        if (foundNoteContent) {
+            return ConditionFormatter.parseValueFromText(foundNoteContent, value);
+        }
+
+        return null;
+    }
+
+	static resolveAlias(address, group, rowIndex, notesLookup, rangeCache)
+	{
+		function parseHex(s) {
+			if (typeof s === 'number') return s;
+            if (!s) return -1;
+			const clean = s.replace("0x", "").trim().replace(/[^0-9A-Fa-f]/g, "");
+            if (!clean) return -1;
+			const val = parseInt(clean, 16);
+			return isNaN(val) ? -1 : val;
+		}
+
+		const targetVal = parseHex(address);
+        if (targetVal === -1) return ""; // Safety exit
+
+		const conditions = group; 
+		
+		if (conditions && rowIndex > 0 && rowIndex < conditions.length)
+		{
+			const chainStack = [];
+			let scan = rowIndex - 1;
+			while (scan >= 0)
+			{
+				if (scan >= conditions.length) {
+					scan--;
+					continue;
+				}
+				const prevCond = conditions[scan];
+				if (prevCond.flag && prevCond.flag.name === "AddAddress")
+				{
+					chainStack.push(prevCond.lhs.value);
+					scan--;
+				}
+				else break;
+			}
+
+			if (chainStack.length > 0)
+			{
+				const baseAddrVal = chainStack.pop();
+				const normalizedBase = LogicFormatter.normalizeAddress(baseAddrVal);
+				const baseAddrNum = parseHex(normalizedBase);
+				
+				const baseNote = ConditionFormatter.getEffectiveNote(notesLookup, baseAddrNum);
+
+				if (baseNote && baseNote.noteNodes)
+				{
+					let currentLevelNodes = baseNote.noteNodes.filter(n => n.indentLevel !== -2 && (!n.parent || n.parent.indentLevel === -1));
+					let chainValid = true;
+
+					while (chainStack.length > 0)
+					{
+						const offsetVal = chainStack.pop(); 
+						let match = null;
+						for (const node of currentLevelNodes)
+						{
+							let nodeOff = parseHex(node.offset.replace('+', '').replace('-', ''));
+							if (node.offset.includes('-')) nodeOff = -nodeOff;
+							if (offsetVal >= nodeOff && offsetVal < nodeOff + node.size)
+							{
+								match = node;
+								break;
+							}
+						}
+						if (match) currentLevelNodes = match.children;
+						else { chainValid = false; break; }
+					}
+
+					if (chainValid && targetVal !== -1)
+					{
+						for (const node of currentLevelNodes)
+						{
+							let nodeOff = parseHex(node.offset.replace('+', '').replace('-', ''));
+							if (node.offset.includes('-')) nodeOff = -nodeOff;
+							if (targetVal >= nodeOff && targetVal < nodeOff + node.size)
+							{
+								let desc = node.description.replace(/\[.*?\]/g, "").trim();
+								const delta = targetVal - nodeOff;
+								if (delta > 0)
+								{
+									const suffix = ` +0x${delta.toString(16).toUpperCase()}`;
+									if (!desc.toLowerCase().endsWith(suffix.toLowerCase()))
+										desc += suffix;
+								}
+								return desc;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		const directNote = ConditionFormatter.getEffectiveNote(notesLookup, targetVal);
+		
+		if (directNote && directNote.noteNodes)
+		{
+			const rootNode = directNote.noteNodes.find(n => n.indentLevel === -2) || directNote.noteNodes[0];
+			if (rootNode)
+			{
+				let desc = rootNode.description;
+				if (!desc || desc.toLowerCase() === "full note")
+				{
+					if (rootNode.content)
+						desc = rootNode.content.split(/\r\n|\r|\n/)[0] || "";
+				}
+				desc = desc.replace(/\[.*?\]/g, (m) => {
+					if (m.toLowerCase().includes("pointer")) return "[Pointer]";
+					return "";
+				}).trim();
+				
+                // Calculate offset from base note address for direct notes
+                const delta = targetVal - directNote.addr;
+                if (delta > 0)
+                {
+                    const suffix = ` +0x${delta.toString(16).toUpperCase()}`;
+                    if (!desc.toLowerCase().endsWith(suffix.toLowerCase()))
+                        desc += suffix;
+                }
+
+				return desc.replace(/\s{2,}/g, " ");
+			}
+		}
+
+		if (rangeCache && targetVal !== -1)
+		{
+			const match = rangeCache.find(r => targetVal >= r.start && targetVal < r.end);
+			if (match && match.node)
+			{
+				let desc = match.node.description;
+				if (!desc || desc.toLowerCase() === "full note")
+				{
+					desc = match.node.content.split(/\r\n|\r|\n/)[0] || "";
+				}
+				desc = desc.replace(/\[.*?\]/g, (m) => {
+					if (m.toLowerCase().includes("pointer")) return "[Pointer]";
+					return "";
+				}).trim();
+				desc = desc.replace(/\s{2,}/g, " ");
+				const delta = targetVal - match.start;
+				if (delta > 0)
+				{
+					const suffix = ` +0x${delta.toString(16).toUpperCase()}`;
+					if (!desc.toLowerCase().endsWith(suffix.toLowerCase()))
+						desc += suffix;
+				}
+				return desc;
+			}
+		}
+		return "";
+	}
+}
