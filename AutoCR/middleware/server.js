@@ -38,7 +38,7 @@ app.get('/game/:id', async (req, res) =>
 		const gameid = parseInt(req.params.id, 10);
 		console.log(`[request] game ${gameid}`);
 		
-		const data = await doRequest({ r: 'achievementsets', t: token, g: gameid });
+		const data = await doRequest({ r: 'achievementsets', u: username, t: token, g: gameid });
 		res.send(data);
 	} catch (err) {
 		console.error(err);
@@ -66,10 +66,10 @@ app.get('/pack/:id', async (req, res) =>
 	try {
 		const token = await login();
 		const gameid = parseInt(req.params.id, 10);
-		console.log(`[request] pack ${gameid}`);
+		console.log(`[request] pack ${gameid}, ${token}`);
 		
 		let pack = {};
-		pack.game = await doRequest({ r: 'achievementsets', t: token, g: gameid });
+		pack.game = await doRequest({ r: 'achievementsets', u: username, t: token, g: gameid });
 		pack.notes = (await doRequest({ r: 'codenotes2', t: token, g: gameid })).CodeNotes;
 		res.send(pack);
 	} catch (err) {
