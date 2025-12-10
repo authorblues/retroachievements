@@ -644,7 +644,7 @@ function LogicStats({logic, stats = {}})
 			<li>Max Requirements Per Group: {stats.group_maxsize}</li>
 			<li><span title="A sequence of requirements linked by flags">Longest Chain</span>: {stats.max_chain}</li>
 		</ul>
-		<li><span title="Number of unique lookups, including lookups with AddAddress">Memory Lookup Count</span>: {stats.memlookups.size} {logic && logic.value ? '' : (stats.addresses.size <= 1 ? '(definite OCA)' : (stats.memlookups.size <= 1 ? '(possible OCA)' : ''))}</li>
+		<li><span title="Number of unique lookups, including lookups with AddAddress">Memory Lookup Count</span>: {stats.memlookups.size} {logic && logic.value ? '' : (stats.memlookups.size <= 1 ? '(possible OCA)' : '')}</li>
 		<li>Logic Features</li>
 		<ul>
 			<li>{stats.deltas} <code>Delta</code>s, {stats.priors} <code>Prior</code>s</li>
