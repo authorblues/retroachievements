@@ -1340,13 +1340,16 @@ function CodeNotesTable({notes = [], issues = []})
 						<td>{toDisplayHex(note.addr)}{note.isArray() ? (<><br/>&#x2010;&nbsp;{toDisplayHex(note.addr + note.size - 1)}</>) : <></>}</td>
 						<td><pre>{note.note}</pre></td>
 						<td>
-							<span className="tooltip">
+							<span className="tooltip"
+								onMouseEnter={(e) => {
+									const rect = e.currentTarget.getBoundingClientRect();
+									TooltipManager.show(<pre>{note.author}</pre>, rect);
+								}}
+								onMouseLeave={() => TooltipManager.startHide()}
+							>
 								<a href={`https://retroachievements.org/user/${note.author}`}>
 									<img src={`https://media.retroachievements.org/UserPic/${note.author}.png`} width="24" height="24" />
 								</a>
-								<span className="tooltip-info">
-									{note.author}
-								</span>
 							</span>
 						</td>
 						<td>{note.assetCount}</td>
