@@ -1,13 +1,12 @@
-// title case helpers
-const TITLE_CASE_MINORS = new Set([
-	'a', 'an', 'and', 'as', 'at', 'but', 'by', 'en', 'for', 'from', 'how', 'if', 'in', "n'", "'n'",
-	'neither', 'nor', 'of', 'on', 'only', 'onto', 'out', 'or', 'over', 'per', 'so', 'than', 
-	'the', 'to', 'until', 'up', 'upon', 'v', 'v.', 'versus', 'vs', 'vs.', 'via', 'when', 
-	'with', 'without', 'yet',
-]);
-function tc_minor(word) { return TITLE_CASE_MINORS.has(word); }
 function make_title_case(phrase)
 {
+	const TITLE_CASE_MINORS = new Set([
+		'a', 'an', 'and', 'as', 'at', 'but', 'by', 'en', 'for', 'from', 'how', 'if', 'in', "n'", "'n'",
+		'neither', 'nor', 'of', 'on', 'only', 'onto', 'out', 'or', 'over', 'per', 'so', 'than', 
+		'the', 'to', 'until', 'up', 'upon', 'v', 'v.', 'versus', 'vs', 'vs.', 'via', 'when', 
+		'with', 'without', 'yet',
+	]);
+	function tc_minor(word) { return TITLE_CASE_MINORS.has(word); }
 	function tc(s) { return s.charAt(0).toUpperCase() + s.substring(1); }
 	return phrase.replace(/[0-9'\u2018\u2019\p{Script=Latin}]+/gu, function(x, i)
 	{
