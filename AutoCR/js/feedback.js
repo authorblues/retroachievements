@@ -123,7 +123,7 @@ const Feedback = Object.freeze({
 		ref: [], },
 	STALE_ADDADDRESS: { severity: FeedbackSeverity.INFO, desc: "Stale references with AddAddress can be dangerous. Use caution when reading a pointer from the previous frame (AddAddress + Delta).",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/addaddress.html#using-delta-with-chained-pointers',], },
-	NEGATIVE_OFFSET: { severity: FeedbackSeverity.WARN, desc: "Negative pointer offsets are wrong in the vast majority of cases and are incompatible with the way pointers actually work.",
+	NEGATIVE_OFFSET: { severity: FeedbackSeverity.WARN, desc: "Negative pointer offsets are wrong in the vast majority of cases.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/addaddress.html#calculating-your-offset'], },
 	BAD_REGION_LOGIC: { severity: FeedbackSeverity.ERROR, desc: "Some memory regions are unsafe, redundant, or should not otherwise be used for achievement logic.",
 		ref: ['https://docs.retroachievements.org/developer-docs/console-specific-tips.html'], },
@@ -760,6 +760,24 @@ function* check_pointers(logic)
 	}
 }
 
+function* check_valid_offsets(logic)
+{
+	for (const [gi, g] of logic.groups.entries())
+	{
+		let isOffset = false;
+		for (const [ri, req] of g.entries())
+		{
+			if (isOffset)
+			{
+				for (const op of [req.lhs, req.rhs])
+					if (op && op.type.addr && op.value >= 0x80000000)
+						yield new Issue(Feedback.NEGATIVE_OFFSET, req);
+			}
+			isOffset = req.flag == ReqFlag.ADDADDRESS;
+		}
+	}
+}
+
 function* check_priors(logic)
 {
 	for (const [gi, g] of logic.groups.entries())
@@ -1337,6 +1355,7 @@ const BASIC_LOGIC_TESTS = [
 	check_missing_notes,
 	check_mismatch_notes,
 	check_pointers,
+	check_valid_offsets,
 	check_bad_chains,
 	check_priors,
 	check_stale_addaddress,
