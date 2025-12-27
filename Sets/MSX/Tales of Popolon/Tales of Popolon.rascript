@@ -348,7 +348,7 @@ leaderboard(
 	description="In one session, complete the game as quickly as possible. No passwords",
 
 	start=new_game(),
-	cancel=!in_game_check() || health() == 0,
+	cancel=game_state() == GAME_STATE_TITLE || health() == 0,
 	submit=win_game(),
 
 	value=measured(tally(0, prev(clock()) != clock())),
@@ -361,7 +361,7 @@ leaderboard(
 	description="In one session, complete the game taking the least damage. No passwords",
 
 	start=new_game(),
-	cancel=!in_game_check() || health() == 0,
+	cancel=game_state() == GAME_STATE_TITLE || health() == 0,
 	submit=win_game(),
 
 	value=measured(tally_of(range(1,15), 0, (i) => health() <= prev(health()) - i)),
