@@ -139,9 +139,10 @@ const ReqFlagWidth = Math.max(...Object.values(ReqFlag).map((x) => x.name.length
 const MemSizeWidth = Math.max(...Object.values(MemSize).map((x) => x.name.length));
 
 class LogicParseError extends Error {
-	constructor(type, mem) {
+	constructor(type, mem, from) {
 		super(`Failed to parse ${type}: ${mem}`);
 		this.name = 'LogicParseError';
+		this.from = from;
 	}
 }
 
@@ -192,7 +193,7 @@ class ReqOperand
 			else if (match[10])
 				return new ReqOperand({ type: ReqType.RECALL, });
 		}
-		catch (e) { throw new LogicParseError('operand', def); }
+		catch (e) { throw new LogicParseError('operand', def, e); }
 	}
 
 	static sameValue(a, b)
@@ -299,7 +300,7 @@ class Requirement
 
 			if (match[5]) req.hits = +match[5];
 		}
-		catch (e) { throw new LogicParseError('requirement', def); }
+		catch (e) { throw new LogicParseError('requirement', def, e); }
 		return req;
 	}
 
@@ -345,7 +346,7 @@ class Logic
 			}
 			logic.mem = def;
 		}
-		catch (e) { throw new LogicParseError('logic', def); }
+		catch (e) { throw new LogicParseError('logic', def, e); }
 		return logic;
 	}
 
