@@ -839,7 +839,11 @@ function* check_stale_addaddress(logic)
 function* check_oca(logic)
 {
 	if (!logic.value && logic.getMemoryLookups().size <= 1)
-		yield new Issue(Feedback.ONE_CONDITION, null);
+		yield new Issue(Feedback.ONE_CONDITION, null,
+			<ul>
+				<li>Trigger logic should make use of, at minimum, two different memory requirements to avoid misfires.</li>
+				<li><code>Mem 0xADDR</code> and <code>Delta 0xADDR</code> are considered to be one memory requirement.</li>
+			</ul>);
 }
 
 function* check_pauselocks(logic)
