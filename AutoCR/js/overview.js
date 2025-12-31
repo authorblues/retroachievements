@@ -813,7 +813,7 @@ function AchievementInfo({ach}) {
         <div className="main-header">
             <LinkedAchievementBadge ach={ach} className="float-left" />
             <div>
-                <button className="float-right" onClick={() => copy_to_clipboard(`[${ach.title}](https://retroachievements.org/achievement/${ach.id})`)}>
+                <button className="float-right" onClick={() => copy_to_clipboard(`[${ach.title}](${window.location})`)}>
                     Copy Markdown Link
                 </button>
             </div>
