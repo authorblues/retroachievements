@@ -1016,10 +1016,11 @@ function AchievementSetOverview()
 	isSetReady &= [achievements, leaderboards].every((assetgroup) => assetgroup.every((asset) => asset.feedback.pass()));
 
 	let setNotReady = null;
-	if (!isSetReady) setNotReady = (<div class="set-warning">
-		<h2>⚠️ This set may not yet be ready for review ⚠️</h2>
-		<p>There are several errors not yet addressed. Please check the feedback provided for each asset.</p>
-	</div>);
+	if (!isSetReady && !achievements.some((ach) => ach.state == AssetState.CORE))
+		setNotReady = (<div class="set-warning">
+			<h2>⚠️ This set may not yet be ready for review ⚠️</h2>
+			<p>There are several errors not yet addressed. Please check the feedback provided for each asset.</p>
+		</div>);
 	
 	return (<>
 		<div className="main-header">
