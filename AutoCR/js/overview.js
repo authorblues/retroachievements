@@ -1008,6 +1008,18 @@ function AchievementSetOverview()
 		[achievements.length, 'achievement'],
 		[leaderboards.length, 'leaderboard'],
 	];
+
+	let isSetReady = true;
+	isSetReady &= current.set?.feedback?.pass();
+	isSetReady &= current.notes?.feedback?.pass();
+	isSetReady &= current.rp?.feedback?.pass();
+	isSetReady &= [achievements, leaderboards].every((assetgroup) => assetgroup.every((asset) => asset.feedback.pass()));
+
+	let setNotReady = null;
+	if (!isSetReady) setNotReady = (<div class="set-warning">
+		<h2>⚠️ This set may not yet be ready for review ⚠️</h2>
+		<p>There are several errors not yet addressed. Please check the feedback provided for each asset.</p>
+	</div>);
 	
 	return (<>
 		<div className="main-header">
@@ -1022,6 +1034,7 @@ function AchievementSetOverview()
 				Set contains {set_contents.filter(([c, _]) => c).map(([c, t]) => `${c} ${t}${c == 1 ? '' : 's'}`).join(' and ')}
 			</p>
 		</div>
+		{setNotReady}
 		<div className="chart float-right">
 			<h3>Achievement Typing</h3>
 			<ChartCanvas setup={(canvas) => {

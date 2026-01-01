@@ -464,6 +464,18 @@ span[title] {
 	animation-delay: 1s;
 }
 
+.set-warning {
+	border: 1px solid #FF0000;
+	background-color: #FFCCCC;
+	border-radius: 5px;
+
+	text-align: center;
+}
+
+.set-warning h2 {
+	margin-top: 5px;
+}
+
 /* =========================================
    7. RICH PRESENCE & NOTES
    ========================================= */
