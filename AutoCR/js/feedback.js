@@ -1019,6 +1019,9 @@ function* check_uuo_resetnextif(logic)
 					// if this is a combining flag like AddAddress or AndNext, the chain continues
 					if (!g[i].isTerminating()) continue;
 
+					// ResetNextIf with any Add/SubHits should always be valid
+					if ([ReqFlag.ADDHITS, ReqFlag.SUBHITS].includes(g[i].flag)) break;
+
 					// ResetNextIf with a measured should be fine in a value
 					if (logic.value && [ReqFlag.MEASURED, ReqFlag.MEASUREDP].includes(g[i].flag)) break;
 					
