@@ -354,6 +354,13 @@ function generate_logic_stats(logic)
 	let smod = stats.source_modification = new Map(['*', '/', '&', '^', '%', '+', '-'].map(x => [x, 0]));
 	for (let req of flat) if (smod.has(req.op)) smod.set(req.op, smod.get(req.op) + 1);
 
+	stats.mixed_andor_chains = chains.filter(ch => (
+		ch.some(req => req.flag == ReqFlag.ANDNEXT) && ch.some(req => req.flag == ReqFlag.ORNEXT)
+	)).length;
+	stats.addhits_complex_or = chains.filter(ch => (
+		ch.some(req => req.flag == ReqFlag.ADDHITS) && ch[ch.length-1].hits == 1
+	)).length;
+
 	return stats;
 }
 
@@ -1026,6 +1033,7 @@ function* check_uuo_resetnextif(logic)
 					if (logic.value && [ReqFlag.MEASURED, ReqFlag.MEASUREDP].includes(g[i].flag)) break;
 					
 					// RNI->PauseIf(0) is `Pause Until`
+					// RNI(1+)->PauseIf(0) is `Pause Until`
 					// ref: https://docs.retroachievements.org/developer-docs/achievement-templates.html#pause-until-using-pauseif-to-prevent-achievement-processing-until-some-condition-is-met
 					if (req.hits > 0 && g[i].flag == ReqFlag.PAUSEIF) break;
 					

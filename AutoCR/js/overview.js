@@ -1304,10 +1304,28 @@ function CodeReviewOverview()
 						warn={[]}
 					/>
 				</ul>
+				<li>Source modification:</li>
+				<ul>
+					<AssetCardList
+						assets={achievements.filter(ach => ['*', '/', '+', '-'].some(op => ach.feedback.stats.source_modification.get(op) > 0))}
+						label={<>Using <code>*</code>, <code>/</code>, <code>+</code>, <code>-</code></>}
+						warn={[]}
+					/>
+					<AssetCardList
+						assets={achievements.filter(ach => ['&', '^', '%'].some(op => ach.feedback.stats.source_modification.get(op) > 0))}
+						label={<>Using <code>&</code>, <code>^</code>, <code>%</code></>}
+						warn={[]}
+					/>
+				</ul>
 				<AssetCardList
-					assets={achievements.filter(ach => [...ach.feedback.stats.source_modification.values()].some(x => x > 0))}
-					label={<>Using source modification</>}
+					assets={achievements.filter(ach => ach.feedback.stats.mixed_andor_chains > 0)}
+					label={<>Using complex <code>AndNext</code>+<code>OrNext</code> chains</>}
 					warn={[]}
+				/>
+				<AssetCardList
+					assets={achievements.filter(ach => ach.feedback.stats.addhits_complex_or > 0)}
+					label={<>Using <code>AddHits</code> as complex-<code>OR</code></>}
+					warn={[Feedback.HIT_NO_RESET, ]}
 				/>
 			</ul>
 			<h1>Other Details</h1>
