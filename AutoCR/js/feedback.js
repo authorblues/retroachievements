@@ -1038,7 +1038,6 @@ function* check_uuo_resetnextif(logic)
 					// ResetNextIf with a measured should be fine in a value
 					if (logic.value && [ReqFlag.MEASURED, ReqFlag.MEASUREDP].includes(g[i].flag)) break;
 					
-					// RNI->PauseIf(0) is `Pause Until`
 					// RNI(1+)->PauseIf(0) is `Pause Until`
 					// ref: https://docs.retroachievements.org/developer-docs/achievement-templates.html#pause-until-using-pauseif-to-prevent-achievement-processing-until-some-condition-is-met
 					if (req.hits > 0 && g[i].flag == ReqFlag.PAUSEIF) break;
