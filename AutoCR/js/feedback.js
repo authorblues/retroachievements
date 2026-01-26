@@ -1004,11 +1004,17 @@ function* check_uuo_reset(logic)
 function* check_reset_with_hits(logic)
 {
 	for (const [gi, g] of logic.groups.entries())
+	{
+		let has_addhits = false;
 		for (const [ri, req] of g.entries())
 		{
-			if (req.flag == ReqFlag.RESETIF && req.hits == 1)
+			if (!has_addhits && req.flag == ReqFlag.RESETIF && req.hits == 1)
 				yield new Issue(Feedback.RESET_HITCOUNT_1, req);
+
+			if (req.flag == ReqFlag.ADDHITS) has_addhits = true;
+			else if (!req.flag || !req.flag.chain) has_addhits = false;
 		}
+	}
 }
 
 function* check_uuo_resetnextif(logic)
