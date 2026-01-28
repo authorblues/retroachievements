@@ -442,7 +442,7 @@ achievement(
         location(ISLAND_OOKAMI, 8, 2) &&
 
         // challenge indicator for fighting Bouso
-        trigger_when(bouso_dead() == 1) &&
+        prev(bouso_dead()) == 0 && trigger_when(bouso_dead() == 1) &&
 
         // pause lock if player takes damage
         disable_when(health() < prev(health()), until=screen_scrolling() != 0)
@@ -471,7 +471,7 @@ achievement(
         location(ISLAND_CURSE, 2, 0) &&
         
         // achievement triggers when the Archbishop is dead
-        trigger_when(boss_defeated(ISLAND_CURSE) == 1) &&
+        prev(boss_defeated(ISLAND_CURSE)) == 0 && trigger_when(boss_defeated(ISLAND_CURSE) == 1) &&
 
         // boulders go from 0x81 -> 0x00 when they miss, but 0x81 -> 0x11 -> 0x00 when they hit (on bosses)
         all_of(range(0,3), (i) => disable_when(prev(obj_flags(i)) == 0x81 && obj_flags(i) == 0x00,
