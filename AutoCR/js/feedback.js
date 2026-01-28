@@ -103,6 +103,10 @@ const Feedback = Object.freeze({
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#introduction',], },
 	NO_CONDITIONAL_DISPLAY: { severity: FeedbackSeverity.INFO, desc: "The use of conditional displays can improve the quality of rich presence by showing specific information based on the game mode.",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
+	NO_DEFAULT_RP: { severity: FeedbackSeverity.WARN, desc: "Rich presence requires a default string.",
+		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
+	DYNAMIC_DEFAULT_RP: { severity: FeedbackSeverity.WARN, desc: "The default rich presence needs to be static so that it can work for emulators that don't have rich presence support. The standard is \"Playing [Game Title]\".",
+		ref: [], },
 	MISSING_NOTE_RP: { severity: FeedbackSeverity.WARN, desc: "All addresses used in rich presence require a code note.",
 		ref: [], },
 		
@@ -1232,6 +1236,17 @@ function* check_rp_dynamic(rp)
 	}
 }
 
+function* check_rp_default(rp)
+{
+	if (!rp.display.some(x => x.condition == null))
+	{
+		yield new Issue(Feedback.NO_DEFAULT_RP, null);
+	} else {
+		if(rp.display.some(x => x.condition == null && x.lookups.length > 0))
+			yield new Issue(Feedback.DYNAMIC_DEFAULT_RP, null);
+	}
+}
+
 function* check_rp_notes(rp)
 {
 	function* get_rp_notes_issues(logic, where)
@@ -1412,6 +1427,7 @@ const CODE_NOTE_TESTS = [
 
 const RICH_PRESENCE_TESTS = [
 	check_rp_dynamic,
+	check_rp_default,
 	check_rp_notes,
 ];
 
