@@ -103,7 +103,7 @@ const Feedback = Object.freeze({
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#introduction',], },
 	NO_CONDITIONAL_DISPLAY: { severity: FeedbackSeverity.INFO, desc: "The use of conditional displays can improve the quality of rich presence by showing specific information based on the game mode.",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
-	NO_DEFAULT_RP: { severity: FeedbackSeverity.WARN, desc: "Rich presence requires a default string.",
+	NO_DEFAULT_RP: { severity: FeedbackSeverity.ERROR, desc: "Rich presence requires a default string.",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
 	DYNAMIC_DEFAULT_RP: { severity: FeedbackSeverity.WARN, desc: "The default rich presence needs to be static so that it can work for emulators that don't have rich presence support. The standard is \"Playing [Game Title]\".",
 		ref: [], },
