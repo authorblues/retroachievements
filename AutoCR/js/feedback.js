@@ -103,9 +103,9 @@ const Feedback = Object.freeze({
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#introduction',], },
 	NO_CONDITIONAL_DISPLAY: { severity: FeedbackSeverity.INFO, desc: "The use of conditional displays can improve the quality of rich presence by showing specific information based on the game mode.",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
-	NO_DEFAULT_RP: { severity: FeedbackSeverity.ERROR, desc: "Rich presence requires a default string.",
+	NO_DEFAULT_RP: { severity: FeedbackSeverity.ERROR, desc: "Rich presence requires a default display (without a condition).",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
-	DYNAMIC_DEFAULT_RP: { severity: FeedbackSeverity.WARN, desc: "The default rich presence needs to be static so that it can work for emulators that don't have rich presence support. The standard is \"Playing [Game Title]\".",
+	DYNAMIC_DEFAULT_RP: { severity: FeedbackSeverity.WARN, desc: "The default display for rich presence should be static.",
 		ref: [], },
 	MISSING_NOTE_RP: { severity: FeedbackSeverity.WARN, desc: "All addresses used in rich presence require a code note.",
 		ref: [], },
@@ -1239,11 +1239,15 @@ function* check_rp_dynamic(rp)
 function* check_rp_default(rp)
 {
 	if (!rp.display.some(x => x.condition == null))
-	{
 		yield new Issue(Feedback.NO_DEFAULT_RP, null);
-	} else {
-		if(rp.display.some(x => x.condition == null && x.lookups.length > 0))
-			yield new Issue(Feedback.DYNAMIC_DEFAULT_RP, null);
+	else
+	{
+		if (rp.display.some(x => x.condition == null && x.lookups.length > 0))
+			yield new Issue(Feedback.DYNAMIC_DEFAULT_RP, null,
+				<ul>
+					<li>Unknown state may produce unreliable output with memory lookups.</li>
+					<li>Consider <code>Playing {get_game_title() ?? "<Game Name>"}</code></li>
+				</ul>);
 	}
 }
 
