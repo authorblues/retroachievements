@@ -1303,6 +1303,11 @@ function CodeReviewOverview()
 						flag={ReqFlag.ORNEXT}
 						warn={[]}
 					/>
+					<AssetCardList
+						assets={stats.using_remember_recall}
+						label={<><code>Remember</code>+<code>Recall</code></>}
+						warn={[]}
+					/>
 				</ul>
 				<li>Source modification:</li>
 				<ul>

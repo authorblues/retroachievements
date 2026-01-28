@@ -307,19 +307,19 @@ function generate_logic_stats(logic)
 	// length of longest requirement chain
 	stats.max_chain = Math.max(...chains.map(x => x.length));
 
-	// count of achievements with hit counts
+	// count of requirements with hit counts
 	stats.hit_counts_one = flat.filter(x => x.hits == 1).length;
 	stats.hit_counts_many = flat.filter(x => x.hits > 1).length;
 
-	// count of achievements with PauseIf
+	// count of requirements with PauseIf
 	stats.pause_ifs = flat.filter(x => x.flag == ReqFlag.PAUSEIF).length;
 	stats.pause_locks = flat.filter(x => x.flag == ReqFlag.PAUSEIF && x.hits > 0).length;
 
-	// count of achievements with ResetIf
+	// count of requirements with ResetIf
 	stats.reset_ifs = flat.filter(x => x.flag == ReqFlag.RESETIF).length;
 	stats.reset_with_hits = flat.filter(x => x.flag == ReqFlag.RESETIF && x.hits > 0).length;
 
-	// count of achievements with Deltas and Prior
+	// count of requirements with Deltas and Prior
 	stats.deltas = [...operands].filter(x => x.type == ReqType.DELTA).length;
 	stats.priors = [...operands].filter(x => x.type == ReqType.PRIOR).length;
 	
@@ -360,9 +360,18 @@ function generate_logic_stats(logic)
 	let smod = stats.source_modification = new Map(['*', '/', '&', '^', '%', '+', '-'].map(x => [x, 0]));
 	for (let req of flat) if (smod.has(req.op)) smod.set(req.op, smod.get(req.op) + 1);
 
+	// is Remember/Recall used in this logic?
+	stats.remember_recall = (
+		flat.some(x => x.flag == ReqFlag.REMEMBER) || 
+		[...operands].some(x => x.type == ReqType.RECALL)
+	);
+
+	// count of achievements with mixed AndNext and OrNext
 	stats.mixed_andor_chains = chains.filter(ch => (
 		ch.some(req => req.flag == ReqFlag.ANDNEXT) && ch.some(req => req.flag == ReqFlag.ORNEXT)
 	)).length;
+
+	// count of achievements with AddHits as a complex-OR
 	stats.addhits_complex_or = chains.filter(ch => (
 		ch.some(req => req.flag == ReqFlag.ADDHITS) && ch[ch.length-1].hits == 1
 	)).length;
@@ -490,6 +499,7 @@ function generate_set_stats(set)
 	stats.using_checkpoint_hits = achievements.filter(ach => ach.feedback.stats.hit_counts_one > 0);
 	stats.using_pauselock = achievements.filter(ach => ach.feedback.stats.pause_locks > 0);
 	stats.using_pauselock_alt_reset = achievements.filter(ach => ach.feedback.stats.pauselock_alt_reset > 0);
+	stats.using_remember_recall = achievements.filter(ach => ach.feedback.stats.remember_recall);
 
 	// count of achievements using each flag type
 	stats.using_flag = new Map(Object.values(ReqFlag).map(x => [x, new Set()]));
