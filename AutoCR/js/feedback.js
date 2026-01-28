@@ -156,6 +156,8 @@ const Feedback = Object.freeze({
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/resetnextif.html',], },
 	UUO_PAUSE: { severity: FeedbackSeverity.WARN, desc: "PauseIf should only be used with requirements that have hitcounts.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/pauseif.html',], },
+	ADDHITS_WITHOUT_TARGET: { severity: FeedbackSeverity.ERROR, desc: "AddHits in a chain should end in a hit target. Without a hit target, AddHits does nothing.",
+		ref: [], },
 	PAUSING_MEASURED: { severity: FeedbackSeverity.PASS, desc: "PauseIf should only be used with requirements that have hitcounts, unless being used to freeze updates to a Measured requirement.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/measured.html#measured',], },
 	RESET_HITCOUNT_1: { severity: FeedbackSeverity.INFO, desc: "A ResetIf or ResetNextIf with a hitcount of 1 does not require a hitcount. The hitcount can be safely removed.",
@@ -1054,6 +1056,24 @@ function* check_uuo_resetnextif(logic)
 		}
 }
 
+function* check_uuo_addhits(logic)
+{
+	for (const [gi, g] of logic.groups.entries())
+	{
+		let has_addhits = false;
+		for (const [ri, req] of g.entries())
+		{
+			has_addhits ||= (req.flag == ReqFlag.ADDHITS || req.flag == ReqFlag.SUBHITS);
+			if (!req.flag || !req.flag.chain)
+			{
+				if (has_addhits && req.hits == 0)
+					yield new Issue(Feedback.ADDHITS_WITHOUT_TARGET, req);
+				has_addhits = false;
+			}
+		}
+	}
+}
+
 function* check_missing_enum(logic)
 {
 	for (const [gi, g] of logic.groups.entries())
@@ -1405,6 +1425,7 @@ const BASIC_LOGIC_TESTS = [
 	check_uuo_reset,
 	check_reset_with_hits,
 	check_uuo_resetnextif,
+	check_uuo_addhits,
 //	check_missing_enum,
 ];
 
