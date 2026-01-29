@@ -1648,13 +1648,8 @@ function BadgeGrid({set = current.set})
         const loadImage = (url) => {
             return new Promise((resolve) => {
                 const img = new Image();
-                img.crossOrigin = "Anonymous";
-                
-                if (url.startsWith("http")) {
-				     img.src = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                } else {
-                    img.src = url; 
-                }
+                //img.crossOrigin = "Anonymous";
+                img.src = url; 
 
                 img.onload = () => resolve(img);
                 img.onerror = (e) => {
@@ -1770,7 +1765,7 @@ function BadgeGrid({set = current.set})
 
 	return (
         <div style={{position: 'relative', display: 'inline-block'}}>
-            <button className="copy-btn" onClick={handleCopyClick} disabled={!isReady} style={{opacity: isReady ? 1 : 0.7, cursor: isReady ? 'pointer' : 'wait'}}>
+            <button className="copy-btn" onClick={handleCopyClick} disabled={!isReady} style={{display: 'none', opacity: isReady ? 1 : 0.7, cursor: isReady ? 'pointer' : 'wait'}}>
                 {status}
             </button>
             <canvas ref={canvasRef} width={WIDTH} height={HEIGHT}></canvas>
