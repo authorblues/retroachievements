@@ -78,6 +78,7 @@ ul li {
 /* Status Icons */
 #asset-list tbody tr.pass td.asset-name { background-image: url("../img/approval-16.png"); }
 #asset-list tbody tr.warn td.asset-name { background-image: url("../img/alert-16.png"); }
+#asset-list tbody tr.info td.asset-name { background-image: url("../img/info-16.png"); }
 #asset-list tbody tr.fail td.asset-name { background-image: url("../img/error-5-16.png"); }
 
 #asset-list tbody tr.fail {
@@ -816,6 +817,7 @@ body.dark-theme #asset-list tbody tr.fail { background-color: #5C2323; }
 /* Icon Adjustments */
 body.dark-theme #asset-list tbody tr.fail td.asset-name { background-image: url("../img/error-5-16.png"); }
 body.dark-theme #asset-list tbody tr.warn td.asset-name { background-image: url("../img/alert-16.png"); }
+body.dark-theme #asset-list tbody tr.info td.asset-name { background-image: url("../img/info-16.png"); }
 body.dark-theme #asset-list tbody tr.pass td.asset-name { background-image: url("../img/approval-16.png"); }
 
 /* Sidebar Footer */

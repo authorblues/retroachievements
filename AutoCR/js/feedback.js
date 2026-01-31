@@ -34,13 +34,17 @@ const FeedbackSeverity = Object.freeze({
 	PASS: 0,
 	INFO: 1,
 	WARN: 2,
-	ERROR: 3,
+	FAIL: 3,
+	ERROR: 4,
 });
+
+const SEVERITY_TO_CLASS = ['pass', 'info', 'warn', 'fail', 'fail'];
+
 const Feedback = Object.freeze({
 	// writing policy feedback
-	TITLE_CASE: { severity: FeedbackSeverity.WARN, desc: "Titles should be written in title case according to the Chicago Manual of Style.",
+	TITLE_CASE: { severity: FeedbackSeverity.INFO, desc: "Titles should be written in title case according to the Chicago Manual of Style.",
 		ref: ["https://en.wikipedia.org/wiki/Title_case#Chicago_Manual_of_Style",], },
-	TITLE_PUNCTUATION: { severity: FeedbackSeverity.WARN, desc: "Achievement titles are not full sentences, and should not end with punctuation (exception: ?, !, or ellipses).",
+	TITLE_PUNCTUATION: { severity: FeedbackSeverity.INFO, desc: "Achievement titles are not full sentences, and should not end with punctuation (exception: ?, !, or ellipses).",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#punctuation",], },
 	DESC_SENTENCE_CASE: { severity: FeedbackSeverity.INFO, desc: "Achievement descriptions should not be in title case, but rather sentence case.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#capitalization-1",], },
@@ -64,7 +68,7 @@ const Feedback = Object.freeze({
 		//	"https://docs.retroachievements.org/guidelines/content/naming-conventions.html",
 			"https://docs.retroachievements.org/developer-docs/tips-and-tricks.html#naming-convention-tips",
 		], },
-	FOREIGN_CHARS: { severity: FeedbackSeverity.INFO, desc: `Achievement titles and descriptions should be written in English and should avoid special characters.`,
+	FOREIGN_CHARS: { severity: FeedbackSeverity.INFO, desc: `Achievement titles and descriptions should be written in English and should avoid special characters, unless given special approval.`,
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#language",], },
 
 	// set design errors
@@ -77,53 +81,53 @@ const Feedback = Object.freeze({
 		], },
 	ACHIEVEMENT_DIFFICULTY: { severity: FeedbackSeverity.INFO, desc: "A good spread of achievement difficulties is important.",
 		ref: ["https://docs.retroachievements.org/developer-docs/difficulty-scale-and-balance.html",], },
-	PROGRESSION_ONLY: { severity: FeedbackSeverity.WARN, desc: "Progression-only sets should be avoided. Consider adding custom challenge achievements to improve it.",
+	PROGRESSION_ONLY: { severity: FeedbackSeverity.FAIL, desc: "Progression-only sets should be avoided. Consider adding custom challenge achievements to improve it.",
 		ref: ["https://retroachievements.org/game/5442",], },
-	DUPLICATE_TITLES: { severity: FeedbackSeverity.WARN, desc: "Assets should all have unique titles to distinguish them from one another.",
+	DUPLICATE_TITLES: { severity: FeedbackSeverity.FAIL, desc: "Assets should all have unique titles to distinguish them from one another.",
 		ref: [], },
-	DUPLICATE_DESCRIPTIONS: { severity: FeedbackSeverity.INFO, desc: "Assets should have unique descriptions. Duplicate descriptions likely indicate redundant assets.",
+	DUPLICATE_DESCRIPTIONS: { severity: FeedbackSeverity.FAIL, desc: "Assets should have unique descriptions. Duplicate descriptions likely indicate redundant assets.",
 		ref: [], },
 
 	// code notes
-	NOTE_EMPTY: { severity: FeedbackSeverity.WARN, desc: "Empty code note.",
+	NOTE_EMPTY: { severity: FeedbackSeverity.INFO, desc: "Empty code note.",
 		ref: [], },
-	NOTE_NO_SIZE: { severity: FeedbackSeverity.WARN, desc: "Code notes must have size information.",
+	NOTE_NO_SIZE: { severity: FeedbackSeverity.FAIL, desc: "Code notes must have size information.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html#specifying-memory-addresses-size",], },
-	NOTE_ENUM_HEX: { severity: FeedbackSeverity.WARN, desc: "Enumerated hex values in code notes should be prefixed with \"0x\" to avoid being misinterpreted as decimal values.",
+	NOTE_ENUM_HEX: { severity: FeedbackSeverity.FAIL, desc: "Enumerated hex values in code notes should be prefixed with \"0x\" to avoid being misinterpreted as decimal values.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html#adding-values-and-labels",], },
-	NOTE_ENUM_TOO_LARGE: { severity: FeedbackSeverity.WARN, desc: "Enumerated values too large for code note size information.",
+	NOTE_ENUM_TOO_LARGE: { severity: FeedbackSeverity.FAIL, desc: "Enumerated values too large for code note size information.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html#adding-values-and-labels",], },
-	BAD_REGION_NOTE: { severity: FeedbackSeverity.WARN, desc: "Some memory regions are unsafe, redundant, or should not otherwise be used.",
+	BAD_REGION_NOTE: { severity: FeedbackSeverity.INFO, desc: "Some memory regions are unsafe, redundant, or should not otherwise be used.",
 		ref: ['https://docs.retroachievements.org/developer-docs/console-specific-tips.html',], },
 	UNALIGNED_NOTE: { severity: FeedbackSeverity.INFO, desc: "16- and 32-bit data is often word-aligned.",
 		ref: [], },
 
 	// rich presence
-	NO_DYNAMIC_RP: { severity: FeedbackSeverity.WARN, desc: "Dynamic rich presence is required for all sets.",
+	NO_DYNAMIC_RP: { severity: FeedbackSeverity.FAIL, desc: "Dynamic rich presence is required for all sets.",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#introduction',], },
-	NO_CONDITIONAL_DISPLAY: { severity: FeedbackSeverity.INFO, desc: "The use of conditional displays can improve the quality of rich presence by showing specific information based on the game mode.",
+	NO_CONDITIONAL_DISPLAY: { severity: FeedbackSeverity.WARN, desc: "The use of conditional displays can improve the quality of rich presence by showing specific information based on the game mode.",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
 	NO_DEFAULT_RP: { severity: FeedbackSeverity.ERROR, desc: "Rich presence requires a default display (without a condition).",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
 	DYNAMIC_DEFAULT_RP: { severity: FeedbackSeverity.WARN, desc: "The default display for rich presence should be static.",
 		ref: [], },
-	MISSING_NOTE_RP: { severity: FeedbackSeverity.WARN, desc: "All addresses used in rich presence require a code note.",
+	MISSING_NOTE_RP: { severity: FeedbackSeverity.FAIL, desc: "All addresses used in rich presence require a code note.",
 		ref: [], },
 		
 	// code errors
 	BAD_CHAIN: { severity: FeedbackSeverity.ERROR, desc: "The last requirement of a group cannot have a chaining flag.",
 		ref: [], },
-	MISSING_NOTE: { severity: FeedbackSeverity.WARN, desc: "All addresses used in achievement logic require a code note.",
+	MISSING_NOTE: { severity: FeedbackSeverity.FAIL, desc: "All addresses used in achievement logic require a code note.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html",], },
-	ONE_CONDITION: { severity: FeedbackSeverity.WARN, desc: "One-condition achievements are dangerous and should be avoided.",
+	ONE_CONDITION: { severity: FeedbackSeverity.FAIL, desc: "One-condition achievements are dangerous and should be avoided.",
 		ref: ["https://docs.retroachievements.org/developer-docs/tips-and-tricks.html#achievement-creation-tips",], },
-	MISSING_DELTA: { severity: FeedbackSeverity.WARN, desc: "Achievements must contain a Delta to isolate the specific moment that an achievement should trigger.",
+	MISSING_DELTA: { severity: FeedbackSeverity.FAIL, desc: "Achievements must contain a Delta to isolate the specific moment that an achievement should trigger.",
 		ref: ['https://docs.retroachievements.org/developer-docs/delta-values.html',], },
-	IMPROPER_DELTA: { severity: FeedbackSeverity.INFO, desc: "Proper use of Delta can help identify the precise moment that an achievement should trigger.",
+	IMPROPER_DELTA: { severity: FeedbackSeverity.WARN, desc: "Proper use of Delta can help identify the precise moment that an achievement should trigger.",
 		ref: ['https://docs.retroachievements.org/developer-docs/delta-values.html',], },
-	BAD_PRIOR: { severity: FeedbackSeverity.WARN, desc: "Questionable use of Prior. See below for more information.",
+	BAD_PRIOR: { severity: FeedbackSeverity.FAIL, desc: "Questionable use of Prior. See below for more information.",
 		ref: ['https://docs.retroachievements.org/developer-docs/prior-values.html',], },
-	COMMON_ALT: { severity: FeedbackSeverity.INFO, desc: "If every alt group contains the same bit of logic in common, it can be refactored back into the Core group.",
+	COMMON_ALT: { severity: FeedbackSeverity.WARN, desc: "If every alt group contains the same bit of logic in common, it can be refactored back into the Core group.",
 		ref: [], },
 	STALE_ADDADDRESS: { severity: FeedbackSeverity.INFO, desc: "Stale references with AddAddress can be dangerous. Use caution when reading a pointer from the previous frame (AddAddress + Delta).",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/addaddress.html#using-delta-with-chained-pointers',], },
@@ -138,31 +142,31 @@ const Feedback = Object.freeze({
 		], },
 	POINTER_COMPARISON: { severity: FeedbackSeverity.INFO, desc: "Comparison between pointer and non-zero value is usually incorrect, unless pointing to data in ROM.",
 		ref: [], },
-	MISSING_ENUMERATION: { severity: FeedbackSeverity.WARN, desc: "A value was used that doesn't match any of the enumerated values in the code note.",
+	MISSING_ENUMERATION: { severity: FeedbackSeverity.FAIL, desc: "A value was used that doesn't match any of the enumerated values in the code note.",
 		ref: ['https://docs.retroachievements.org/guidelines/content/code-notes.html#adding-values-and-labels',], },
 	SOURCE_MOD_MEASURED: { severity: FeedbackSeverity.ERROR, desc: "Placing a source modification on a Measured requirement can cause faulty values in older versions of RetroArch (pre-1.10.1).",
 		ref: ['https://discord.com/channels/310192285306454017/386068797921951755/1247501391908307027',], },
-	PAUSELOCK_NO_RESET: { severity: FeedbackSeverity.WARN, desc: "PauseLocks require a reset, either via ResetNextIf, or a ResetIf in another group.",
+	PAUSELOCK_NO_RESET: { severity: FeedbackSeverity.FAIL, desc: "PauseLocks require a reset, either via ResetNextIf, or a ResetIf in another group.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/pauseif.html#pauseif-with-hit-counts',], },
-	HIT_NO_RESET: { severity: FeedbackSeverity.WARN, desc: "Hit counts require a reset, either via ResetIf or ResetNextIf.",
+	HIT_NO_RESET: { severity: FeedbackSeverity.FAIL, desc: "Hit counts require a reset, either via ResetIf or ResetNextIf.",
 		ref: ['https://docs.retroachievements.org/developer-docs/hit-counts.html',], },
-	USELESS_ANDNEXT: { severity: FeedbackSeverity.INFO, desc: "Combining requirements with AND is the default behavior. Useless AndNext flags should be removed.",
+	USELESS_ANDNEXT: { severity: FeedbackSeverity.WARN, desc: "Combining requirements with AND is the default behavior. Useless AndNext flags should be removed.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/andnext-ornext.html',], },
 	USELESS_ALT: { severity: FeedbackSeverity.ERROR, desc: "A Reset-only Alt group is considered satisfied, making all other Alt groups useless.",
 		ref: [], },
-	UUO_RESET: { severity: FeedbackSeverity.WARN, desc: "ResetIf should only be used with achievements that have hitcounts.",
+	UUO_RESET: { severity: FeedbackSeverity.FAIL, desc: "ResetIf should only be used with achievements that have hitcounts.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/resetif.html',], },
-	UUO_RNI: { severity: FeedbackSeverity.WARN, desc: "ResetNextIf should only be used with requirements that have hitcounts, and must be placed immediately before the requirement with the hits.",
+	UUO_RNI: { severity: FeedbackSeverity.FAIL, desc: "ResetNextIf should only be used with requirements that have hitcounts, and must be placed immediately before the requirement with the hits.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/resetnextif.html',], },
-	UUO_PAUSE: { severity: FeedbackSeverity.WARN, desc: "PauseIf should only be used with requirements that have hitcounts.",
+	UUO_PAUSE: { severity: FeedbackSeverity.FAIL, desc: "PauseIf should only be used with requirements that have hitcounts.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/pauseif.html',], },
 	ADDHITS_WITHOUT_TARGET: { severity: FeedbackSeverity.ERROR, desc: "AddHits in a chain should end in a hit target. Without a hit target, AddHits does nothing.",
 		ref: [], },
 	PAUSING_MEASURED: { severity: FeedbackSeverity.PASS, desc: "PauseIf should only be used with requirements that have hitcounts, unless being used to freeze updates to a Measured requirement.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/measured.html#measured',], },
-	RESET_HITCOUNT_1: { severity: FeedbackSeverity.INFO, desc: "A ResetIf or ResetNextIf with a hitcount of 1 does not require a hitcount. The hitcount can be safely removed.",
+	RESET_HITCOUNT_1: { severity: FeedbackSeverity.WARN, desc: "A ResetIf or ResetNextIf with a hitcount of 1 does not require a hitcount. The hitcount can be safely removed.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/resetif.html',], },
-	USELESS_ADDSUB: { severity: FeedbackSeverity.WARN, desc: "Using AddSource and SubSource is better supported in old emulators, and should be preferred where possible.",
+	USELESS_ADDSUB: { severity: FeedbackSeverity.FAIL, desc: "Using AddSource and SubSource is better supported in old emulators, and should be preferred where possible.",
 		ref: [
 			'https://docs.retroachievements.org/developer-docs/flags/addsource.html',
 			'https://docs.retroachievements.org/developer-docs/flags/subsource.html',
@@ -215,7 +219,7 @@ class Assessment
 
 	#allissues() { return [].concat(...this.issues); }
 	status() { return Math.max(FeedbackSeverity.PASS, ...this.#allissues().map(x => x.severity)); }
-	pass() { return this.status() < FeedbackSeverity.WARN; }
+	pass() { return this.status() < FeedbackSeverity.FAIL; }
 }
 
 function* missing_notes(logic)
@@ -1195,7 +1199,7 @@ function* check_notes_bad_regions(notes)
 					<li>Appears in the {r.name} region (<code>{toDisplayHex(r.start)}-{toDisplayHex(r.end)}</code>)</li>
 				</ul>);
 			// dynamically adjust severity of the issue depending on the region
-			issue.severity = r.isError ? FeedbackSeverity.WARN : FeedbackSeverity.INFO;
+			issue.severity = r.isError ? FeedbackSeverity.FAIL : FeedbackSeverity.INFO;
 			yield issue;
 		}
 	}
