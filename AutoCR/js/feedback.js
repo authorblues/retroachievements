@@ -1076,7 +1076,7 @@ function* check_uuo_addhits(logic)
 			has_addhits ||= (req.flag == ReqFlag.ADDHITS || req.flag == ReqFlag.SUBHITS);
 			if (!req.flag || !req.flag.chain)
 			{
-				if (has_addhits && req.hits == 0)
+				if (!logic.value && has_addhits && req.hits == 0)
 					yield new Issue(Feedback.ADDHITS_WITHOUT_TARGET, req);
 				has_addhits = false;
 			}
