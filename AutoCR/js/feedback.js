@@ -308,8 +308,9 @@ function generate_logic_stats(logic)
 	stats.max_chain = Math.max(...chains.map(x => x.length));
 
 	// count of requirements with hit counts
-	stats.hit_counts_one = flat.filter(x => x.hits == 1).length;
-	stats.hit_counts_many = flat.filter(x => x.hits > 1).length;
+	stats.hit_targets = flat.filter(x => x.hits > 0).length;
+	stats.checkpoint_hits = flat.filter(x => !PAUSERESET.has(x.flag) && x.hits == 1).length;
+	stats.hit_target_many = flat.filter(x => x.hits > 1).length;
 
 	// count of requirements with PauseIf
 	stats.pause_ifs = flat.filter(x => x.flag == ReqFlag.PAUSEIF).length;
@@ -495,8 +496,8 @@ function generate_set_stats(set)
 	// number of achievements using each feature
 	stats.using_alt_groups = achievements.filter(ach => ach.feedback.stats.alt_groups > 0);
 	stats.using_delta = achievements.filter(ach => ach.feedback.stats.deltas > 0);
-	stats.using_hitcounts = achievements.filter(ach => ach.feedback.stats.hit_counts_many > 0);
-	stats.using_checkpoint_hits = achievements.filter(ach => ach.feedback.stats.hit_counts_one > 0);
+	stats.using_hitcounts = achievements.filter(ach => ach.feedback.stats.hit_target_many > 0);
+	stats.using_checkpoint_hits = achievements.filter(ach => ach.feedback.stats.checkpoint_hits > 0);
 	stats.using_pauselock = achievements.filter(ach => ach.feedback.stats.pause_locks > 0);
 	stats.using_pauselock_alt_reset = achievements.filter(ach => ach.feedback.stats.pauselock_alt_reset > 0);
 	stats.using_remember_recall = achievements.filter(ach => ach.feedback.stats.remember_recall);
@@ -594,7 +595,6 @@ function* check_deltas(logic)
 		}
 	}
 
-	const PAUSERESET = new Set([ReqFlag.RESETIF, ReqFlag.RESETNEXTIF, ReqFlag.PAUSEIF]);
 	let delta_groups = logic.groups.map((g, gi) =>
 	{
 		// If the group contains an always-false condition, it can never trigger.

@@ -35,6 +35,8 @@ const ReqFlag = Object.freeze({
 	REMEMBER:    { name: "Remember",     prefix: "K:", chain: false, scalable: true , cmod: false, },
 });
 
+const PAUSERESET = new Set([ReqFlag.RESETIF, ReqFlag.RESETNEXTIF, ReqFlag.PAUSEIF]);
+
 const MemSize = Object.freeze({
 	BYTE:     { name: "8-bit",        prefix: "0xH", bytes: 1, maxvalue: 0xFF, },
 	WORD:     { name: "16-bit",       prefix: "0x",  bytes: 2, maxvalue: 0xFFFF, },

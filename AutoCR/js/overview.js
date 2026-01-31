@@ -623,7 +623,7 @@ function LogicStats({logic, stats = {}})
 	{
 		if (logic && logic.value) return null;
 		return (<>
-			<li>Requirements with hitcounts: {stats.hit_counts_one + stats.hit_counts_many}</li>
+			<li>Requirements with hitcounts: {stats.hit_targets}</li>
 			<ul>
 				<li><span title="a checkpoint hit is a hitcount of 1, which locks when satisfied">Checkpoint hits</span>: {stats.hit_counts_one}</li>
 			</ul>
