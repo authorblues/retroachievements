@@ -49,16 +49,26 @@ const Console = Object.freeze({
 	WII: { id: 19, name: "Wii", icon: "wii", },
 	DS: { id: 18, name: "Nintendo DS", icon: "ds", },
 	DSI: { id: 78, name: "Nintendo DSi", icon: "dsi", },
-	PKMN: { id: 24, name: "Pokemon Mini", icon: "mini", },
+	PKMN: { id: 24, name: "Pokemon Mini", icon: "mini",
+		regions: [
+			new MemRegion(0x0000, 0x0FFF, "BIOS RAM", false),
+		]},
 	VB: { id: 28, name: "Virtual Boy", icon: "vb", },
 
 	// Sony
-	PSX: { id: 12, name: "PlayStation", icon: "ps1", },
+	PSX: { id: 12, name: "PlayStation", icon: "ps1", 
+		regions: [
+			new MemRegion(0x0000000, 0x000FFFF, "Kernel RAM", true),
+		]},
 	PS2: { id: 21, name: "PlayStation 2", icon: "ps2",
 		regions: [
+			new MemRegion(0x0000000, 0x00FFFFF, "Kernel RAM", true),
 			new MemRegion(0x1FE0000, 0x1FFFFFF, "Probable Stack", false),
 		]},
-	PSP: { id: 41, name: "PlayStation Portable", icon: "psp", },
+	PSP: { id: 41, name: "PlayStation Portable", icon: "psp",
+		regions: [
+			new MemRegion(0x0000000, 0x07FFFFF, "Kernel RAM", true),
+		]},
 	
 	// Atari
 	A2600: { id: 25, name: "Atari 2600", icon: "2600", },
