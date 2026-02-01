@@ -4,13 +4,15 @@ class MemRegion
 	end;
 	name;
 	isError = false;
+	transform = null;
 
-	constructor(start, end, name, isError=false)
+	constructor(start, end, name, isError, transform=null)
 	{
 		this.start = start;
 		this.end = end;
 		this.name = name;
 		this.isError = isError;
+		this.transform = transform;
 	}
 }
 
@@ -22,7 +24,7 @@ const Console = Object.freeze({
 		regions: [
 			new MemRegion(0x0000, 0x7FFF, "ROM Data", true),
 			new MemRegion(0x8000, 0x9FFF, "Graphics Data", false),
-			new MemRegion(0xE000, 0xFDFF, "Echo RAM", true),
+			new MemRegion(0xE000, 0xFDFF, "Echo RAM", true, (x) => x - 0x2000),
 			new MemRegion(0xFE00, 0xFE9F, "Graphics Data", false),
 			new MemRegion(0xFEA0, 0xFF7F, "Unusable Memory", true),
 		]},
@@ -31,16 +33,16 @@ const Console = Object.freeze({
 			new MemRegion(0x0000, 0x3FFF, "ROM Bank", true),
 			new MemRegion(0x4000, 0x7FFF, "Switchable ROM Bank", true),
 			new MemRegion(0x8000, 0x9FFF, "Graphics Data", false),
-			new MemRegion(0xE000, 0xFDFF, "Echo RAM", true),
+			new MemRegion(0xE000, 0xFDFF, "Echo RAM", true, (x) => x - 0x2000),
 			new MemRegion(0xFE00, 0xFE9F, "Graphics Data", false),
 			new MemRegion(0xFEA0, 0xFF7F, "Unusable Memory", true),
 		]},
 	GBA: { id: 5, name: "Game Boy Advance", icon: "gba", },
 	NES: { id: 7, name: "NES/Famicom", icon: "nes", 
 		regions: [
-    		new MemRegion(0x0800, 0x0FFF, "Mirror RAM", true),
-    		new MemRegion(0x1000, 0x17FF, "Mirror RAM", true),
-    		new MemRegion(0x1800, 0x1FFF, "Mirror RAM", true),
+    		new MemRegion(0x0800, 0x0FFF, "Mirror RAM", true, (x) => x - 0x0800),
+    		new MemRegion(0x1000, 0x17FF, "Mirror RAM", true, (x) => x - 0x1000),
+    		new MemRegion(0x1800, 0x1FFF, "Mirror RAM", true, (x) => x - 0x1800),
     		new MemRegion(0x2008, 0x3FFF, "Mirrored PPU Registers", true),
 		]},
 	SNES: { id: 3, name: "SNES/Super Famicom", icon: "snes", },
@@ -74,9 +76,9 @@ const Console = Object.freeze({
 	A2600: { id: 25, name: "Atari 2600", icon: "2600", },
 	A7800: { id: 51, name: "Atari 7800", icon: "7800", 
 		regions: [
-    		new MemRegion(0x002800, 0x002FFF, "Mirror RAM", true),
-    		new MemRegion(0x003000, 0x0037FF, "Mirror RAM", true),
-    		new MemRegion(0x003800, 0x003FFF, "Mirror RAM", true),
+    		new MemRegion(0x002800, 0x002FFF, "Mirror RAM", true, (x) => x - 0x0800),
+    		new MemRegion(0x003000, 0x0037FF, "Mirror RAM", true, (x) => x - 0x1000),
+    		new MemRegion(0x003800, 0x003FFF, "Mirror RAM", true, (x) => x - 0x1800),
 		]},
 	JAG: { id: 17, name: "Atari Jaguar", icon: "jag", },
 	JCD: { id: 77, name: "Atari Jaguar CD", icon: "jcd", },
@@ -652,6 +654,7 @@ class CodeNote
 		this.noteNodes = PointerTreeParser.parseNoteText(note);
 	}
 
+	getHeader() { return this.note.split('\n')[0]; }
 	toRefString() { return `note-${this.addr}`; }
 
 	isArray() { return this.size >= (this.type ? this.type.bytes : 1) * 2; }

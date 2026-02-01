@@ -97,7 +97,7 @@ const Feedback = Object.freeze({
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html#adding-values-and-labels",], },
 	NOTE_ENUM_TOO_LARGE: { severity: FeedbackSeverity.FAIL, desc: "Enumerated values too large for code note size information.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html#adding-values-and-labels",], },
-	BAD_REGION_NOTE: { severity: FeedbackSeverity.INFO, desc: "Some memory regions are unsafe, redundant, or should not otherwise be used.",
+	BAD_REGION_NOTE: { severity: FeedbackSeverity.INFO, desc: "Some memory regions are unsafe, redundant, or should otherwise be avoided.",
 		ref: ['https://docs.retroachievements.org/developer-docs/console-specific-tips.html',], },
 	UNALIGNED_NOTE: { severity: FeedbackSeverity.INFO, desc: "16- and 32-bit data is often word-aligned.",
 		ref: [], },
@@ -1195,8 +1195,13 @@ function* check_notes_bad_regions(notes)
 		{
 			let issue = new Issue(Feedback.BAD_REGION_NOTE, note,
 				<ul>
-					<li>Code note at <code className="ref-link" data-ref={note.addr}>{toDisplayHex(note.addr)}</code></li>
+					<li>Code note at <code className="ref-link" data-ref={note.addr}>{toDisplayHex(note.addr)}</code>: <code>{note.getHeader()}</code></li>
 					<li>Appears in the {r.name} region (<code>{toDisplayHex(r.start)}-{toDisplayHex(r.end)}</code>)</li>
+					{
+						!r.transform ? <></> : (<ul>
+							<li><strong>Suggested fix:</strong> Move this note to the address <code>{toDisplayHex(r.transform(note.addr))}</code></li>
+						</ul>)
+					}
 				</ul>);
 			// dynamically adjust severity of the issue depending on the region
 			issue.severity = r.isError ? FeedbackSeverity.FAIL : FeedbackSeverity.INFO;
@@ -1211,7 +1216,7 @@ function* check_notes_missing_size(notes)
 		if (note.type == null && note.size == 1)
 			yield new Issue(Feedback.NOTE_NO_SIZE, note,
 				<ul>
-					<li>Code note at <code className="ref-link" data-ref={note.addr}>{toDisplayHex(note.addr)}</code></li>
+					<li>Code note at <code className="ref-link" data-ref={note.addr}>{toDisplayHex(note.addr)}</code>: <code>{note.getHeader()}</code></li>
 				</ul>);
 }
 
@@ -1229,7 +1234,7 @@ function* check_notes_enum_hex(notes)
 		if (found.length > 0)
 			yield new Issue(Feedback.NOTE_ENUM_HEX, note,
 				<ul>
-					<li>Code note at <code className="ref-link" data-ref={note.addr}>{toDisplayHex(note.addr)}</code></li>
+					<li>Code note at <code className="ref-link" data-ref={note.addr}>{toDisplayHex(note.addr)}</code>: <code>{note.getHeader()}</code></li>
 					<li>Found potential hex values: {found.map((x, i) => <React.Fragment key={i}>
 						{i == 0 ? '' : ', '} <code>{x}</code>
 					</React.Fragment>)}</li>
@@ -1249,7 +1254,7 @@ function* check_notes_enum_size_mismatch(notes)
 		if (found.length > 0)
 			yield new Issue(Feedback.NOTE_ENUM_TOO_LARGE, note,
 				<ul>
-					<li>Code note at <code className="ref-link" data-ref={note.addr}>{toDisplayHex(note.addr)}</code></li>
+					<li>Code note at <code className="ref-link" data-ref={note.addr}>{toDisplayHex(note.addr)}</code>: <code>{note.getHeader()}</code></li>
 					<li>The code note is listed as <code>{note.type.name}</code>, which has a max value of <code>0x{(note.type.maxvalue.toString(16).toUpperCase())}</code></li>
 					<li>The following enumerated values are too large for this code note: {found.map((x, i) => <React.Fragment key={i}>
 						{i == 0 ? '' : ', '} <code>{x}</code>
