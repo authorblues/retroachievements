@@ -33,7 +33,7 @@ function reset_loaded()
 
 document.getElementById('unload-set').addEventListener('click', () => {
 	history.pushState(null, '', location.pathname);
-    location.reload();
+	location.reload();
 });
 
 let submit_gameid = () => {	location.hash = '#!/game/' + document.getElementById('game-id').value; }
@@ -150,193 +150,193 @@ function jump_to_asset(asset)
 // --------------------------------------------------
 
 const TooltipManager = {
-    // Phase 1: Grace period before closing starts (allows moving mouse to tooltip)
-    HIDE_DELAY_MS: 150, 
-    // Phase 2: Duration of the fade-out animation (Must match CSS)
-    ANIMATION_MS: 150,   
+	// Phase 1: Grace period before closing starts (allows moving mouse to tooltip)
+	HIDE_DELAY_MS: 150, 
+	// Phase 2: Duration of the fade-out animation (Must match CSS)
+	ANIMATION_MS: 150,   
 
-    state: {
-        visible: false,
-        content: null,
-        targetRect: null, 
-        isExiting: false, // Tracks if we are currently animating out
-    },
-    listeners: [],
-    
-    timer: null,      // Timer for the HIDE_DELAY
-    exitTimer: null,  // Timer for the ANIMATION
+	state: {
+		visible: false,
+		content: null,
+		targetRect: null, 
+		isExiting: false, // Tracks if we are currently animating out
+	},
+	listeners: [],
+	
+	timer: null,      // Timer for the HIDE_DELAY
+	exitTimer: null,  // Timer for the ANIMATION
 
-    subscribe(listener) {
-        this.listeners.push(listener);
-        return () => {
-            this.listeners = this.listeners.filter(l => l !== listener);
-        };
-    },
+	subscribe(listener) {
+		this.listeners.push(listener);
+		return () => {
+			this.listeners = this.listeners.filter(l => l !== listener);
+		};
+	},
 
-    notify() {
-        this.listeners.forEach(l => l(this.state));
-    },
+	notify() {
+		this.listeners.forEach(l => l(this.state));
+	},
 
-    show(content, targetRect) {
-        // Cancel any pending hide or exit timers
-        this.cancelHide();
+	show(content, targetRect) {
+		// Cancel any pending hide or exit timers
+		this.cancelHide();
 
-        this.state = {
-            visible: true,
-            isExiting: false, // Ensure we aren't fading out
-            content: content,
-            targetRect: targetRect
-        };
-        this.notify();
-    },
+		this.state = {
+			visible: true,
+			isExiting: false, // Ensure we aren't fading out
+			content: content,
+			targetRect: targetRect
+		};
+		this.notify();
+	},
 
-    startHide() {
-        // Prevent stacking timers
-        if (this.timer) clearTimeout(this.timer);
-        
-        // 1. Wait the Buffer Time
-        this.timer = setTimeout(() => {
-            // 2. Start Exiting (Trigger CSS Animation)
-            this.state = { ...this.state, isExiting: true };
-            this.notify();
+	startHide() {
+		// Prevent stacking timers
+		if (this.timer) clearTimeout(this.timer);
+		
+		// 1. Wait the Buffer Time
+		this.timer = setTimeout(() => {
+			// 2. Start Exiting (Trigger CSS Animation)
+			this.state = { ...this.state, isExiting: true };
+			this.notify();
 
-            // 3. Wait for Animation to finish, then unmount
-            this.exitTimer = setTimeout(() => {
-                this.state = { ...this.state, visible: false, isExiting: false };
-                this.notify();
-                this.exitTimer = null;
-            }, this.ANIMATION_MS);
+			// 3. Wait for Animation to finish, then unmount
+			this.exitTimer = setTimeout(() => {
+				this.state = { ...this.state, visible: false, isExiting: false };
+				this.notify();
+				this.exitTimer = null;
+			}, this.ANIMATION_MS);
 
-            this.timer = null;
-        }, this.HIDE_DELAY_MS);
-    },
+			this.timer = null;
+		}, this.HIDE_DELAY_MS);
+	},
 
-    cancelHide() {
-        if (this.timer) {
-            clearTimeout(this.timer);
-            this.timer = null;
-        }
-        if (this.exitTimer) {
-            clearTimeout(this.exitTimer);
-            this.exitTimer = null;
-        }
-        // If we catch it while exiting, snap back to fully visible
-        if (this.state.isExiting) {
-            this.state = { ...this.state, isExiting: false };
-            this.notify();
-        }
-    }
+	cancelHide() {
+		if (this.timer) {
+			clearTimeout(this.timer);
+			this.timer = null;
+		}
+		if (this.exitTimer) {
+			clearTimeout(this.exitTimer);
+			this.exitTimer = null;
+		}
+		// If we catch it while exiting, snap back to fully visible
+		if (this.state.isExiting) {
+			this.state = { ...this.state, isExiting: false };
+			this.notify();
+		}
+	}
 };
 
 function GlobalTooltip() {
-    const [state, setState] = React.useState(TooltipManager.state);
-    
-    // Default to hidden so it measures before showing
-    const [layout, setLayout] = React.useState({ 
-        top: 0, 
-        left: 0, 
-        opacity: 0,
-        placement: 'left',
-        arrowOffset: 0
-    });
+	const [state, setState] = React.useState(TooltipManager.state);
+	
+	// Default to hidden so it measures before showing
+	const [layout, setLayout] = React.useState({ 
+		top: 0, 
+		left: 0, 
+		opacity: 0,
+		placement: 'left',
+		arrowOffset: 0
+	});
 
-    const tooltipRef = React.useRef(null);
+	const tooltipRef = React.useRef(null);
 
-    React.useEffect(() => {
-        return TooltipManager.subscribe(setState);
-    }, []);
+	React.useEffect(() => {
+		return TooltipManager.subscribe(setState);
+	}, []);
 
-    // Perform measurement and positioning whenever content or target changes
-    React.useLayoutEffect(() => {
-        if (!state.visible || !state.targetRect || !tooltipRef.current) return;
+	// Perform measurement and positioning whenever content or target changes
+	React.useLayoutEffect(() => {
+		if (!state.visible || !state.targetRect || !tooltipRef.current) return;
 
-        const target = state.targetRect;
-        const tooltip = tooltipRef.current.getBoundingClientRect();
-        
-        // Use Actual Dimensions from the DOM
-        const actualWidth = tooltip.width;
-        const actualHeight = tooltip.height;
+		const target = state.targetRect;
+		const tooltip = tooltipRef.current.getBoundingClientRect();
+		
+		// Use Actual Dimensions from the DOM
+		const actualWidth = tooltip.width;
+		const actualHeight = tooltip.height;
 
-        const GAP = 10;
-        const VIEWPORT_WIDTH = window.innerWidth;
-        const VIEWPORT_HEIGHT = window.innerHeight;
+		const GAP = 10;
+		const VIEWPORT_WIDTH = window.innerWidth;
+		const VIEWPORT_HEIGHT = window.innerHeight;
 
-        let leftPos = 0;
-        let topPos = target.top;
-        let placement = 'left';
-        let transform = '';
+		let leftPos = 0;
+		let topPos = target.top;
+		let placement = 'left';
+		let transform = '';
 
-        // --- Horizontal Logic ---
-        // Try Left first
-        if (target.left - GAP - actualWidth > 0) {
-            leftPos = target.left - GAP;
-            placement = 'left';
-            transform = 'translateX(-100%)'; 
-        } 
-        // Fallback to Right
-        else {
-            leftPos = target.right + GAP;
-            placement = 'right';
-            transform = 'none';
-        }
+		// --- Horizontal Logic ---
+		// Try Left first
+		if (target.left - GAP - actualWidth > 0) {
+			leftPos = target.left - GAP;
+			placement = 'left';
+			transform = 'translateX(-100%)'; 
+		} 
+		// Fallback to Right
+		else {
+			leftPos = target.right + GAP;
+			placement = 'right';
+			transform = 'none';
+		}
 
-        // --- Vertical Logic ---
-        const targetCenterY = target.top + (target.height / 2);
-        topPos = target.top;
+		// --- Vertical Logic ---
+		const targetCenterY = target.top + (target.height / 2);
+		topPos = target.top;
 
-        const bottomPadding = 20;
-        if (topPos + actualHeight > VIEWPORT_HEIGHT - bottomPadding) {
-            const overflow = (topPos + actualHeight) - (VIEWPORT_HEIGHT - bottomPadding);
-            topPos -= overflow;
-        }
+		const bottomPadding = 20;
+		if (topPos + actualHeight > VIEWPORT_HEIGHT - bottomPadding) {
+			const overflow = (topPos + actualHeight) - (VIEWPORT_HEIGHT - bottomPadding);
+			topPos -= overflow;
+		}
 
-        if (topPos < 10) topPos = 10;
+		if (topPos < 10) topPos = 10;
 
-        // --- Arrow Logic ---
-        let arrowOffset = targetCenterY - topPos;
-        const maxArrow = actualHeight - 12; 
-        const minArrow = 12;
+		// --- Arrow Logic ---
+		let arrowOffset = targetCenterY - topPos;
+		const maxArrow = actualHeight - 12; 
+		const minArrow = 12;
 
-        if (arrowOffset < minArrow) arrowOffset = minArrow;
-        if (arrowOffset > maxArrow) arrowOffset = maxArrow;
+		if (arrowOffset < minArrow) arrowOffset = minArrow;
+		if (arrowOffset > maxArrow) arrowOffset = maxArrow;
 
-        setLayout({
-            top: topPos,
-            left: leftPos,
-            transform: transform,
-            placement: placement,
-            arrowOffset: arrowOffset,
-            opacity: 1 
-        });
+		setLayout({
+			top: topPos,
+			left: leftPos,
+			transform: transform,
+			placement: placement,
+			arrowOffset: arrowOffset,
+			opacity: 1 
+		});
 
-    }, [state.visible, state.content, state.targetRect]); 
+	}, [state.visible, state.content, state.targetRect]); 
 
-    if (!state.visible || !state.content) return null;
+	if (!state.visible || !state.content) return null;
 
-    return ReactDOM.createPortal(
-        <div 
-            id="global-tooltip-container" 
-            ref={tooltipRef}
-            style={{
-                top: layout.top,
-                left: layout.left,
-                transform: layout.transform,
-                opacity: layout.opacity, 
-                pointerEvents: 'auto' 
-            }}
-            onMouseEnter={() => TooltipManager.cancelHide()}
-            onMouseLeave={() => TooltipManager.startHide()}
-        >
-            <div 
-                className={`tooltip-arrow ${layout.placement}`} 
-                style={{ top: layout.arrowOffset + 'px' }}
-            ></div>
-            <div className={`tooltip-content ${state.isExiting ? 'exiting' : ''}`}>
-                {state.content}
-            </div>
-        </div>,
-        document.body
-    );
+	return ReactDOM.createPortal(
+		<div 
+			id="global-tooltip-container" 
+			ref={tooltipRef}
+			style={{
+				top: layout.top,
+				left: layout.left,
+				transform: layout.transform,
+				opacity: layout.opacity, 
+				pointerEvents: 'auto' 
+			}}
+			onMouseEnter={() => TooltipManager.cancelHide()}
+			onMouseLeave={() => TooltipManager.startHide()}
+		>
+			<div 
+				className={`tooltip-arrow ${layout.placement}`} 
+				style={{ top: layout.arrowOffset + 'px' }}
+			></div>
+			<div className={`tooltip-content ${state.isExiting ? 'exiting' : ''}`}>
+				{state.content}
+			</div>
+		</div>,
+		document.body
+	);
 }
 
 // --------------------------------------------------
@@ -349,94 +349,94 @@ function OperandCells({operand, skipNote = false, chainInfo = [], showAliases = 
 	{
 		if (operand == null) return null;
 		
-        // 0. RECALL TYPE
-        if (operand.type.name === "Recall")
-        {
-            return <span className="recall-val">{operand.toString()}</span>;
-        }
+		// 0. RECALL TYPE
+		if (operand.type.name === "Recall")
+		{
+			return <span className="recall-val">{operand.toString()}</span>;
+		}
 
-        // 1. MEMORY TYPE
+		// 1. MEMORY TYPE
 		if (operand.type.addr)
 		{
-            let displayValue = null;
-            if (showAliases && current.notes) {
-                const alias = ConditionFormatter.resolveAlias(operand.value, group, rowIndex, current.notes, null);
-                if (alias) {
-                    // Set title to full alias so hover shows full text if truncated
-                    displayValue = <span className="alias" title={`${alias} (0x${operand.value.toString(16)})`}>{alias}</span>;
-                }
-            }
+			let displayValue = null;
+			if (showAliases && current.notes) {
+				const alias = ConditionFormatter.resolveAlias(operand.value, group, rowIndex, current.notes, null);
+				if (alias) {
+					// Set title to full alias so hover shows full text if truncated
+					displayValue = <span className="alias" title={`${alias} (0x${operand.value.toString(16)})`}>{alias}</span>;
+				}
+			}
 
-            if (!displayValue) {
-                let memaddr = operand.toValueString();
-                if (chainInfo.length) memaddr = (
-                    <React.Fragment>
-                        <span className="AddAddressIndicator">[+</span>
-                        {memaddr}
-                        <span className="AddAddressIndicator">]</span>
-                    </React.Fragment>);
-                displayValue = memaddr;
-            }
+			if (!displayValue) {
+				let memaddr = operand.toValueString();
+				if (chainInfo.length) memaddr = (
+					<React.Fragment>
+						<span className="AddAddressIndicator">[+</span>
+						{memaddr}
+						<span className="AddAddressIndicator">]</span>
+					</React.Fragment>);
+				displayValue = memaddr;
+			}
 			
 			const note_text = current.notes.get_text(operand.value, chainInfo);
 			
 			if (!skipNote && note_text) {
-                return (
-                    <span 
-                        className="tooltip"
-                        onMouseEnter={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            TooltipManager.show(<pre>{note_text}</pre>, rect);
-                        }}
-                        onMouseLeave={() => TooltipManager.startHide()}
-                    >
-                        {displayValue}
-                    </span>
-                );
-            }
+				return (
+					<span 
+						className="tooltip"
+						onMouseEnter={(e) => {
+							const rect = e.currentTarget.getBoundingClientRect();
+							TooltipManager.show(<pre>{note_text}</pre>, rect);
+						}}
+						onMouseLeave={() => TooltipManager.startHide()}
+					>
+						{displayValue}
+					</span>
+				);
+			}
 			else return displayValue;
 		}
-        
-        // 2. VALUE / FLOAT TYPE
+		
+		// 2. VALUE / FLOAT TYPE
 		else
 		{
-            // Only try enum lookup if value exists
-            if (showAliases && contextOperand && contextOperand.type.addr && current.notes && operand.value !== undefined && operand.value !== null) {
-                const enumLabel = ConditionFormatter.resolveEnum(
-                    operand.value, 
-                    contextOperand.value, 
-                    contextOperand.size, 
-                    current.notes, 
-                    chainInfo
-                );
-                
-                if (enumLabel) {
-                    let rawVal = "";
-                    if (operand.type === ReqType.FLOAT) rawVal = Number(operand.value).toFixed(1);
-                    else if (typeof operand.value === 'number') rawVal = `0x${operand.value.toString(16)}`;
-                    else rawVal = operand.value;
-                    
-                    // Apply alias class here too just in case enums get super long
-                    return <span className="enum-label alias" title={`${operand.value} (${rawVal})`}>{enumLabel}</span>;
-                }
-            }
+			// Only try enum lookup if value exists
+			if (showAliases && contextOperand && contextOperand.type.addr && current.notes && operand.value !== undefined && operand.value !== null) {
+				const enumLabel = ConditionFormatter.resolveEnum(
+					operand.value, 
+					contextOperand.value, 
+					contextOperand.size, 
+					current.notes, 
+					chainInfo
+				);
+				
+				if (enumLabel) {
+					let rawVal = "";
+					if (operand.type === ReqType.FLOAT) rawVal = Number(operand.value).toFixed(1);
+					else if (typeof operand.value === 'number') rawVal = `0x${operand.value.toString(16)}`;
+					else rawVal = operand.value;
+					
+					// Apply alias class here too just in case enums get super long
+					return <span className="enum-label alias" title={`${operand.value} (${rawVal})`}>{enumLabel}</span>;
+				}
+			}
 
-            // Standard Display
-            if (operand.type === ReqType.FLOAT) {
-                return <span className="float-val">{operand.value}</span>;
-            }
-            
-            // Final fallback for integers/strings
-            const valStr = operand.value !== undefined && operand.value !== null ? operand.value.toString() : "";
-            const valHex = (typeof operand.value === 'number') ? operand.value.toString(16).padStart(8, '0') : "";
+			// Standard Display
+			if (operand.type === ReqType.FLOAT) {
+				return <span className="float-val">{operand.value}</span>;
+			}
+			
+			// Final fallback for integers/strings
+			const valStr = operand.value !== undefined && operand.value !== null ? operand.value.toString() : "";
+			const valHex = (typeof operand.value === 'number') ? operand.value.toString(16).padStart(8, '0') : "";
 
 			return (<>
 				<span className="in-dec">{valStr}</span>
-                {valHex && <span className="in-hex">0x{valHex}</span>}
+				{valHex && <span className="in-hex">0x{valHex}</span>}
 			</>);
 		}
 	}
-    
+	
 	return (<>
 		<td>{operand ? operand.type.name : ''}</td>
 		<td>{operand && operand.size ? operand.size.name : ''}</td>
@@ -471,12 +471,12 @@ function LogicGroup({group, gi, logic, issues, showAliases, collapseAddAddress})
 			let match = [...issues.entries()].filter(([_, issue]) => issue.target == req);
 			const isAddAddress = req.flag === ReqFlag.ADDADDRESS;
 			
-            const operand_chain_context_for_this_row = [...chain_context];
+			const operand_chain_context_for_this_row = [...chain_context];
 
-            // Calculate context for the NEXT row, even if this one is hidden
+			// Calculate context for the NEXT row, even if this one is hidden
 			if (isAddAddress) {
 				// If starting a chain with 8-bit/16-bit, assume Array Indexing (Index + Base).
-                // Do not add the Index to the chain context, so the Base (next line) resolves as a direct address.
+				// Do not add the Index to the chain context, so the Base (next line) resolves as a direct address.
 				const isArrayIndexing = chain_context.length === 0 && req.lhs.type.addr && req.lhs.size && req.lhs.size.bytes < 3;
 
 				if (!isArrayIndexing) {
@@ -493,41 +493,41 @@ function LogicGroup({group, gi, logic, issues, showAliases, collapseAddAddress})
 				chain_context = [];
 			}
 
-            // FIX: If collapsed, do not render the row at all.
-            // This ensures CSS nth-child striping works correctly on visible rows.
-            if (collapseAddAddress && isAddAddress) return null;
+			// FIX: If collapsed, do not render the row at all.
+			// This ensures CSS nth-child striping works correctly on visible rows.
+			if (collapseAddAddress && isAddAddress) return null;
 			
-            const flagClass = req.flag ? 'flag-' + req.flag.name.replace(/\s+/g, '') : '';
+			const flagClass = req.flag ? 'flag-' + req.flag.name.replace(/\s+/g, '') : '';
 
 			return (<tr key={`g${gi}-r${ri}`} id={req.toRefString()} className={`${match.some(([_, issue]) => issue.severity >= FeedbackSeverity.FAIL) ? 'warn' : ''} ${flagClass}`}>
 				<td>{ri + 1} {match.map(([ndx, _]) => 
 					<React.Fragment key={ndx}>{' '} <sup key={ndx}>(#{ndx+1})</sup></React.Fragment>)}</td>
 				<td>{req.flag ? req.flag.name : ''}</td>
 				
-                {/* LHS: Pass group/rowIndex for pointer resolving */}
-                <OperandCells 
-                    operand={req.lhs} 
-                    skipNote={false} 
-                    chainInfo={operand_chain_context_for_this_row} 
-                    showAliases={showAliases}
-                    group={group}
-                    rowIndex={ri}
-                />
+				{/* LHS: Pass group/rowIndex for pointer resolving */}
+				<OperandCells 
+					operand={req.lhs} 
+					skipNote={false} 
+					chainInfo={operand_chain_context_for_this_row} 
+					showAliases={showAliases}
+					group={group}
+					rowIndex={ri}
+				/>
 				
-                <td>{req.op ? req.op : ''}</td>
+				<td>{req.op ? req.op : ''}</td>
 				
-                {/* RHS: Pass contextOperand (LHS) for Enum resolution */}
-                <OperandCells 
-                    operand={req.rhs} 
-                    skipNote={false} 
-                    chainInfo={operand_chain_context_for_this_row} 
-                    showAliases={showAliases}
-                    contextOperand={req.lhs} 
-                    group={group}
-                    rowIndex={ri}
-                />
+				{/* RHS: Pass contextOperand (LHS) for Enum resolution */}
+				<OperandCells 
+					operand={req.rhs} 
+					skipNote={false} 
+					chainInfo={operand_chain_context_for_this_row} 
+					showAliases={showAliases}
+					contextOperand={req.lhs} 
+					group={group}
+					rowIndex={ri}
+				/>
 				
-                <td data-hits={req.hits}>{req.hasHits() ? `(${req.hits})` : ''}</td>
+				<td data-hits={req.hits}>{req.hasHits() ? `(${req.hits})` : ''}</td>
 			</tr>);
 		})}
 	</>);
@@ -536,67 +536,67 @@ function LogicGroup({group, gi, logic, issues, showAliases, collapseAddAddress})
 
 function LogicTable({logic, issues = [], isHex = null, toggleHex = null})
 {
-    // Preferences
-    // Uncontrolled mode fallback
-    const [internalIsHex, setInternalIsHex] = React.useState(() => localStorage.getItem('pref-isHex') === 'true');
-    const [collapseAddAddress, setCollapseAddAddress] = React.useState(() => localStorage.getItem('pref-collapseAddAddress') === 'true');
-    const [showAliases, setShowAliases] = React.useState(() => localStorage.getItem('pref-showAliases') === 'true');
+	// Preferences
+	// Uncontrolled mode fallback
+	const [internalIsHex, setInternalIsHex] = React.useState(() => localStorage.getItem('pref-isHex') === 'true');
+	const [collapseAddAddress, setCollapseAddAddress] = React.useState(() => localStorage.getItem('pref-collapseAddAddress') === 'true');
+	const [showAliases, setShowAliases] = React.useState(() => localStorage.getItem('pref-showAliases') === 'true');
 
-    // Determine effective hex state
-    const effectiveIsHex = (isHex !== null && isHex !== undefined) ? isHex : internalIsHex;
+	// Determine effective hex state
+	const effectiveIsHex = (isHex !== null && isHex !== undefined) ? isHex : internalIsHex;
 
-    issues = [].concat(...issues);
-    const collapseID = "collapse-addaddress-" + crypto.randomUUID();
-    const aliasID = "show-aliases-" + crypto.randomUUID();
+	issues = [].concat(...issues);
+	const collapseID = "collapse-addaddress-" + crypto.randomUUID();
+	const aliasID = "show-aliases-" + crypto.randomUUID();
 
-    const handleToggleHex = () => {
-        if (toggleHex) {
-            toggleHex();
-        } else {
-            const newVal = !internalIsHex;
-            setInternalIsHex(newVal);
-            localStorage.setItem('pref-isHex', newVal);
-        }
-    };
+	const handleToggleHex = () => {
+		if (toggleHex) {
+			toggleHex();
+		} else {
+			const newVal = !internalIsHex;
+			setInternalIsHex(newVal);
+			localStorage.setItem('pref-isHex', newVal);
+		}
+	};
 
-    const toggleCollapse = (e) => {
-        const newVal = e.currentTarget.checked;
-        setCollapseAddAddress(newVal);
-        localStorage.setItem('pref-collapseAddAddress', newVal);
-    };
+	const toggleCollapse = (e) => {
+		const newVal = e.currentTarget.checked;
+		setCollapseAddAddress(newVal);
+		localStorage.setItem('pref-collapseAddAddress', newVal);
+	};
 
-    const toggleAliases = (e) => {
-        const newVal = e.currentTarget.checked;
-        setShowAliases(newVal);
-        localStorage.setItem('pref-showAliases', newVal);
-    };
+	const toggleAliases = (e) => {
+		const newVal = e.currentTarget.checked;
+		setShowAliases(newVal);
+		localStorage.setItem('pref-showAliases', newVal);
+	};
 
-    return (<div className="logic-table">
-        <table className={`${effectiveIsHex ? 'show-hex' : ''} ${collapseAddAddress ? 'collapse-addaddress' : ''}`}>
-            <tbody>
-                {[...logic.groups.entries()].map(([gi, g]) => {
-                    // Pass collapseAddAddress down to the group
-                    return (<LogicGroup key={gi} group={g} gi={gi} logic={logic} issues={issues} showAliases={showAliases} collapseAddAddress={collapseAddAddress} />);
-                })}
-            </tbody>
-        </table>
-        <div className="logic-panel">
-            <div style={{display: "inline-block", marginRight: "10px"}}>
-                <input type="checkbox" id={collapseID} checked={collapseAddAddress} onChange={toggleCollapse}></input>
-                <label htmlFor={collapseID}>Collapse AddAddress</label>
-            </div>
-            <div style={{display: "inline-block", marginRight: "10px"}}>
-                <input type="checkbox" id={aliasID} checked={showAliases} onChange={toggleAliases}></input>
-                <label htmlFor={aliasID}>Show Aliases</label>
-            </div>
-            <button onClick={handleToggleHex}>
-                Toggle Hex Values
-            </button>
-            <button onClick={() => copy_to_clipboard(logic.toMarkdown())}>
-                Copy Markdown
-            </button>
-        </div>
-    </div>);
+	return (<div className="logic-table">
+		<table className={`${effectiveIsHex ? 'show-hex' : ''} ${collapseAddAddress ? 'collapse-addaddress' : ''}`}>
+			<tbody>
+				{[...logic.groups.entries()].map(([gi, g]) => {
+					// Pass collapseAddAddress down to the group
+					return (<LogicGroup key={gi} group={g} gi={gi} logic={logic} issues={issues} showAliases={showAliases} collapseAddAddress={collapseAddAddress} />);
+				})}
+			</tbody>
+		</table>
+		<div className="logic-panel">
+			<div style={{display: "inline-block", marginRight: "10px"}}>
+				<input type="checkbox" id={collapseID} checked={collapseAddAddress} onChange={toggleCollapse}></input>
+				<label htmlFor={collapseID}>Collapse AddAddress</label>
+			</div>
+			<div style={{display: "inline-block", marginRight: "10px"}}>
+				<input type="checkbox" id={aliasID} checked={showAliases} onChange={toggleAliases}></input>
+				<label htmlFor={aliasID}>Show Aliases</label>
+			</div>
+			<button onClick={handleToggleHex}>
+				Toggle Hex Values
+			</button>
+			<button onClick={() => copy_to_clipboard(logic.toMarkdown())}>
+				Copy Markdown
+			</button>
+		</div>
+	</div>);
 }
 
 function ConsoleIcon({console = null})
@@ -749,184 +749,184 @@ function AssetCard({asset, warn})
 
 function CollapsibleExplainer({ title = "Logic Analysis", children })
 {
-    // Load state from localStorage, default to true if not set
-    const [isOpen, setIsOpen] = React.useState(() => {
-        const saved = localStorage.getItem('pref-showExplainer');
-        return saved === null ? true : saved === 'true';
-    });
+	// Load state from localStorage, default to true if not set
+	const [isOpen, setIsOpen] = React.useState(() => {
+		const saved = localStorage.getItem('pref-showExplainer');
+		return saved === null ? true : saved === 'true';
+	});
 
-    const toggle = () => {
-        const newState = !isOpen;
-        setIsOpen(newState);
-        localStorage.setItem('pref-showExplainer', newState);
-    };
+	const toggle = () => {
+		const newState = !isOpen;
+		setIsOpen(newState);
+		localStorage.setItem('pref-showExplainer', newState);
+	};
 
-    const headerStyle = {
-        padding: '10px',
-        backgroundColor: 'black',
-        color: 'white',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        userSelect: 'none',
-        borderRadius: '5px 5px 0 0',
-        fontWeight: 'bold'
-    };
-    
-    // Slight rounding difference if closed vs open
-    if (!isOpen) {
-        headerStyle.borderRadius = '5px';
-    }
+	const headerStyle = {
+		padding: '10px',
+		backgroundColor: 'black',
+		color: 'white',
+		cursor: 'pointer',
+		display: 'flex',
+		alignItems: 'center',
+		userSelect: 'none',
+		borderRadius: '5px 5px 0 0',
+		fontWeight: 'bold'
+	};
+	
+	// Slight rounding difference if closed vs open
+	if (!isOpen) {
+		headerStyle.borderRadius = '5px';
+	}
 
-    return (
-        <div style={{ marginBottom: '20px' }}>
-            <div onClick={toggle} style={headerStyle}>
-                <span style={{ marginRight: '10px' }}>{isOpen ? '▼' : '▶'}</span>
-                {title}
-            </div>
-            {isOpen && (
-                <div className="explanation-container" style={{ 
-                    border: '1px solid #ccc', 
-                    borderTop: 'none', 
-                    borderRadius: '0 0 5px 5px',
-                    margin: 0 // Override existing margin in CSS for explanation-container
-                }}>
-                    {children}
-                </div>
-            )}
-        </div>
-    );
+	return (
+		<div style={{ marginBottom: '20px' }}>
+			<div onClick={toggle} style={headerStyle}>
+				<span style={{ marginRight: '10px' }}>{isOpen ? '▼' : '▶'}</span>
+				{title}
+			</div>
+			{isOpen && (
+				<div className="explanation-container" style={{ 
+					border: '1px solid #ccc', 
+					borderTop: 'none', 
+					borderRadius: '0 0 5px 5px',
+					margin: 0 // Override existing margin in CSS for explanation-container
+				}}>
+					{children}
+				</div>
+			)}
+		</div>
+	);
 }
 
 function AchievementInfo({ach}) {
-    let feedback = ach.feedback;
-    let feedback_targets = new Set([].concat(...feedback.issues).map(x => x.target));
+	let feedback = ach.feedback;
+	let feedback_targets = new Set([].concat(...feedback.issues).map(x => x.target));
 
-    const [isHex, setIsHex] = React.useState(() => localStorage.getItem('pref-isHex') === 'true');
-    const toggleHex = () => {
-        const newVal = !isHex;
-        setIsHex(newVal);
-        localStorage.setItem('pref-isHex', newVal);
-    };
+	const [isHex, setIsHex] = React.useState(() => localStorage.getItem('pref-isHex') === 'true');
+	const toggleHex = () => {
+		const newVal = !isHex;
+		setIsHex(newVal);
+		localStorage.setItem('pref-isHex', newVal);
+	};
 
-    return (<>
-        <div className="main-header">
-            <LinkedAchievementBadge ach={ach} className="float-left" />
-            <div>
-                <button className="float-right" onClick={() => copy_to_clipboard(`[${ach.title}](${window.location})`)}>
-                    Copy Markdown Link
-                </button>
-            </div>
-            <h2 id="asset-title">
-                🏆 <span className={`${feedback_targets.has("title") ? 'warn' : ''}`}>{ach.title}</span> ({ach.points})
-            </h2>
-            <div className="float-right">
-                <em>{`[${[ach.state.name, ach.achtype].filter(x => x).join(', ')}]`}</em>
-            </div>
-            <p id="asset-desc">
-                <span className={`${feedback_targets.has("desc") ? 'warn' : ''}`}>{ach.desc}</span>
-            </p>
-        </div>
+	return (<>
+		<div className="main-header">
+			<LinkedAchievementBadge ach={ach} className="float-left" />
+			<div>
+				<button className="float-right" onClick={() => copy_to_clipboard(`[${ach.title}](${window.location})`)}>
+					Copy Markdown Link
+				</button>
+			</div>
+			<h2 id="asset-title">
+				🏆 <span className={`${feedback_targets.has("title") ? 'warn' : ''}`}>{ach.title}</span> ({ach.points})
+			</h2>
+			<div className="float-right">
+				<em>{`[${[ach.state.name, ach.achtype].filter(x => x).join(', ')}]`}</em>
+			</div>
+			<p id="asset-desc">
+				<span className={`${feedback_targets.has("desc") ? 'warn' : ''}`}>{ach.desc}</span>
+			</p>
+		</div>
 
-        <CollapsibleExplainer title={`Logic Analysis for: ${ach.title}`}>
-            <LogicExplanation asset={ach} groups={ach.logic.groups} showDecimal={!isHex} />
-        </CollapsibleExplainer>
+		<CollapsibleExplainer title={`Logic Analysis for: ${ach.title}`}>
+			<LogicExplanation asset={ach} groups={ach.logic.groups} showDecimal={!isHex} />
+		</CollapsibleExplainer>
 
-        <div className="data-table">
-            <LogicTable logic={ach.logic} issues={feedback.issues} isHex={isHex} toggleHex={toggleHex} />
-        </div>
-        <div className="stats">
-            <h1>Statistics</h1>
-            <LogicStats logic={ach.logic} stats={feedback.stats} />
-        </div>
+		<div className="data-table">
+			<LogicTable logic={ach.logic} issues={feedback.issues} isHex={isHex} toggleHex={toggleHex} />
+		</div>
+		<div className="stats">
+			<h1>Statistics</h1>
+			<LogicStats logic={ach.logic} stats={feedback.stats} />
+		</div>
 
-        <AssetFeedback issues={feedback.issues} />
-    </>);
+		<AssetFeedback issues={feedback.issues} />
+	</>);
 }
 
 function LeaderboardInfo({lb}) {
-    let feedback = lb.feedback;
-    let feedback_targets = new Set([].concat(...feedback.issues).map(x => x.target));
+	let feedback = lb.feedback;
+	let feedback_targets = new Set([].concat(...feedback.issues).map(x => x.target));
 
-    const [isHex, setIsHex] = React.useState(() => localStorage.getItem('pref-isHex') === 'true');
-    const toggleHex = () => {
-        const newVal = !isHex;
-        setIsHex(newVal);
-        localStorage.setItem('pref-isHex', newVal);
-    };
+	const [isHex, setIsHex] = React.useState(() => localStorage.getItem('pref-isHex') === 'true');
+	const toggleHex = () => {
+		const newVal = !isHex;
+		setIsHex(newVal);
+		localStorage.setItem('pref-isHex', newVal);
+	};
 
-    const COMPONENTS = ["START", "CANCEL", "SUBMIT", "VALUE"];
-    
-    function LeaderboardComponentStats() {
-        function SectionStats({ block = null }) {
-            const tag = block.substring(0, 3);
-            return (<React.Fragment>
-                <h2>{block}</h2>
-                <LogicStats logic={lb.components[tag]} stats={feedback.stats[tag]} />
-            </React.Fragment>);
-        }
+	const COMPONENTS = ["START", "CANCEL", "SUBMIT", "VALUE"];
+	
+	function LeaderboardComponentStats() {
+		function SectionStats({ block = null }) {
+			const tag = block.substring(0, 3);
+			return (<React.Fragment>
+				<h2>{block}</h2>
+				<LogicStats logic={lb.components[tag]} stats={feedback.stats[tag]} />
+			</React.Fragment>);
+		}
 
-        const [blockContents, setContents] = React.useState(<SectionStats block="START" />);
-        return (<div>
-            <div>
-                {COMPONENTS.map(b => <button key={b} onClick={() => {
-                    setContents(<SectionStats block={b} />);
-                }}>{b}</button>)}
-            </div>
-            <div>
-                {blockContents}
-            </div>
-        </div>);
-    }
+		const [blockContents, setContents] = React.useState(<SectionStats block="START" />);
+		return (<div>
+			<div>
+				{COMPONENTS.map(b => <button key={b} onClick={() => {
+					setContents(<SectionStats block={b} />);
+				}}>{b}</button>)}
+			</div>
+			<div>
+				{blockContents}
+			</div>
+		</div>);
+	}
 
-    return (<>
-        <div className="main-header">
-            <SetBadge href={`https://retroachievements.org/leaderboardinfo.php?i=${lb.id}`} />
-            <div className="float-right">
-            </div>
-            <h2 id="asset-title">
-                📊 <span className={`${feedback_targets.has("title") ? 'warn' : ''}`}>{lb.title}</span>
-            </h2>
-            <div className="float-right">
-                <em>{`[${[lb.state.name,].filter(x => x).join(', ')}]`}</em>
-            </div>
-            <p id="asset-desc">
-                <span className={`${feedback_targets.has("desc") ? 'warn' : ''}`}>{lb.desc}</span>
-            </p>
-        </div>
+	return (<>
+		<div className="main-header">
+			<SetBadge href={`https://retroachievements.org/leaderboardinfo.php?i=${lb.id}`} />
+			<div className="float-right">
+			</div>
+			<h2 id="asset-title">
+				📊 <span className={`${feedback_targets.has("title") ? 'warn' : ''}`}>{lb.title}</span>
+			</h2>
+			<div className="float-right">
+				<em>{`[${[lb.state.name,].filter(x => x).join(', ')}]`}</em>
+			</div>
+			<p id="asset-desc">
+				<span className={`${feedback_targets.has("desc") ? 'warn' : ''}`}>{lb.desc}</span>
+			</p>
+		</div>
 
-        <CollapsibleExplainer title={`Logic Analysis for: ${lb.title}`}>
-            <h3>Start Conditions</h3>
-            <LogicExplanation asset={{title: "Start Conditions"}} groups={lb.components['STA'].groups} showDecimal={!isHex} />
-            
-            <h3>Cancel Conditions</h3>
-            <LogicExplanation asset={{title: "Cancel Conditions"}} groups={lb.components['CAN'].groups} showDecimal={!isHex} />
-            
-            <h3>Submit Conditions</h3>
-            <LogicExplanation asset={{title: "Submit Conditions"}} groups={lb.components['SUB'].groups} showDecimal={!isHex} />
-            
-            <h3>Value Logic</h3>
-            <LogicExplanation asset={{title: "Value Logic"}} groups={lb.components['VAL'].groups} showDecimal={!isHex} />
-        </CollapsibleExplainer>
+		<CollapsibleExplainer title={`Logic Analysis for: ${lb.title}`}>
+			<h3>Start Conditions</h3>
+			<LogicExplanation asset={{title: "Start Conditions"}} groups={lb.components['STA'].groups} showDecimal={!isHex} />
+			
+			<h3>Cancel Conditions</h3>
+			<LogicExplanation asset={{title: "Cancel Conditions"}} groups={lb.components['CAN'].groups} showDecimal={!isHex} />
+			
+			<h3>Submit Conditions</h3>
+			<LogicExplanation asset={{title: "Submit Conditions"}} groups={lb.components['SUB'].groups} showDecimal={!isHex} />
+			
+			<h3>Value Logic</h3>
+			<LogicExplanation asset={{title: "Value Logic"}} groups={lb.components['VAL'].groups} showDecimal={!isHex} />
+		</CollapsibleExplainer>
 
-        <div className="data-table">
-            {COMPONENTS.map(block => <React.Fragment key={block}>
-                <h3>{block}</h3>
-                <LogicTable logic={lb.components[block.substring(0, 3)]} issues={feedback.issues} isHex={isHex} toggleHex={toggleHex} />
-            </React.Fragment>)}
-        </div>
-        <div className="stats">
-            <h1>Statistics</h1>
-            <ul>
-                <li>Format: <code>{lb.format.type}</code> ({lb.format.name})</li>
-                <li>Lower is better? {lb.lower_is_better ? 'Yes' : 'No'}</li>
-                <li>Inferred Type: <code>{lb.getType()}</code></li>
-            </ul>
-            <LeaderboardComponentStats />
-        </div>
+		<div className="data-table">
+			{COMPONENTS.map(block => <React.Fragment key={block}>
+				<h3>{block}</h3>
+				<LogicTable logic={lb.components[block.substring(0, 3)]} issues={feedback.issues} isHex={isHex} toggleHex={toggleHex} />
+			</React.Fragment>)}
+		</div>
+		<div className="stats">
+			<h1>Statistics</h1>
+			<ul>
+				<li>Format: <code>{lb.format.type}</code> ({lb.format.name})</li>
+				<li>Lower is better? {lb.lower_is_better ? 'Yes' : 'No'}</li>
+				<li>Inferred Type: <code>{lb.getType()}</code></li>
+			</ul>
+			<LeaderboardComponentStats />
+		</div>
 
-        <AssetFeedback issues={feedback.issues} />
-    </>);
+		<AssetFeedback issues={feedback.issues} />
+	</>);
 }
 
 function ChartCanvas({ setup })
@@ -1546,12 +1546,12 @@ function RichPresenceOverview()
 	const logictbl = React.useRef();
 	const [logicData, setLogicData] = React.useState(null);
 
-    const [isHex, setIsHex] = React.useState(() => localStorage.getItem('pref-isHex') === 'true');
-    const toggleHex = () => {
-        const newVal = !isHex;
-        setIsHex(newVal);
-        localStorage.setItem('pref-isHex', newVal);
-    };
+	const [isHex, setIsHex] = React.useState(() => localStorage.getItem('pref-isHex') === 'true');
+	const toggleHex = () => {
+		const newVal = !isHex;
+		setIsHex(newVal);
+		localStorage.setItem('pref-isHex', newVal);
+	};
 
 	// if the logic table is updated with data, scroll it into view
 	React.useEffect(() => {
@@ -1605,80 +1605,80 @@ function BadgeGrid({set = current.set})
 	const WIDTH = 2 * PADDING + (64 + PADDING) * ROWLEN;
 
 	let canvasRef = React.useRef();
-    const [status, setStatus] = React.useState("⏳ Initializing...");
-    const [isReady, setIsReady] = React.useState(false);
+	const [status, setStatus] = React.useState("⏳ Initializing...");
+	const [isReady, setIsReady] = React.useState(false);
 
-    const handleCopyClick = async () => {
-        if (!isReady) return;
-        
-        setStatus("⚙️ Processing...");
-        const canvas = canvasRef.current;
-        
-        try {
-            canvas.toBlob(async (blob) => {
-                if (!blob) {
-                    setStatus("❌ Error");
-                    return;
-                }
-                try {
-                    const item = new ClipboardItem({ "image/png": blob });
-                    await navigator.clipboard.write([item]);
-                    setStatus("✅ Copied!");
-                    setTimeout(() => setStatus("📋 Copy Image"), 2000);
-                } catch (err) {
-                    console.error("Clipboard write failed:", err);
-                    setStatus("❌ Too Large?");
-                }
-            }, "image/png");
-        } catch (err) {
-            console.error("Canvas conversion failed:", err);
-            setStatus("❌ Error");
-        }
-    };
+	const handleCopyClick = async () => {
+		if (!isReady) return;
+		
+		setStatus("⚙️ Processing...");
+		const canvas = canvasRef.current;
+		
+		try {
+			canvas.toBlob(async (blob) => {
+				if (!blob) {
+					setStatus("❌ Error");
+					return;
+				}
+				try {
+					const item = new ClipboardItem({ "image/png": blob });
+					await navigator.clipboard.write([item]);
+					setStatus("✅ Copied!");
+					setTimeout(() => setStatus("📋 Copy Image"), 2000);
+				} catch (err) {
+					console.error("Clipboard write failed:", err);
+					setStatus("❌ Too Large?");
+				}
+			}, "image/png");
+		} catch (err) {
+			console.error("Canvas conversion failed:", err);
+			setStatus("❌ Error");
+		}
+	};
 
 	React.useEffect(() => {
 		const canvas = canvasRef.current;
 		if (!canvas) return;
-        
-        // Track if this effect is still active to prevent race conditions on fast set switching
-        let isActive = true;
+		
+		// Track if this effect is still active to prevent race conditions on fast set switching
+		let isActive = true;
 
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+		const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-        const loadImage = (url) => {
-            return new Promise((resolve) => {
-                const img = new Image();
-                //img.crossOrigin = "Anonymous";
-                img.src = url; 
+		const loadImage = (url) => {
+			return new Promise((resolve) => {
+				const img = new Image();
+				//img.crossOrigin = "Anonymous";
+				img.src = url; 
 
-                img.onload = () => resolve(img);
-                img.onerror = (e) => {
-                    console.warn("Failed to load:", url, e);
-                    resolve(null);
-                };
-            });
-        };
+				img.onload = () => resolve(img);
+				img.onerror = (e) => {
+					console.warn("Failed to load:", url, e);
+					resolve(null);
+				};
+			});
+		};
 
-        const render = async () => {
-            setIsReady(false);
-            console.log("Starting render for", achs.length, "achievements");
-            
-            // 1. Draw Background
+		const render = async () => {
+			setIsReady(false);
+			console.log("Starting render for", achs.length, "achievements");
+			
+			// 1. Draw Background
 			ctx.fillStyle = '#2b374a';
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // 2. Draw Icon Backgrounds (Placeholders)
-            ctx.fillStyle = '#111111';
+			
+			// 2. Draw Icon Backgrounds (Placeholders)
+			ctx.fillStyle = '#111111';
 			ctx.fillRect(PADDING+3, PADDING+3, 96, 96);
-            
-            for (let i = 0; i < achs.length; i++) {
-                let x = 2 * PADDING + (i % ROWLEN) * (64 + PADDING);
-                let y = PADDING + 96 + PADDING + Math.floor(i / ROWLEN) * (64 + PADDING);
-                ctx.fillRect(x+3, y+3, 64, 64);
-            }
+			
+			for (let i = 0; i < achs.length; i++) {
+				let x = 2 * PADDING + (i % ROWLEN) * (64 + PADDING);
+				let y = PADDING + 96 + PADDING + Math.floor(i / ROWLEN) * (64 + PADDING);
+				ctx.fillRect(x+3, y+3, 64, 64);
+			}
 
-            // 3. Draw Text Metadata
-            let authorlist = achs.map(a => a.author).filter(a => a);
+			// 3. Draw Text Metadata
+			let authorlist = achs.map(a => a.author).filter(a => a);
 			let authcount = [], authors = new Set(authorlist);
 			for (let auth of authors) authcount.push([auth, authorlist.filter((x) => x == auth).length]);
 			authcount.sort(([a, _1], [b, _2]) => b-a);
@@ -1696,81 +1696,81 @@ function BadgeGrid({set = current.set})
 			dropShadow(set.title || "Untitled", 
 				PADDING + 96 + PADDING + 5, PADDING + 5, 'bold 32px serif', WIDTH - (PADDING * 3 + 96));
 			
-            const authorText = authcount.length > 0 ? "Set developed by " + authcount.map(([a, _]) => a).join(', ') : "";
-            dropShadow(authorText, 
+			const authorText = authcount.length > 0 ? "Set developed by " + authcount.map(([a, _]) => a).join(', ') : "";
+			dropShadow(authorText, 
 				PADDING + 96 + PADDING + 10, PADDING + 48, '18px serif', WIDTH - (PADDING * 3 + 96));
 
-            if (set.console && set.console.icon) {
+			if (set.console && set.console.icon) {
 				ctx.textBaseline = 'middle';
 				ctx.textAlign = 'right';
 				dropShadow(set.console.name, WIDTH - (2 * PADDING + 32 + PADDING), PADDING + 96 - 16, '12px serif');
-            }
+			}
 
-            // 4. Load Icons (Set & Console) - Parallel
-            const iconPromises = [];
-            if (set.icon) iconPromises.push(loadImage(set.icon).then(img => ({ type: 'set', img })));
-            if (set.console && set.console.icon) {
-                const consoleIconUrl = `https://static.retroachievements.org/assets/images/system/${set.console.icon}.png`;
-                iconPromises.push(loadImage(consoleIconUrl).then(img => ({ type: 'console', img })));
-            }
+			// 4. Load Icons (Set & Console) - Parallel
+			const iconPromises = [];
+			if (set.icon) iconPromises.push(loadImage(set.icon).then(img => ({ type: 'set', img })));
+			if (set.console && set.console.icon) {
+				const consoleIconUrl = `https://static.retroachievements.org/assets/images/system/${set.console.icon}.png`;
+				iconPromises.push(loadImage(consoleIconUrl).then(img => ({ type: 'console', img })));
+			}
 
-            const icons = await Promise.all(iconPromises);
-            if (!isActive) return;
+			const icons = await Promise.all(iconPromises);
+			if (!isActive) return;
 
-            icons.forEach(({ type, img }) => {
-                if (!img) return;
-                if (type === 'set') ctx.drawImage(img, PADDING, PADDING, 96, 96);
-                if (type === 'console') ctx.drawImage(img, WIDTH - 2 * PADDING - 32, PADDING + 96 - 32, 32, 32);
-            });
+			icons.forEach(({ type, img }) => {
+				if (!img) return;
+				if (type === 'set') ctx.drawImage(img, PADDING, PADDING, 96, 96);
+				if (type === 'console') ctx.drawImage(img, WIDTH - 2 * PADDING - 32, PADDING + 96 - 32, 32, 32);
+			});
 
-            // 5. Load Badges in Parallel Batches
-            const BATCH_SIZE = 10;
-            const total = achs.length;
-            let loaded = 0;
+			// 5. Load Badges in Parallel Batches
+			const BATCH_SIZE = 10;
+			const total = achs.length;
+			let loaded = 0;
 
-            for (let i = 0; i < total; i += BATCH_SIZE) {
-                if (!isActive) return;
+			for (let i = 0; i < total; i += BATCH_SIZE) {
+				if (!isActive) return;
 
-                const batch = achs.slice(i, i + BATCH_SIZE);
-                const batchPromises = batch.map((ach, batchIdx) => {
-                    const globalIdx = i + batchIdx;
-                    if (!ach.badge) return Promise.resolve();
+				const batch = achs.slice(i, i + BATCH_SIZE);
+				const batchPromises = batch.map((ach, batchIdx) => {
+					const globalIdx = i + batchIdx;
+					if (!ach.badge) return Promise.resolve();
 
-                    return loadImage(ach.badge).then(badgeImg => {
-                        if (!isActive) return;
-                        if (badgeImg) {
-                            let x = 2 * PADDING + (globalIdx % ROWLEN) * (64 + PADDING);
-                            let y = PADDING + 96 + PADDING + Math.floor(globalIdx / ROWLEN) * (64 + PADDING);
-                            ctx.drawImage(badgeImg, x, y, 64, 64);
-                        }
-                    });
-                });
+					return loadImage(ach.badge).then(badgeImg => {
+						if (!isActive) return;
+						if (badgeImg) {
+							let x = 2 * PADDING + (globalIdx % ROWLEN) * (64 + PADDING);
+							let y = PADDING + 96 + PADDING + Math.floor(globalIdx / ROWLEN) * (64 + PADDING);
+							ctx.drawImage(badgeImg, x, y, 64, 64);
+						}
+					});
+				});
 
-                await Promise.all(batchPromises);
-                loaded += batch.length;
-                setStatus(`⏳ ${Math.min(100, Math.round((loaded / total) * 100))}%`);
-            }
+				await Promise.all(batchPromises);
+				loaded += batch.length;
+				setStatus(`⏳ ${Math.min(100, Math.round((loaded / total) * 100))}%`);
+			}
 
-            if (!isActive) return;
-            setIsReady(true);
-            setStatus("📋 Copy Image");
-            console.log("Render Complete");
-        };
+			if (!isActive) return;
+			setIsReady(true);
+			setStatus("📋 Copy Image");
+			console.log("Render Complete");
+		};
 
-        render();
+		render();
 
-        return () => { isActive = false; };
+		return () => { isActive = false; };
 
 	}, [set]); 
 
 	return (
-        <div style={{position: 'relative', display: 'inline-block'}}>
-            <button className="copy-btn" onClick={handleCopyClick} disabled={!isReady} style={{display: 'none', opacity: isReady ? 1 : 0.7, cursor: isReady ? 'pointer' : 'wait'}}>
-                {status}
-            </button>
-            <canvas ref={canvasRef} width={WIDTH} height={HEIGHT}></canvas>
-        </div>
-    );
+		<div style={{position: 'relative', display: 'inline-block'}}>
+			<button className="copy-btn" onClick={handleCopyClick} disabled={!isReady} style={{display: 'none', opacity: isReady ? 1 : 0.7, cursor: isReady ? 'pointer' : 'wait'}}>
+				{status}
+			</button>
+			<canvas ref={canvasRef} width={WIDTH} height={HEIGHT}></canvas>
+		</div>
+	);
 }
 
 function SetOverviewTab()
@@ -1910,11 +1910,11 @@ function SidebarTabs()
 function show_overview(e, node)
 {
 	container.render(
-        <React.Fragment>
-            <GlobalTooltip />
-            {node}
-        </React.Fragment>
-    );
+		<React.Fragment>
+			<GlobalTooltip />
+			{node}
+		</React.Fragment>
+	);
 	selectTab(e.currentTarget);
 
 	let route = e.currentTarget.getAttribute('data-route');
@@ -2050,197 +2050,197 @@ function main(event)
 // --------------------------------------------------
 
 function LogicExplanation({ asset, groups, showDecimal = true }) {
-    try {
-        const { mainText, detailedInfo } = LogicExplainer.explainAsset(
-            asset, 
-            groups, 
-            current.notes, 
-            null, 
-            showDecimal // Pass the prop to the explainer logic.
-        );
+	try {
+		const { mainText, detailedInfo } = LogicExplainer.explainAsset(
+			asset, 
+			groups, 
+			current.notes, 
+			null, 
+			showDecimal // Pass the prop to the explainer logic.
+		);
 
-        // Helper to wrap specific phrases in colored spans
-        const highlightKeywords = (text) => {
-            if (!text) return null;
-            
-            // Regex explanations:
-            // 1. (reset|pause|lock) the achievement : Long phrases are safe
-            // 2. (MeasuredIf) : Distinct flag name
-            // 3. \b(Measured|Measured%)\b : Strict word boundary
-            // 4. \bTrigger\b : Strict word boundary
-            // 5. \bActivate\b : Strict word boundary for Transition logic
-            // 6. \[.*?\] : Variables/Code Notes inside brackets
-            // 7. \".*?\" : Quoted Strings (Enums)
-            const regex = /(reset the achievement|pause the achievement|lock the achievement|MeasuredIf|\bMeasured%?\b|\bTrigger\b|\bActivate\b|\[.*?\]|\".*?\")/g;
-            
-            const parts = text.split(regex);
-            
-            return parts.map((part, i) => {
-                const lower = part.toLowerCase();
+		// Helper to wrap specific phrases in colored spans
+		const highlightKeywords = (text) => {
+			if (!text) return null;
+			
+			// Regex explanations:
+			// 1. (reset|pause|lock) the achievement : Long phrases are safe
+			// 2. (MeasuredIf) : Distinct flag name
+			// 3. \b(Measured|Measured%)\b : Strict word boundary
+			// 4. \bTrigger\b : Strict word boundary
+			// 5. \bActivate\b : Strict word boundary for Transition logic
+			// 6. \[.*?\] : Variables/Code Notes inside brackets
+			// 7. \".*?\" : Quoted Strings (Enums)
+			const regex = /(reset the achievement|pause the achievement|lock the achievement|MeasuredIf|\bMeasured%?\b|\bTrigger\b|\bActivate\b|\[.*?\]|\".*?\")/g;
+			
+			const parts = text.split(regex);
+			
+			return parts.map((part, i) => {
+				const lower = part.toLowerCase();
 
-                // 1. Variable Highlighting (Remove Brackets + Truncate)
-                // We detect [Variables] and strip the brackets for display
-                if (part.startsWith('[') && part.endsWith(']')) {
-                    const content = part.substring(1, part.length - 1);
-                    // Use title for tooltip (full content) in case CSS truncates it
-                    return <span key={i} className="logic-variable" title={content}>{content}</span>;
-                }
+				// 1. Variable Highlighting (Remove Brackets + Truncate)
+				// We detect [Variables] and strip the brackets for display
+				if (part.startsWith('[') && part.endsWith(']')) {
+					const content = part.substring(1, part.length - 1);
+					// Use title for tooltip (full content) in case CSS truncates it
+					return <span key={i} className="logic-variable" title={content}>{content}</span>;
+				}
 
-                // 2. Enum Highlighting (Remove Quotes & Italicize)
-                if (part.startsWith('"') && part.endsWith('"')) {
-                    const content = part.substring(1, part.length - 1);
-                    // Check if it's just empty quotes
-                    if (!content) return part; 
-                    return <em key={i} className="logic-enum">{content}</em>;
-                }
+				// 2. Enum Highlighting (Remove Quotes & Italicize)
+				if (part.startsWith('"') && part.endsWith('"')) {
+					const content = part.substring(1, part.length - 1);
+					// Check if it's just empty quotes
+					if (!content) return part; 
+					return <em key={i} className="logic-enum">{content}</em>;
+				}
 
-                // 3. Exact phrase matches (Safe)
-                if (lower === 'reset the achievement') 
-                    return <span key={i} className="logic-keyword-reset">{part}</span>;
-                
-                if (lower === 'pause the achievement' || lower === 'lock the achievement') 
-                    return <span key={i} className="logic-keyword-pause">{part}</span>;
-                
-                if (part === 'MeasuredIf') // Case sensitive check to avoid variable names
-                    return <span key={i} className="logic-keyword-measuredif">{part}</span>;
+				// 3. Exact phrase matches (Safe)
+				if (lower === 'reset the achievement') 
+					return <span key={i} className="logic-keyword-reset">{part}</span>;
+				
+				if (lower === 'pause the achievement' || lower === 'lock the achievement') 
+					return <span key={i} className="logic-keyword-pause">{part}</span>;
+				
+				if (part === 'MeasuredIf') // Case sensitive check to avoid variable names
+					return <span key={i} className="logic-keyword-measuredif">{part}</span>;
 
-                // 4. Single Word Keywords
-                // For "Measured", typical Explainer phrasing is "Start measuring" or "A Measured Indicator".
-                // We trust the engine output here.
-                if (part === 'Measured' || part === 'Measured%') {
-                    return <span key={i} className="logic-keyword-measured">{part}</span>;
-                }
+				// 4. Single Word Keywords
+				// For "Measured", typical Explainer phrasing is "Start measuring" or "A Measured Indicator".
+				// We trust the engine output here.
+				if (part === 'Measured' || part === 'Measured%') {
+					return <span key={i} className="logic-keyword-measured">{part}</span>;
+				}
 
-                // 5. "Trigger" Context Check
-                // Only highlight "Trigger" if it is followed by " when" or " Indicator" in the full string context.
-                if (part === 'Trigger') {
-                    // text.split includes the separators, so parts[i+1] is the text AFTER this "Trigger".
-                    const nextPart = parts[i+1];
-                    if (nextPart && (nextPart.startsWith(" when") || nextPart.startsWith(" Indicator"))) {
-                        return <span key={i} className="logic-keyword-trigger">{part}</span>;
-                    }
-                    // If not followed by specific keywords, treat as plain text (likely variable name)
-                    return part;
-                }
+				// 5. "Trigger" Context Check
+				// Only highlight "Trigger" if it is followed by " when" or " Indicator" in the full string context.
+				if (part === 'Trigger') {
+					// text.split includes the separators, so parts[i+1] is the text AFTER this "Trigger".
+					const nextPart = parts[i+1];
+					if (nextPart && (nextPart.startsWith(" when") || nextPart.startsWith(" Indicator"))) {
+						return <span key={i} className="logic-keyword-trigger">{part}</span>;
+					}
+					// If not followed by specific keywords, treat as plain text (likely variable name)
+					return part;
+				}
 
-                // 6. "Activate" Context Check (Transition Logic)
-                if (part === 'Activate') {
-                    return <span key={i} className="logic-keyword-activate">{part}</span>;
-                }
+				// 6. "Activate" Context Check (Transition Logic)
+				if (part === 'Activate') {
+					return <span key={i} className="logic-keyword-activate">{part}</span>;
+				}
 
-                return part;
-            });
-        };
+				return part;
+			});
+		};
 
-        // Recursive parser to handle nested [[EXPAND]] tokens
-        const parseContentRecursively = (text, uniqueKeyPrefix) => {
-            if (!text) return null;
-            
-            // 1. Split by EXPAND tokens first
-            const parts = text.split(/(\[\[EXPAND:.*?:.*?\]\])/g);
-            
-            return parts.map((part, index) => {
-                const match = part.match(/^\[\[EXPAND:(.*?):(.*?)\]\]$/);
-                if (match) {
-                    const id = match[1];
-                    const label = match[2];
-                    const rawDetailText = detailedInfo[id] || "No details found.";
-                    
-                    return (
-                        <details key={`${uniqueKeyPrefix}-${index}`} className="explainer-details" style={{display: 'inline-block', verticalAlign: 'top', margin: '2px'}}>
-                            <summary>{label}</summary>
-                            <div style={{marginTop: '5px', whiteSpace: 'pre-wrap'}}>
-                                {/* Recursively parse the inner detail text for nested structures */}
-                                {parseContentRecursively(rawDetailText, `${uniqueKeyPrefix}-${index}-inner`)}
-                            </div>
-                        </details>
-                    );
-                }
-                
-                // 2. Process text for keywords and variables
-                return <React.Fragment key={`${uniqueKeyPrefix}-${index}`}>{highlightKeywords(part)}</React.Fragment>;
-            });
-        };
+		// Recursive parser to handle nested [[EXPAND]] tokens
+		const parseContentRecursively = (text, uniqueKeyPrefix) => {
+			if (!text) return null;
+			
+			// 1. Split by EXPAND tokens first
+			const parts = text.split(/(\[\[EXPAND:.*?:.*?\]\])/g);
+			
+			return parts.map((part, index) => {
+				const match = part.match(/^\[\[EXPAND:(.*?):(.*?)\]\]$/);
+				if (match) {
+					const id = match[1];
+					const label = match[2];
+					const rawDetailText = detailedInfo[id] || "No details found.";
+					
+					return (
+						<details key={`${uniqueKeyPrefix}-${index}`} className="explainer-details" style={{display: 'inline-block', verticalAlign: 'top', margin: '2px'}}>
+							<summary>{label}</summary>
+							<div style={{marginTop: '5px', whiteSpace: 'pre-wrap'}}>
+								{/* Recursively parse the inner detail text for nested structures */}
+								{parseContentRecursively(rawDetailText, `${uniqueKeyPrefix}-${index}-inner`)}
+							</div>
+						</details>
+					);
+				}
+				
+				// 2. Process text for keywords and variables
+				return <React.Fragment key={`${uniqueKeyPrefix}-${index}`}>{highlightKeywords(part)}</React.Fragment>;
+			});
+		};
 
-        const renderLines = () => {
-            const lines = mainText.split('\n');
-            const elements = [];
-            
-            let listBuffer = [];
+		const renderLines = () => {
+			const lines = mainText.split('\n');
+			const elements = [];
+			
+			let listBuffer = [];
 
-            const flushList = () => {
-                if (listBuffer.length > 0) {
-                    const isFirst = elements.length === 0;
-                    const style = isFirst ? { marginTop: 0 } : undefined;
-                    elements.push(<ul key={`ul-${elements.length}`} style={style}>{listBuffer}</ul>);
-                    listBuffer = [];
-                }
-            };
+			const flushList = () => {
+				if (listBuffer.length > 0) {
+					const isFirst = elements.length === 0;
+					const style = isFirst ? { marginTop: 0 } : undefined;
+					elements.push(<ul key={`ul-${elements.length}`} style={style}>{listBuffer}</ul>);
+					listBuffer = [];
+				}
+			};
 
-            for (let i = 0; i < lines.length; i++) {
-                let line = lines[i].trimEnd();
-                
-                if (line.trim() === "") {
-                    flushList();
-                    continue;
-                }
+			for (let i = 0; i < lines.length; i++) {
+				let line = lines[i].trimEnd();
+				
+				if (line.trim() === "") {
+					flushList();
+					continue;
+				}
 
-                // Determine if this is the very first element to remove top margin
-                const isFirst = elements.length === 0 && listBuffer.length === 0;
-                const style = isFirst ? { marginTop: 0 } : undefined;
+				// Determine if this is the very first element to remove top margin
+				const isFirst = elements.length === 0 && listBuffer.length === 0;
+				const style = isFirst ? { marginTop: 0 } : undefined;
 
-                // Markdown Headers
-                if (line.startsWith("# ")) {
-                    flushList();
-                    // Parse content recursively in headers to support [[EXPAND]]
-                    elements.push(<h1 key={i} style={style}>{parseContentRecursively(line.substring(2), `h1-${i}`)}</h1>);
-                }
-                else if (line.startsWith("## ")) {
-                    flushList();
-                    // Parse content recursively in headers to support [[EXPAND]]
-                    elements.push(<h2 key={i} style={style}>{parseContentRecursively(line.substring(3), `h2-${i}`)}</h2>);
-                }
-                else if (line.startsWith("### ")) {
-                    flushList();
-                    // Parse content recursively in headers to support [[EXPAND]]
-                    elements.push(<h3 key={i} style={style}>{parseContentRecursively(line.substring(4), `h3-${i}`)}</h3>);
-                }
-                // List Items
-                else if (line.startsWith("- ")) {
-                    // Use recursive parser for list items
-                    listBuffer.push(<li key={i}>{parseContentRecursively(line.substring(2), `li-${i}`)}</li>);
-                }
-                // Top-level block expanders (like Array Logic Details)
-                else if (line.startsWith("[[EXPAND:")) {
-                    flushList();
-                    elements.push(<div key={i} style={style}>{parseContentRecursively(line, `block-${i}`)}</div>);
-                }
-                // Standard Paragraphs
-                else {
-                    flushList();
-                    elements.push(<p key={i} style={style}>{parseContentRecursively(line, `p-${i}`)}</p>);
-                }
-            }
-            flushList();
-            return elements;
-        };
+				// Markdown Headers
+				if (line.startsWith("# ")) {
+					flushList();
+					// Parse content recursively in headers to support [[EXPAND]]
+					elements.push(<h1 key={i} style={style}>{parseContentRecursively(line.substring(2), `h1-${i}`)}</h1>);
+				}
+				else if (line.startsWith("## ")) {
+					flushList();
+					// Parse content recursively in headers to support [[EXPAND]]
+					elements.push(<h2 key={i} style={style}>{parseContentRecursively(line.substring(3), `h2-${i}`)}</h2>);
+				}
+				else if (line.startsWith("### ")) {
+					flushList();
+					// Parse content recursively in headers to support [[EXPAND]]
+					elements.push(<h3 key={i} style={style}>{parseContentRecursively(line.substring(4), `h3-${i}`)}</h3>);
+				}
+				// List Items
+				else if (line.startsWith("- ")) {
+					// Use recursive parser for list items
+					listBuffer.push(<li key={i}>{parseContentRecursively(line.substring(2), `li-${i}`)}</li>);
+				}
+				// Top-level block expanders (like Array Logic Details)
+				else if (line.startsWith("[[EXPAND:")) {
+					flushList();
+					elements.push(<div key={i} style={style}>{parseContentRecursively(line, `block-${i}`)}</div>);
+				}
+				// Standard Paragraphs
+				else {
+					flushList();
+					elements.push(<p key={i} style={style}>{parseContentRecursively(line, `p-${i}`)}</p>);
+				}
+			}
+			flushList();
+			return elements;
+		};
 
-        return (
-            <div className="logic-explanation">
-                {renderLines()}
-            </div>
-        );
-    } catch (e) {
-        console.error(e);
-        return (
-            <div className="logic-explanation" style={{color: 'red', border: '1px solid red', padding: '10px'}}>
-                <h3>⚠️ Explainer Error</h3>
-                <p>An error occurred while generating the explanation:</p>
-                <pre>{e.message}</pre>
-                <pre>{e.stack}</pre>
-            </div>
-        );
-    }
+		return (
+			<div className="logic-explanation">
+				{renderLines()}
+			</div>
+		);
+	} catch (e) {
+		console.error(e);
+		return (
+			<div className="logic-explanation" style={{color: 'red', border: '1px solid red', padding: '10px'}}>
+				<h3>⚠️ Explainer Error</h3>
+				<p>An error occurred while generating the explanation:</p>
+				<pre>{e.message}</pre>
+				<pre>{e.stack}</pre>
+			</div>
+		);
+	}
 }
 
 reset_loaded();
