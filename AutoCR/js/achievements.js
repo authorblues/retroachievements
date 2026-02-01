@@ -40,10 +40,10 @@ const Console = Object.freeze({
 	GBA: { id: 5, name: "Game Boy Advance", icon: "gba", },
 	NES: { id: 7, name: "NES/Famicom", icon: "nes", 
 		regions: [
-    		new MemRegion(0x0800, 0x0FFF, "Mirror RAM", true, (x) => x - 0x0800),
-    		new MemRegion(0x1000, 0x17FF, "Mirror RAM", true, (x) => x - 0x1000),
-    		new MemRegion(0x1800, 0x1FFF, "Mirror RAM", true, (x) => x - 0x1800),
-    		new MemRegion(0x2008, 0x3FFF, "Mirrored PPU Registers", true, (x) => 0x2000 + (x % 8)),
+			new MemRegion(0x0800, 0x0FFF, "Mirror RAM", true, (x) => x - 0x0800),
+			new MemRegion(0x1000, 0x17FF, "Mirror RAM", true, (x) => x - 0x1000),
+			new MemRegion(0x1800, 0x1FFF, "Mirror RAM", true, (x) => x - 0x1800),
+			new MemRegion(0x2008, 0x3FFF, "Mirrored PPU Registers", true, (x) => 0x2000 + (x % 8)),
 		]},
 	SNES: { id: 3, name: "SNES/Super Famicom", icon: "snes", },
 	N64: { id: 2, name: "Nintendo 64", icon: "n64", },
@@ -51,7 +51,7 @@ const Console = Object.freeze({
 	WII: { id: 19, name: "Wii", icon: "wii", },
 	DS: { id: 18, name: "Nintendo DS", icon: "ds", 
 		regions: [
-    		new MemRegion(0x0400000, 0x0FFFFFF, "Unused", true),
+			new MemRegion(0x0400000, 0x0FFFFFF, "Unused", true),
 		]},
 	DSI: { id: 78, name: "Nintendo DSi", icon: "dsi", },
 	PKMN: { id: 24, name: "Pokemon Mini", icon: "mini",
@@ -79,9 +79,9 @@ const Console = Object.freeze({
 	A2600: { id: 25, name: "Atari 2600", icon: "2600", },
 	A7800: { id: 51, name: "Atari 7800", icon: "7800", 
 		regions: [
-    		new MemRegion(0x002800, 0x002FFF, "Mirror RAM", true, (x) => x - 0x0800),
-    		new MemRegion(0x003000, 0x0037FF, "Mirror RAM", true, (x) => x - 0x1000),
-    		new MemRegion(0x003800, 0x003FFF, "Mirror RAM", true, (x) => x - 0x1800),
+			new MemRegion(0x002800, 0x002FFF, "Mirror RAM", true, (x) => x - 0x0800),
+			new MemRegion(0x003000, 0x0037FF, "Mirror RAM", true, (x) => x - 0x1000),
+			new MemRegion(0x003800, 0x003FFF, "Mirror RAM", true, (x) => x - 0x1800),
 		]},
 	JAG: { id: 17, name: "Atari Jaguar", icon: "jag", },
 	JCD: { id: 77, name: "Atari Jaguar CD", icon: "jcd", },
@@ -90,15 +90,15 @@ const Console = Object.freeze({
 	// Sega
 	SG1K: { id: 33, name: "SG-1000", icon: "sg1k", 
 		regions: [
-    		new MemRegion(0x00C400, 0x00FFFF, "System RAM Mirror", true, (x) => 0xC000 + (x % 0x400)),
+			new MemRegion(0x00C400, 0x00FFFF, "System RAM Mirror", true, (x) => 0xC000 + (x % 0x400)),
 		]},
 	SMS: { id: 11, name: "Master System", icon: "sms", 
 		regions: [
-    		new MemRegion(0x00E000, 0x00FFFF, "System RAM Mirror", true, (x) => x - 0x2000),
+			new MemRegion(0x00E000, 0x00FFFF, "System RAM Mirror", true, (x) => x - 0x2000),
 		]},
 	GG: { id: 15, name: "Game Gear", icon: "gg", 
 		regions: [
-    		new MemRegion(0x00E000, 0x00FFFF, "System RAM Mirror", true, (x) => x - 0x2000),
+			new MemRegion(0x00E000, 0x00FFFF, "System RAM Mirror", true, (x) => x - 0x2000),
 		]},
 	GEN: { id: 1, name: "Genesis/Mega Drive", icon: "md", },
 	SEGACD: { id: 9, name: "Sega CD", icon: "scd", },
@@ -126,7 +126,7 @@ const Console = Object.freeze({
 	CV: { id: 44, name: "ColecoVision", icon: "cv", },
 	ELEK: { id: 75, name: "Elektor TV Games Computer", icon: "elek",
 		regions: [
-    		new MemRegion(0x001400, 0x0014FF, "Unused / Mirror", true),
+			new MemRegion(0x001400, 0x0014FF, "Unused / Mirror", true),
 		]},
 	CHF: { id: 57, name: "Fairchild Channel F", icon: "chf", },
 	INTV: { id: 45, name: "Intellivision", icon: "intv", },
@@ -858,8 +858,8 @@ class CodeNote
 
 	static parseEnumerations(note)
 	{
-        // Allow dots in values (e.g., 0.5)
-        // Group 1: 0x1234 OR 0.5 OR -1.0
+		// Allow dots in values (e.g., 0.5)
+		// Group 1: 0x1234 OR 0.5 OR -1.0
 		const ENUMERATION_RE = /((?:(?:0x)?[0-9a-f]+|[-+]?[0-9]*\.?[0-9]+)+)([^\w\d]*[^\w\d\s][^\w\d]*).+$/i;
 
 		const lines = note.split('\n');
@@ -885,10 +885,10 @@ class CodeNote
 			let [lhs, ...rhs] = lines[i].split(delim);
 			rhs = rhs.join(delim).trim();
 
-            // Match Hex OR Float
+			// Match Hex OR Float
 			for (const m of lhs.matchAll(/\b(?:(0x[0-9a-f]+)|([-+]?[0-9]*\.?[0-9]+))\b/gi))
 			{
-                // m[0] is full match, m[1] is hex, m[2] is float/dec
+				// m[0] is full match, m[1] is hex, m[2] is float/dec
 				enumerations.push({literal: m[0], meaning: rhs});
 				isHex ||= !!m[1]; // if 0x captured, it's hex
 			}
@@ -897,14 +897,14 @@ class CodeNote
 		if (dcount == 1 || linecount < 3) return null;
 
 		for (let e of enumerations) {
-            if (e.literal.includes('.') && !e.literal.startsWith('0x')) {
-                e.value = parseFloat(e.literal);
-            } else {
-			    e.value = Number.parseInt(e.literal, isHex ? 16 : 10);
-            }
-        }
+			if (e.literal.includes('.') && !e.literal.startsWith('0x')) {
+				e.value = parseFloat(e.literal);
+			} else {
+				e.value = Number.parseInt(e.literal, isHex ? 16 : 10);
+			}
+		}
 		
-        enumerations = enumerations.filter(x => !Number.isNaN(x.value));
+		enumerations = enumerations.filter(x => !Number.isNaN(x.value));
 		return enumerations.length ? enumerations : null;
 	}
 }
@@ -951,100 +951,100 @@ class CodeNoteSet extends Array
 
 		// 2. Resolve Base Note & Redirects
 		let note = this.get(baseAddr);
-        
-        // Handle "refer to" Redirects
-        let redirects = 0;
-        while (note && redirects < 5) {
-             const match = note.note.match(/refer to \$0x([0-9a-fA-F]+)/i);
-             if (match) {
-                 const target = parseInt(match[1], 16);
-                 const targetNote = this.get(target);
-                 if (targetNote) {
-                     note = targetNote;
-                     redirects++;
-                     continue;
-                 }
-             }
-             break;
-        }
+		
+		// Handle "refer to" Redirects
+		let redirects = 0;
+		while (note && redirects < 5) {
+			 const match = note.note.match(/refer to \$0x([0-9a-fA-F]+)/i);
+			 if (match) {
+				 const target = parseInt(match[1], 16);
+				 const targetNote = this.get(target);
+				 if (targetNote) {
+					 note = targetNote;
+					 redirects++;
+					 continue;
+				 }
+			 }
+			 break;
+		}
 
 		if (!note) return null;
 
-        // 3. Traverse Note Node Tree
-        let currentNodes = null;
-        if (note.noteNodes) {
-             // Filter for nodes attached to the Logical Root (Indent -1).
-             // This correctly captures top-level nodes even if they start with indentation (e.g. ".+0x10").
-             currentNodes = note.noteNodes.filter(n => n.parent && n.parent.indentLevel === -1);
-        }
+		// 3. Traverse Note Node Tree
+		let currentNodes = null;
+		if (note.noteNodes) {
+			 // Filter for nodes attached to the Logical Root (Indent -1).
+			 // This correctly captures top-level nodes even if they start with indentation (e.g. ".+0x10").
+			 currentNodes = note.noteNodes.filter(n => n.parent && n.parent.indentLevel === -1);
+		}
 
-        if (!currentNodes || currentNodes.length === 0) {
-            return null;
-        }
+		if (!currentNodes || currentNodes.length === 0) {
+			return null;
+		}
 
-        // Helper to parse offset string like "+0x10" or "-0x4" -> integer
-        const parseOff = (s) => {
-            let clean = s.replace(/[+\-\s]/g, '');
-            if (clean.toLowerCase().startsWith("0x")) clean = clean.substring(2);
-            let v = parseInt(clean, 16);
-            if (s.includes('-')) v = -v;
-            return isNaN(v) ? 0 : v;
-        };
+		// Helper to parse offset string like "+0x10" or "-0x4" -> integer
+		const parseOff = (s) => {
+			let clean = s.replace(/[+\-\s]/g, '');
+			if (clean.toLowerCase().startsWith("0x")) clean = clean.substring(2);
+			let v = parseInt(clean, 16);
+			if (s.includes('-')) v = -v;
+			return isNaN(v) ? 0 : v;
+		};
 
-        let foundNode = null;
+		let foundNode = null;
 
-        // Header for tooltip display
+		// Header for tooltip display
 		const base_hex = '0x' + baseAddr.toString(16);
 		const offsets_str = offsets.map(o => `+0x${o.toString(16)}`).join(' ');
 		const header = `[Indirect from ${base_hex} ${offsets_str}]\n`;
 
-        // Iterate through offsets (Intermediates -> Leaf)
-        for (let i = 0; i < offsets.length; i++) {
-            const offVal = offsets[i];
-            const isLeaf = (i === offsets.length - 1);
-            let match = null;
+		// Iterate through offsets (Intermediates -> Leaf)
+		for (let i = 0; i < offsets.length; i++) {
+			const offVal = offsets[i];
+			const isLeaf = (i === offsets.length - 1);
+			let match = null;
 
-            for (const n of currentNodes) {
-                const nOff = parseOff(n.offset);
-                
-                // Range check: Is the offset within [NodeStart, NodeStart + NodeSize)?
-                // n.size defaults to 1 if not specified, or parses from e.g. "[32 bytes]"
-                if (offVal >= nOff && offVal < nOff + n.size) {
-                    match = n;
-                    break;
-                }
-            }
+			for (const n of currentNodes) {
+				const nOff = parseOff(n.offset);
+				
+				// Range check: Is the offset within [NodeStart, NodeStart + NodeSize)?
+				// n.size defaults to 1 if not specified, or parses from e.g. "[32 bytes]"
+				if (offVal >= nOff && offVal < nOff + n.size) {
+					match = n;
+					break;
+				}
+			}
 
-            if (match) {
-                if (isLeaf) {
-                    // We found the node covering the final offset
-                    foundNode = match;
-                } else {
-                    // Intermediate offset: drill down to children
-                    if (match.children && match.children.length > 0) {
-                        currentNodes = match.children;
-                    } else {
-                        // Node matches, but has no children to satisfy deeper offsets.
-                        // We must return null to allow "missing note" feedback to fire.
-                        // Returning the parent node causes misleading tooltips and suppresses warnings.
-                        return null;
-                    }
-                }
-            } else {
-                // No node at this level covers the offset
-                return null;
-            }
-        }
+			if (match) {
+				if (isLeaf) {
+					// We found the node covering the final offset
+					foundNode = match;
+				} else {
+					// Intermediate offset: drill down to children
+					if (match.children && match.children.length > 0) {
+						currentNodes = match.children;
+					} else {
+						// Node matches, but has no children to satisfy deeper offsets.
+						// We must return null to allow "missing note" feedback to fire.
+						// Returning the parent node causes misleading tooltips and suppresses warnings.
+						return null;
+					}
+				}
+			} else {
+				// No node at this level covers the offset
+				return null;
+			}
+		}
 
-        if (foundNode) {
-             let desc = foundNode.description || "";
-             // Append content (enumerations/details) if available, rather than choosing one or the other
-             if (foundNode.content) {
-                 if (desc.length > 0) desc += "\n";
-                 desc += foundNode.content;
-             }
-             return header + desc;
-        }
+		if (foundNode) {
+			 let desc = foundNode.description || "";
+			 // Append content (enumerations/details) if available, rather than choosing one or the other
+			 if (foundNode.content) {
+				 if (desc.length > 0) desc += "\n";
+				 desc += foundNode.content;
+			 }
+			 return header + desc;
+		}
 
 		return null;
 	}
