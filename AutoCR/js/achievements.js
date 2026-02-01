@@ -43,13 +43,16 @@ const Console = Object.freeze({
     		new MemRegion(0x0800, 0x0FFF, "Mirror RAM", true, (x) => x - 0x0800),
     		new MemRegion(0x1000, 0x17FF, "Mirror RAM", true, (x) => x - 0x1000),
     		new MemRegion(0x1800, 0x1FFF, "Mirror RAM", true, (x) => x - 0x1800),
-    		new MemRegion(0x2008, 0x3FFF, "Mirrored PPU Registers", true),
+    		new MemRegion(0x2008, 0x3FFF, "Mirrored PPU Registers", true, (x) => 0x2000 + (x % 8)),
 		]},
 	SNES: { id: 3, name: "SNES/Super Famicom", icon: "snes", },
 	N64: { id: 2, name: "Nintendo 64", icon: "n64", },
 	GCN: { id: 16, name: "GameCube", icon: "gc", },
 	WII: { id: 19, name: "Wii", icon: "wii", },
-	DS: { id: 18, name: "Nintendo DS", icon: "ds", },
+	DS: { id: 18, name: "Nintendo DS", icon: "ds", 
+		regions: [
+    		new MemRegion(0x0400000, 0x0FFFFFF, "Unused", true),
+		]},
 	DSI: { id: 78, name: "Nintendo DSi", icon: "dsi", },
 	PKMN: { id: 24, name: "Pokemon Mini", icon: "mini",
 		regions: [
@@ -85,9 +88,18 @@ const Console = Object.freeze({
 	LYNX: { id: 13, name: "Atari Lynx", icon: "lynx", },
 
 	// Sega
-	SG1K: { id: 33, name: "SG-1000", icon: "sg1k", },
-	SMS: { id: 11, name: "Master System", icon: "sms", },
-	GG: { id: 15, name: "Game Gear", icon: "gg", },
+	SG1K: { id: 33, name: "SG-1000", icon: "sg1k", 
+		regions: [
+    		new MemRegion(0x00C400, 0x00FFFF, "System RAM Mirror", true, (x) => 0xC000 + (x % 0x400)),
+		]},
+	SMS: { id: 11, name: "Master System", icon: "sms", 
+		regions: [
+    		new MemRegion(0x00E000, 0x00FFFF, "System RAM Mirror", true, (x) => x - 0x2000),
+		]},
+	GG: { id: 15, name: "Game Gear", icon: "gg", 
+		regions: [
+    		new MemRegion(0x00E000, 0x00FFFF, "System RAM Mirror", true, (x) => x - 0x2000),
+		]},
 	GEN: { id: 1, name: "Genesis/Mega Drive", icon: "md", },
 	SEGACD: { id: 9, name: "Sega CD", icon: "scd", },
 	_32X: { id: 10, name: "32X", icon: "32x", },
