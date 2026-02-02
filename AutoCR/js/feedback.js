@@ -423,21 +423,22 @@ function generate_code_note_stats(notes)
 	}
 
 	stats.notes_count = notes.length;
-	let asset_addresses = [...current.set.getAchievements().map(e => e.logic.getAddresses()),
-		...current.set.getLeaderboards().map(e => e.components).flatMap(cmps => Object.values(cmps)).map(cmp => cmp.getAddresses())
+	let asset_addresses = [
+		...current.set.getAchievements().map(e => ({asset: e, addrs: e.logic.getAddresses()})),
+		...current.set.getLeaderboards().map(e => ({asset: e, addrs: Object.values(e.components).flatMap(cmp => cmp.getAddresses())})),
 	];
 
 	if (current.rp) {
 		const display_cond_addrs = current.rp.display.map(display => display.condition).filter(cond => cond !== null).flatMap(cond => cond.getAddresses());
 		const lookup_addrs = current.rp.display.flatMap(display => display.lookups).flatMap(lookup => lookup.calc.getAddresses());
-		asset_addresses.push([...display_cond_addrs, ...lookup_addrs]);
+		asset_addresses.push({asset: "Rich Presence", addrs: [...display_cond_addrs, ...lookup_addrs]});
 	}
 
 	notes.forEach(note => {
-		note.assetCount = asset_addresses.filter(addrs => addrs.includes(note.addr)).length;
+		note.assetList = asset_addresses.filter(e => e.addrs.includes(note.addr)).map(e => e.asset);
 	});
 
-	let used_notes = notes.filter(x => x.assetCount > 0);
+	let used_notes = notes.filter(x => x.assetList.length > 0);
 
 	stats.notes_used = used_notes.length;
 	stats.notes_unused = stats.notes_count - stats.notes_used;

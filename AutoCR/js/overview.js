@@ -1357,6 +1357,22 @@ function CodeNotesTable({notes = [], issues = []})
 	function toDisplayHex(addr)
 	{ return '0x' + addr.toString(16).padStart(8, '0'); }
 
+	function LinkToAsset({asset})
+	{
+		let handleclick = (e) => {
+			jump_to_asset(asset);
+			TooltipManager.startHide();
+			e.preventDefault();
+		};
+
+		if (asset instanceof Achievement)
+			return <>🏆 <a href="#" onClick={handleclick}>{asset.title}</a></>;
+		else if (asset instanceof Leaderboard)
+			return <>📊 <a href="#" onClick={handleclick}>{asset.title}</a></>;
+		else
+			return <>{asset}</>;
+	}
+
 	issues = [].concat(...issues);
 	return (<div className="data-table">
 		<table className="code-notes">
@@ -1389,7 +1405,19 @@ function CodeNotesTable({notes = [], issues = []})
 								</a>
 							</span>
 						</td>
-						<td>{note.assetCount}</td>
+						<td>
+							<span className="tooltip"
+								onMouseEnter={(e) => {
+									const rect = e.currentTarget.getBoundingClientRect();
+									TooltipManager.show(<ul style={{width: "500px", "list-style-type": "none", "padding": 0, "margin": 0, }}>
+										{note.assetList.map((a, i) => <li key={i}><LinkToAsset asset={a}/></li>)}
+									</ul>, rect);
+								}}
+								onMouseLeave={() => TooltipManager.startHide()}
+							>
+								{note.assetList.length}
+							</span>
+						</td>
 					</tr>))}
 			</tbody>
 		</table>
@@ -1409,7 +1437,7 @@ function CodeNotesOverview()
 
 	let displaynotes = current.notes.filter(note => authState[note.author]);
 	if (warnsOnly) displaynotes = displaynotes.filter(note => feedback_targets.has(note))
-	if (hideUnused) displaynotes = displaynotes.filter(note => note.assetCount > 0)
+	if (hideUnused) displaynotes = displaynotes.filter(note => note.assetList.length > 0)
 	let displayissues = feedback.issues.filter(issue => !issue.target || displaynotes.includes(issue.target));
 
 	return (<>

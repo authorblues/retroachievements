@@ -647,7 +647,7 @@ class CodeNote
 	note = "";
 	author = "";
 	enum = null;
-	assetCount = 0;
+	assetList = [];
 	
 	// Holds the parsed tree structure of the note
 	noteNodes = [];
