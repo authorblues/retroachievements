@@ -32,7 +32,7 @@ const ReqFlag = Object.freeze({
 	MEASUREDP:   { name: "Measured%",    prefix: "G:", chain: false, scalable: false, cmod: false, },
 	MEASUREDIF:  { name: "MeasuredIf",   prefix: "Q:", chain: false, scalable: false, cmod: false, },
 	TRIGGER:     { name: "Trigger",      prefix: "T:", chain: false, scalable: false, cmod: false, },
-	REMEMBER:    { name: "Remember",     prefix: "K:", chain: false, scalable: true , cmod: false, },
+	REMEMBER:    { name: "Remember",     prefix: "K:", chain: true,  scalable: true , cmod: false, },
 });
 
 const PAUSERESET = new Set([ReqFlag.RESETIF, ReqFlag.RESETNEXTIF, ReqFlag.PAUSEIF]);
