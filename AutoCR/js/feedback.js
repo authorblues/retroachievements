@@ -1199,6 +1199,11 @@ function* check_notes_bad_regions(notes)
 					<li>Code note at <code className="ref-link" data-ref={note.addr}>{toDisplayHex(note.addr)}</code>: <code>{note.getHeader()}</code></li>
 					<li>Appears in the {r.name} region (<code>{toDisplayHex(r.start)}-{toDisplayHex(r.end)}</code>)</li>
 					{
+						r.isError ? <></> : (<ul>
+							<li><em>This is only a warning based on the way memory on {current.set?.console?.name} is commonly used. This is not necessarily an error, if memory is being used in a non-standard way.</em></li>
+						</ul>)
+					}
+					{
 						!r.transform ? <></> : (<ul>
 							<li><strong>Suggested fix:</strong> Move this note to the address <code>{toDisplayHex(r.transform(note.addr))}</code></li>
 						</ul>)

@@ -18,6 +18,7 @@ class MemRegion
 
 // region data should be cross-referenced with
 // https://github.com/RetroAchievements/rcheevos/blob/develop/src/rcheevos/consoleinfo.c
+// https://github.com/RetroAchievements/rcheevos/blob/develop/include/rc_consoles.h
 const Console = Object.freeze({
 	// Nintendo
 	GB: { id: 4, name: "Game Boy", icon: "gb", 
@@ -40,6 +41,15 @@ const Console = Object.freeze({
 	GBA: { id: 5, name: "Game Boy Advance", icon: "gba", },
 	NES: { id: 7, name: "NES/Famicom", icon: "nes", 
 		regions: [
+			new MemRegion(0x0100, 0x01FF, "(possible) Stack", false),
+			new MemRegion(0x0800, 0x0FFF, "Mirror RAM", true, (x) => x - 0x0800),
+			new MemRegion(0x1000, 0x17FF, "Mirror RAM", true, (x) => x - 0x1000),
+			new MemRegion(0x1800, 0x1FFF, "Mirror RAM", true, (x) => x - 0x1800),
+			new MemRegion(0x2008, 0x3FFF, "Mirrored PPU Registers", true, (x) => 0x2000 + (x % 8)),
+		]},
+	FDS: { id: 81, name: "Famicom Disk System", icon: "fds", 
+		regions: [
+			new MemRegion(0x0100, 0x01FF, "(possible) Stack", false),
 			new MemRegion(0x0800, 0x0FFF, "Mirror RAM", true, (x) => x - 0x0800),
 			new MemRegion(0x1000, 0x17FF, "Mirror RAM", true, (x) => x - 0x1000),
 			new MemRegion(0x1800, 0x1FFF, "Mirror RAM", true, (x) => x - 0x1800),
