@@ -33,6 +33,7 @@ class Region
 	addr_ingame_time = -1
 	addr_music_id = -1
 	addr_lamp_status = -1
+	addr_software_enabled = -1
 
 	function inventory(x) => word_be((dword_be(this.addr_inventory_ptr) & 0x1fffffff) + x*2)
 	function weapon_used() => byte(this.addr_weapon_used) // values match enumerated ITEM_* (+1) values below
@@ -64,6 +65,7 @@ class Region
 	function ankh_jewel_chest(x) => this.flag(142+x) // 8 bytes, ==2 if ankh collected
 	function is_hard_mode() => this.flag(362) == 0x02
 	function boss_state(x) => this.flag(246 + x)
+	function software_enabled(x) => byte(this.addr_software_enabled + x - 85)
 
 	function is_region() => ascii_string_equals(0x3180, this.diskname)
 	function in_game() => this.is_region() && prev(this.field_id()) != F_TITLE_SCREEN
@@ -90,7 +92,8 @@ REGIONS = [
 		addr_msx_state=0x37616A,
 		addr_ingame_time=0x363B8C,
 		addr_music_id=0x363ABC,
-		addr_lamp_status=0x37617A
+		addr_lamp_status=0x37617A,
+		addr_software_enabled=0x376600
 	),
 	Region(
 		regionname="EU",
@@ -108,7 +111,8 @@ REGIONS = [
 		addr_msx_state=0x37616A,
 		addr_ingame_time=0x363B8C,
 		addr_music_id=0x363ABC,
-		addr_lamp_status=0x37617A
+		addr_lamp_status=0x37617A,
+		addr_software_enabled=0x376600
 	),
 	Region(
 		regionname="JP",
@@ -126,7 +130,8 @@ REGIONS = [
 		addr_msx_state=0x3C236A,
 		addr_ingame_time=0x3AFBCC,
 		addr_music_id=0x3AFAFC,
-		addr_lamp_status=0x3C237A
+		addr_lamp_status=0x3C237A,
+		addr_software_enabled=0x3C2800
 	),
 ]
 
@@ -405,7 +410,7 @@ function win_the_game(r) => (
 	// mother has been defeated, we are escaping!
 	r.boss_state(BOSS_MOTHER) == 0x04 &&
 	// we're in Mulbruk's room
-	r.in_room(F_SUN_TEMPLE, 0xFFFF) &&
+	r.in_room(F_SUN_TEMPLE, 0x0300) &&
 	// game is not paused (blocks Enga Musica)...
 	r.unpaused() &&
 	// ...since we're checking music id for the escape
@@ -453,7 +458,8 @@ function item_achievement(item, field, screen, title, desc, points)
 		points=points,
 		trigger=any_of(REGIONS, r => (
 			r.is_region() && r.in_room(field, screen) &&
-			r.inventory(item) == 0 && r.inventory(item) > 0
+			// r.boss_shop_gamestate() == 0x41 && // <-- add this for shops
+			prev(r.inventory(item)) == 0 && r.inventory(item) > 0
 		))
 	)
 }
@@ -498,7 +504,7 @@ boss_progression_achievement(BOSS_AMPHISBAENA, F_GUIDANCE, 0x0801, "King Konda",
 // boss_progression_achievement(BOSS_SAKIT, F_MAUSOLEUM, 0x0801, "Giant's Rage", 5)
 boss_progression_achievement(BOSS_ELLMAC, F_SUN_TEMPLE, 0x0800, "High Speed Beast", 10)
 // boss_progression_achievement(BOSS_BAHAMUT, F_SPRING, 0x0400, "Dangerous Raid", 10)
-boss_progression_achievement(BOSS_VIY, F_INFERNO, 0xFFFF, "In the Bottom", 10)
+boss_progression_achievement(BOSS_VIY, F_INFERNO, 0x0801, "In the Bottom", 10)
 // boss_progression_achievement(BOSS_BAPHOMET, F_TWIN_LABS, 0x0401, "Sabbat", 10)
 boss_progression_achievement(BOSS_PALENQUE, F_EXTINCTION, 0x0901, "Ancient Machine", 25)
 // boss_progression_achievement(BOSS_TIAMAT, F_DIMENSIONAL, 0x0900, "Interstice of the Dimension", 25)
@@ -508,7 +514,7 @@ one_finger_achievement(BOSS_AMPHISBAENA, F_GUIDANCE, 0x0801, "All I Need Is One 
 one_finger_achievement(BOSS_SAKIT, F_MAUSOLEUM, 0x0801, "All I Need Is One Finger versus Sakit", 5)
 one_finger_achievement(BOSS_ELLMAC, F_SUN_TEMPLE, 0x0800, "All I Need Is One Finger versus Ellmac", 10)
 one_finger_achievement(BOSS_BAHAMUT, F_SPRING, 0x0400, "All I Need Is One Finger versus Bahamut", 10)
-one_finger_achievement(BOSS_VIY, F_INFERNO, 0xFFFF, "All I Need Is One Finger versus Viy", 10)
+one_finger_achievement(BOSS_VIY, F_INFERNO, 0x0801, "All I Need Is One Finger versus Viy", 10)
 one_finger_achievement(BOSS_BAPHOMET, F_TWIN_LABS, 0x0401, "All I Need Is One Finger versus Baphomet", 10)
 one_finger_achievement(BOSS_PALENQUE, F_EXTINCTION, 0x0901, "All I Need Is One Finger versus Palenque", 25)
 one_finger_achievement(BOSS_TIAMAT, F_DIMENSIONAL, 0x0900, "All I Need Is One Finger versus Tiamat", 25)
@@ -620,9 +626,9 @@ achievement(
 		// challenge is won when entering the door on the far side of Echidna's chamber
 		trigger_when(r.in_room(F_INFERNO, 0x0900) && prev(r.boss_shop_gamestate()) == 0x00 && r.boss_shop_gamestate() == 0x01) &&
 		// leaving Echidna's chamber fails the challenge
-		never(r.is_region() && r.field_id() != F_INFERNO && r.room_id() != 0x09)
+		never(r.is_region() && r.field_id() != F_INFERNO && r.room_id() != 0x09) &&
 		// taking damage fails the challenge
-		never(r.is_region() && r.health() < prev(r.health())) &&
+		never(r.is_region() && r.health() < prev(r.health()))
 	))
 )
 
@@ -661,8 +667,19 @@ achievement(
 	))
 )
 
-item_achievement(ITEM_SEAL_2_BIRTH, F_SURFACE, 0xFFFF, "__ItemBirthSeal", "Collect the Birth Seal", 3)
-item_achievement(ITEM_SEAL_4_DEATH, F_SUN_TEMPLE, 0xFFFF, "__ItemDeathSeal", "Collect the Death Seal", 5)
+item_achievement(ITEM_SEAL_2_BIRTH, F_SURFACE, 0x0701, "Something New", "Collect the Birth Seal", 3)
+
+achievement(
+	title="Something Blue",
+	description="Collect the Death Seal",
+	points=5,
+	trigger=any_of(REGIONS, r => (
+		r.is_region() && 
+		__ornext(any_of([F_SHRINE_MOTHER, F_TRUE_SHRINE], x => r.screen_id() == x)) && 
+		r.screen_id() == 0x0900 &&
+		prev(r.inventory(ITEM_SEAL_4_DEATH)) == 0 && r.inventory(ITEM_SEAL_4_DEATH) > 0
+	))
+)
 
 LAPTOP_CASES = [ITEM_CASE_WATERPROOF, ITEM_CASE_HEATPROOF]
 achievement(
@@ -677,31 +694,31 @@ achievement(
 )
 
 item_achievement(ITEM_GLOVE, F_SPRING, 0x0200, "For His Glove's a Glove of Power", "Collect the Glove", 2)
-item_achievement(ITEM_ISIS_PENDANT, F_SUN_TEMPLE, 0xFFFF, "__ItemIsisPendant", "Collect Isis' Pendant", 5)
-item_achievement(ITEM_HELMET, F_TWIN_LABS, 0xFFFF, "OSHA Approved!", "Purchase the Helmet", 5)
-item_achievement(ITEM_BRONZE_MIRROR, F_SUN_TEMPLE, 0xFFFF, "Another Side of the Story", "Collect the Bronze Mirror", 5)
-item_achievement(ITEM_RING, F_TWIN_LABS, 0xFFFF, "__ItemRing", "Collect the Ring", 3)
-item_achievement(ITEM_GAUNTLET, F_GRAVEYARD, 0xFFFF, "__ItemGauntlet", "Collect the Gauntlet", 5)
-item_achievement(ITEM_ANCHOR, F_ILLUSION, 0xFFFF, "__ItemAnchor", "Collect the Anchor", 3)
-item_achievement(ITEM_OCARINA, F_MOONLIGHT, 0xFFFF, "__ItemOcarina", "Collect the Philosopher's Ocarina", 5)
-item_achievement(ITEM_BOOK_OF_THE_DEAD, F_SUN_TEMPLE, 0xFFFF, "__ItemBookoftheDead", "Collect the Book of the Dead", 3)
-item_achievement(ITEM_SCRIPTURES, F_MOONLIGHT, 0xFFFF, "__ItemScriptures", "Purchase the Scriptures", 5)
-item_achievement(ITEM_FRUIT_OF_EDEN, F_MOONLIGHT, 0xFFFF, "__ItemFruitofEden", "Collect the Fruit of Eden", 5)
-item_achievement(ITEM_BRACELET, F_TWIN_LABS, 0xFFFF, "__ItemBracelet", "Purchase the Bracelet", 5)
-item_achievement(ITEM_SPAULDER, F_TOWER_GODDESS, 0xFFFF, "__ItemSpaulder", "Collect the Spaulder", 5)
-item_achievement(ITEM_ICE_CAPE, F_INFERNO, 0xFFFF, "__ItemIceCape", "Collect the Ice Cape", 3)
-item_achievement(ITEM_WHIP_FLAIL, F_TOWER_GODDESS, 0xFFFF, "__ItemFlailWhip", "Collect the Flail Whip", 10)
-item_achievement(ITEM_AXE, F_MOONLIGHT, 0xFFFF, "__ItemAxe", "Collect the Axe", 5)
-item_achievement(ITEM_KEY_SWORD, F_ENDLESS, 0xFFFF, "__ItemKeySword", "Collect the Key Sword", 5)
-item_achievement(ITEM_ROLLING_SHURIKEN, F_MAUSOLEUM, 0xFFFF, "__ItemRollingShuriken", "Collect the Rolling Shuriken", 5)
-item_achievement(ITEM_FLARE_GUN, F_INFERNO, 0xFFFF, "__ItemFlareGun", "Collect the Flare Gun", 5)
-item_achievement(ITEM_CALTROPS, F_SPRING, 0xFFFF, "__ItemCaltrops", "Collect the Caltrops", 2)
-item_achievement(ITEM_PISTOL, F_SURFACE, 0xFFFF, "That's Right, We're Gonna Cheat", "Purchase the Pistol", 5)
-item_achievement(ITEM_SHIELD_SILVER, F_GRAVEYARD, 0xFFFF, "__ItemSilverShield", "Collect the Silver Shield", 5)
-item_achievement(ITEM_SCANNER, F_SURFACE, 0xFFFF, "__ItemHandScanner", "Purchase the Hand Scanner", 3)
+item_achievement(ITEM_ISIS_PENDANT, F_SUN_TEMPLE, 0x0200, "You Who Guide the Wanderers' Steps", "Collect Isis' Pendant", 5)
+item_achievement(ITEM_HELMET, F_TWIN_LABS, 0x0302, "OSHA Approved!", "Purchase the Helmet", 5)
+item_achievement(ITEM_BRONZE_MIRROR, F_SUN_TEMPLE, 0x0500, "Another Side of the Story", "Collect the Bronze Mirror", 5)
+item_achievement(ITEM_RING, F_TWIN_LABS, 0x0200, "__ItemRing", "Collect the Ring", 3)
+item_achievement(ITEM_GAUNTLET, F_GRAVEYARD, 0x0401, "Dark Legacy", "Collect the Gauntlet", 5)
+item_achievement(ITEM_ANCHOR, F_ILLUSION, 0x0800, "That Sinking Feeling", "Collect the Anchor", 3)
+item_achievement(ITEM_OCARINA, F_MOONLIGHT, 0x0500, "The Sound of Silence", "Collect the Philosopher's Ocarina", 5)
+item_achievement(ITEM_BOOK_OF_THE_DEAD, F_SUN_TEMPLE, 0x0300, "It Is Essential for a Hamburger", "Collect the Book of the Dead", 3)
+item_achievement(ITEM_SCRIPTURES, F_MOONLIGHT, 0x0700, "Bat Insurance", "Purchase the Scriptures", 5)
+item_achievement(ITEM_FRUIT_OF_EDEN, F_MOONLIGHT, 0x0200, "Moonlight Scavenger Hunt", "Collect the Fruit of Eden", 5)
+item_achievement(ITEM_BRACELET, F_TWIN_LABS, 0x0E00, "I Hate Porcelain! It's a Long Story", "Purchase the Bracelet", 5)
+item_achievement(ITEM_SPAULDER, F_TOWER_GODDESS, 0x0700, "Natural Flail Enhancement", "Collect the Spaulder", 5)
+item_achievement(ITEM_ICE_CAPE, F_INFERNO, 0x0701, "Prepare for Frostbite", "Collect the Ice Cape", 3)
+item_achievement(ITEM_WHIP_FLAIL, F_TOWER_GODDESS, 0x0500, "Bloody Tears", "Collect the Flail Whip", 10)
+item_achievement(ITEM_AXE, F_MOONLIGHT, 0x0300, "__ItemAxe", "Collect the Axe", 5)
+item_achievement(ITEM_KEY_SWORD, F_ENDLESS, 0x0201, "__ItemKeySword", "Collect the Key Sword", 5)
+item_achievement(ITEM_ROLLING_SHURIKEN, F_MAUSOLEUM, 0x0300, "__ItemRollingShuriken", "Collect the Rolling Shuriken", 5)
+item_achievement(ITEM_FLARE_GUN, F_INFERNO, 0x0400, "__ItemFlareGun", "Collect the Flare Gun", 5)
+item_achievement(ITEM_CALTROPS, F_SPRING, 0x0100, "__ItemCaltrops", "Collect the Caltrops", 2)
+item_achievement(ITEM_PISTOL, F_SURFACE, 0x0201, "That's Right, We're Gonna Cheat", "Purchase the Pistol", 5)
+item_achievement(ITEM_SHIELD_SILVER, F_GRAVEYARD, 0x0101, "__ItemSilverShield", "Collect the Silver Shield", 5)
+item_achievement(ITEM_SCANNER, F_SURFACE, 0x0201, "__ItemHandScanner", "Purchase the Hand Scanner", 3)
 
 achievement(
-	title="__ItemClayDoll&Use",
+	title="Prove Thou Art Small",
 	description="Collect the Clay Doll and prove thou art small",
 	points=5,
 	trigger=any_of(REGIONS, r => (
@@ -711,15 +728,15 @@ achievement(
 	))
 )
 
-item_achievement(ITEM_COG, F_ILLUSION, 0xFFFF, "__ItemCogofLife", "Collect the Cog of Life", 10)
-item_achievement(ITEM_POCHETTE_KEY, F_BIRTH_GRAIL, 0xFFFF, "__ItemPochetteKey", "Collect the Pochette Key", 5)
-item_achievement(ITEM_CRYSTAL_SKULL, F_SHRINE_MOTHER, 0xFFFF, "__ItemCrystalSkull", "Collect the Crystal Skull", 5)
-item_achievement(ITEM_STATUE_WOMAN, F_BIRTH_ALT, 0xFFFF, "__ItemWomanStatue", "Collect the Woman Statue", 5)
-item_achievement(ITEM_SERPENT_STAFF, F_MOONLIGHT, 0xFFFF, "__ItemSerpentStaff", "Collect the Serpent Staff", 5)
-item_achievement(ITEM_DIARY, F_SHRINE_MOTHER, 0xFFFF, "__ItemDiary", "Collect the Diary", 5)
+item_achievement(ITEM_COG, F_ILLUSION, 0x0001, "__ItemCogofLife", "Collect the Cog of Life", 10)
+item_achievement(ITEM_POCHETTE_KEY, F_BIRTH_GRAIL, 0x0301, "__ItemPochetteKey", "Collect the Pochette Key", 5)
+item_achievement(ITEM_CRYSTAL_SKULL, F_SHRINE_MOTHER, 0x0100, "__ItemCrystalSkull", "Collect the Crystal Skull", 5)
+item_achievement(ITEM_STATUE_WOMAN, F_BIRTH_ALT, 0x0400, "__ItemWomanStatue", "Collect the Woman Statue", 5)
+item_achievement(ITEM_SERPENT_STAFF, F_MOONLIGHT, 0x0A00, "__ItemSerpentStaff", "Collect the Serpent Staff", 5)
+item_achievement(ITEM_DIARY, F_SHRINE_MOTHER, 0x0201, "__ItemDiary", "Collect the Diary", 5)
 
 achievement(
-	title="__SubBossBackbeard&TaiSui",
+	title="1 vs 100",
 	description="Defeat Backbeard & Tai Sui",
 	points=5,
 	trigger=any_of(REGIONS, r => (
@@ -729,7 +746,7 @@ achievement(
 )
 
 achievement(
-	title="__ShotByChiYou",
+	title="Jack of All Blades; Master of Gun",
 	description="Survive being shot by a pistol",
 	points=5,
 	trigger=any_of(REGIONS, r => (
@@ -744,7 +761,7 @@ achievement(
 			(r.inventory(ITEM_FAIRY_CLOTHES) == 0 && r.health() - prev(r.health()) == 64) ||
 			// with fairy clothes, pistol does 30% less damage (44 damage)
 			(r.inventory(ITEM_FAIRY_CLOTHES) == 1 && r.health() - prev(r.health()) == 44)
-		)
+		) // TODO: check hard mode numbers
 	))
 )
 
@@ -762,11 +779,12 @@ achievement(
 )
 
 achievement(
-	title="__SubBossPazuzu",
+	title="And This Is How You Repay Me?",
+	// title="You Have One Wish Left, Professor",
 	description="Defeat Pazuzu",
 	points=3,
 	trigger=any_of(REGIONS, r => (
-		r.is_region() && r.in_room(F_INFERNO, 0xFFFF) &&
+		r.is_region() && r.in_room(F_INFERNO, 0x0301) &&
 		prev(r.flag(431)) < 3 && r.flag(431) == 3
 	))
 )
@@ -776,19 +794,19 @@ achievement(
 	description="Defeat Thunderbird",
 	points=2,
 	trigger=any_of(REGIONS, r => (
-		r.is_region() && r.in_room(F_RUIN, 0xFFFF) &&
+		r.is_region() && r.in_room(F_RUIN, 0x0301) &&
 		prev(r.flag(654)) == 0 && r.flag(654) == 1
 	))
 )
 
 achievement(
-	title="__SkandaHardModeChallenge",
+	title="An Unruly Child",
 	description="Defeat Skanda on hard mode without using the Lamp of Time",
 	points=10,
 	trigger=any_of(REGIONS, r => (
-		once(r.is_region() && r.is_hard_mode() && prev(r.in_room(F_BIRTH_GRAIL, 0xFFFF)) && r.in_room(F_BIRTH_GRAIL, 0xFFFF)) &&
+		once(r.is_region() && r.is_hard_mode() && prev(r.in_room(F_BIRTH_GRAIL, 0x0300)) && r.in_room(F_BIRTH_GRAIL, 0x0301)) &&
 		trigger_when(prev(r.flag(678)) < 2 && r.flag(678) == 2) &&
-		never(r.is_region() && !r.in_room(F_BIRTH_GRAIL, 0xFFFF)) &&
+		never(r.is_region() && !r.in_room(F_BIRTH_GRAIL, 0x0301)) &&
 		never(r.lamp_active())
 	))
 )
@@ -799,7 +817,7 @@ achievement(
 	points=5,
 	trigger=any_of(REGIONS, r => (
 		// enter Ushumgallu's room from Tiamat's room
-		once(r.is_region() && prev(F_DIMENSIONAL, 0x0900) && r.in_room(F_DIMENSIONAL, 0x0A01)) &&
+		once(r.is_region() && prev(r.in_room(F_DIMENSIONAL, 0x0900)) && r.in_room(F_DIMENSIONAL, 0x0A01)) &&
 		// check that the Dimensional Corridor sacred orb has been collected
 		trigger_when(prev(r.flag(199+9)) < 2 && r.flag(199+9) == 2) &&
 		// leaving the field or room fails the challenge
@@ -809,6 +827,16 @@ achievement(
 		never(r.is_region() && r.flag(716) == 1) &&
 		// using the Lamp of Time fails the challenge
 		never(r.is_region() && r.lamp_active())
+	))
+)
+
+achievement(
+	title="Let's Play All Together",
+	description="Find the three secret developer rooms and speak with each developer",
+	points=5,
+	trigger=any_of(REGIONS, r => (
+		prev(sum_of(range(904,906), x => r.flag(x))) == 2 &&
+		measured(sum_of(range(904,906), x => r.flag(x)) == 3, when=r.in_game())
 	))
 )
 
