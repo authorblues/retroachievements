@@ -34,6 +34,7 @@ class Region
 	addr_music_id = -1
 	addr_lamp_status = -1
 	addr_software_enabled = -1
+	addr_object_data = -1
 
 	function inventory(x) => word_be((dword_be(this.addr_inventory_ptr) & 0x1fffffff) + x*2)
 	function weapon_used() => byte(this.addr_weapon_used) // values match enumerated ITEM_* (+1) values below
@@ -67,6 +68,10 @@ class Region
 	function boss_state(x) => this.flag(246 + x)
 	function software_enabled(x) => byte(this.addr_software_enabled + x - 85)
 
+	function object_ptr(x) => (dword_be(this.addr_object_data) & 0x1fffffff) + (x * 828)
+	function object_type(x) => dword_be(this.object_ptr(x) + 0x00)
+	function fairy_type(x) => dword_be(this.object_ptr(x) + 0x1C)
+
 	function is_region() => ascii_string_equals(0x3180, this.diskname)
 	function in_game() => this.is_region() && prev(this.field_id()) != F_TITLE_SCREEN
 
@@ -93,7 +98,8 @@ REGIONS = [
 		addr_ingame_time=0x363B8C,
 		addr_music_id=0x363ABC,
 		addr_lamp_status=0x37617A,
-		addr_software_enabled=0x376600
+		addr_software_enabled=0x376600,
+		addr_object_data=0x363E7C
 	),
 	Region(
 		regionname="EU",
@@ -112,7 +118,8 @@ REGIONS = [
 		addr_ingame_time=0x363B8C,
 		addr_music_id=0x363ABC,
 		addr_lamp_status=0x37617A,
-		addr_software_enabled=0x376600
+		addr_software_enabled=0x376600,
+		addr_object_data=0x363E7C
 	),
 	Region(
 		regionname="JP",
@@ -131,11 +138,25 @@ REGIONS = [
 		addr_ingame_time=0x3AFBCC,
 		addr_music_id=0x3AFAFC,
 		addr_lamp_status=0x3C237A,
-		addr_software_enabled=0x3C2800
+		addr_software_enabled=0x3C2800,
+		addr_object_data=0x3AFEEC
 	),
 ]
 
+REGION_US = REGIONS[0]
+REGION_EU = REGIONS[1]
+REGION_JP = REGIONS[2]
+
 // --- MAIN DATA -------------------------------------------------------------------
+
+MAX_OBJECTS = 256
+OBJ_FAIRY = 0x801725AC
+
+FAIRY_HEALING = 0x00
+FAIRY_WEAPON = 0x01
+FAIRY_TREASURE = 0x02
+FAIRY_KEY = 0x03
+FAIRY_IS_SPAWNING = 0x04
 
 F_GUIDANCE = 0x00
 F_SURFACE = 0x01
@@ -481,7 +502,6 @@ achievement(
 achievement(
 	title="Arise, My Creation",
 	description="Ugallu's body, Urmahlullu's voice, Umu Dabrutu's wings, Ushum's tail",
-	type="progression",
 	points=5,
 	trigger=any_of(REGIONS, r => (
 		r.is_region() && r.in_room(F_DIMENSIONAL, 0x0901) &&
@@ -563,7 +583,7 @@ achievement(
 )
 
 achievement(
-	title="__AllCoinChests",
+	title="Gotta Make One Little Detour...",
 	description="Open all coin chests",
 	points=5,
 	trigger=any_of(REGIONS, r => (
@@ -697,7 +717,7 @@ item_achievement(ITEM_GLOVE, F_SPRING, 0x0200, "For His Glove's a Glove of Power
 item_achievement(ITEM_ISIS_PENDANT, F_SUN_TEMPLE, 0x0200, "You Who Guide the Wanderers' Steps", "Collect Isis' Pendant", 5)
 item_achievement(ITEM_HELMET, F_TWIN_LABS, 0x0302, "OSHA Approved!", "Purchase the Helmet", 5)
 item_achievement(ITEM_BRONZE_MIRROR, F_SUN_TEMPLE, 0x0500, "Another Side of the Story", "Collect the Bronze Mirror", 5)
-item_achievement(ITEM_RING, F_TWIN_LABS, 0x0200, "__ItemRing", "Collect the Ring", 3)
+item_achievement(ITEM_RING, F_TWIN_LABS, 0x0200, "Lord of the Ring", "Collect the Ring", 3)
 item_achievement(ITEM_GAUNTLET, F_GRAVEYARD, 0x0401, "Dark Legacy", "Collect the Gauntlet", 5)
 item_achievement(ITEM_ANCHOR, F_ILLUSION, 0x0800, "That Sinking Feeling", "Collect the Anchor", 3)
 item_achievement(ITEM_OCARINA, F_MOONLIGHT, 0x0500, "The Sound of Silence", "Collect the Philosopher's Ocarina", 5)
@@ -708,14 +728,14 @@ item_achievement(ITEM_BRACELET, F_TWIN_LABS, 0x0E00, "I Hate Porcelain! It's a L
 item_achievement(ITEM_SPAULDER, F_TOWER_GODDESS, 0x0700, "Natural Flail Enhancement", "Collect the Spaulder", 5)
 item_achievement(ITEM_ICE_CAPE, F_INFERNO, 0x0701, "Prepare for Frostbite", "Collect the Ice Cape", 3)
 item_achievement(ITEM_WHIP_FLAIL, F_TOWER_GODDESS, 0x0500, "Bloody Tears", "Collect the Flail Whip", 10)
-item_achievement(ITEM_AXE, F_MOONLIGHT, 0x0300, "__ItemAxe", "Collect the Axe", 5)
-item_achievement(ITEM_KEY_SWORD, F_ENDLESS, 0x0201, "__ItemKeySword", "Collect the Key Sword", 5)
-item_achievement(ITEM_ROLLING_SHURIKEN, F_MAUSOLEUM, 0x0300, "__ItemRollingShuriken", "Collect the Rolling Shuriken", 5)
-item_achievement(ITEM_FLARE_GUN, F_INFERNO, 0x0400, "__ItemFlareGun", "Collect the Flare Gun", 5)
-item_achievement(ITEM_CALTROPS, F_SPRING, 0x0100, "__ItemCaltrops", "Collect the Caltrops", 2)
+item_achievement(ITEM_AXE, F_MOONLIGHT, 0x0300, "Axe of the Apostles", "Collect the Axe", 5)
+item_achievement(ITEM_KEY_SWORD, F_ENDLESS, 0x0201, "Probably Useless", "Collect the Key Sword", 5)
+item_achievement(ITEM_ROLLING_SHURIKEN, F_MAUSOLEUM, 0x0300, "Minimum Motors", "Collect the Rolling Shuriken", 5)
+item_achievement(ITEM_FLARE_GUN, F_INFERNO, 0x0400, "A Flare for the Dramatic", "Collect the Flare Gun", 5)
+item_achievement(ITEM_CALTROPS, F_SPRING, 0x0100, "Danger Underfoot", "Collect the Caltrops", 2)
 item_achievement(ITEM_PISTOL, F_SURFACE, 0x0201, "That's Right, We're Gonna Cheat", "Purchase the Pistol", 5)
-item_achievement(ITEM_SHIELD_SILVER, F_GRAVEYARD, 0x0101, "__ItemSilverShield", "Collect the Silver Shield", 5)
-item_achievement(ITEM_SCANNER, F_SURFACE, 0x0201, "__ItemHandScanner", "Purchase the Hand Scanner", 3)
+item_achievement(ITEM_SHIELD_SILVER, F_GRAVEYARD, 0x0101, "The Placebo Effect", "Collect the Silver Shield", 5)
+item_achievement(ITEM_SCANNER, F_SURFACE, 0x0201, "Handy Scanner", "Purchase the Hand Scanner", 3)
 
 achievement(
 	title="Prove Thou Art Small",
@@ -728,12 +748,12 @@ achievement(
 	))
 )
 
-item_achievement(ITEM_COG, F_ILLUSION, 0x0001, "__ItemCogofLife", "Collect the Cog of Life", 10)
-item_achievement(ITEM_POCHETTE_KEY, F_BIRTH_GRAIL, 0x0301, "__ItemPochetteKey", "Collect the Pochette Key", 5)
-item_achievement(ITEM_CRYSTAL_SKULL, F_SHRINE_MOTHER, 0x0100, "__ItemCrystalSkull", "Collect the Crystal Skull", 5)
-item_achievement(ITEM_STATUE_WOMAN, F_BIRTH_ALT, 0x0400, "__ItemWomanStatue", "Collect the Woman Statue", 5)
-item_achievement(ITEM_SERPENT_STAFF, F_MOONLIGHT, 0x0A00, "__ItemSerpentStaff", "Collect the Serpent Staff", 5)
-item_achievement(ITEM_DIARY, F_SHRINE_MOTHER, 0x0201, "__ItemDiary", "Collect the Diary", 5)
+item_achievement(ITEM_COG, F_ILLUSION, 0x0001, "The Forbidden Art", "Collect the Cog of Life", 10)
+item_achievement(ITEM_POCHETTE_KEY, F_BIRTH_GRAIL, 0x0301, "Hold My Purse!", "Collect the Pochette Key", 5)
+item_achievement(ITEM_CRYSTAL_SKULL, F_SHRINE_MOTHER, 0x0100, "To Be a Good Archaeologist, You Gotta Get Out of the Library", "Collect the Crystal Skull", 5)
+item_achievement(ITEM_STATUE_WOMAN, F_BIRTH_ALT, 0x0400, "Like Something Outta the Sears Catalog", "Collect the Woman Statue", 5)
+item_achievement(ITEM_SERPENT_STAFF, F_MOONLIGHT, 0x0A00, "Why Did it Have to Be Snakes?", "Collect the Serpent Staff", 5)
+item_achievement(ITEM_DIARY, F_SHRINE_MOTHER, 0x0201, "Sordid Affairs", "Collect the Diary", 5)
 
 achievement(
 	title="1 vs 100",
@@ -840,16 +860,45 @@ achievement(
 	))
 )
 
-/*
-
 achievement(
-	title="",
-	description="",
+	title="Fairy Finder's Fee",
+	description="Open a coin chest under the effects of the treasure fairy",
 	points=5,
+	// RATools tried to generate something useful for this, but couldn't quite hack it
+	// trigger=byte(0x3B0038 - ((dword_be(0x3180) & 0x15) / (dword_be(0x3180) & 0x15)) * 0x4C068) != 0xFF && (
+
+	// THIS IS THE CORE GROUP, COPY AND PASTE INTO THE EDITOR IF IT NEEDS UPDATING
+	// K:0xG00003180&21_K:{recall}/{recall}_K:{recall}*311400_K:3866680-{recall}_I:{recall}_0xH00000000!=255
+	trigger=(
+		(
+			// checking not-JP region to combine US/EU into one check
+			!REGION_JP.is_region() && 
+			// checking that the number of coin chests opened has changed (sketchy)
+			REGION_US.coin_chest_count() != prev(REGION_US.coin_chest_count()) &&
+			// a luck fairy is loaded into any of the object slots
+			any_of(range(0, MAX_OBJECTS-1), i => (
+				REGION_US.object_type(i) == OBJ_FAIRY && REGION_US.fairy_type(i) == FAIRY_TREASURE
+			))
+		) ||
+		(
+			// checking region is JP
+			REGION_JP.is_region() && 
+			// checking that the number of coin chests opened has changed (sketchy)
+			REGION_JP.coin_chest_count() != prev(REGION_JP.coin_chest_count()) &&
+			// a luck fairy is loaded into any of the object slots
+			any_of(range(0, MAX_OBJECTS-1), i => (
+				REGION_JP.object_type(i) == OBJ_FAIRY && REGION_JP.fairy_type(i) == FAIRY_TREASURE
+			))
+		)	
+	)
+	/*
 	trigger=any_of(REGIONS, r => (
-		
+		r.in_game() && r.coin_chest_count() == prev(r.coin_chest_count()) + 1 &&
+		any_of(range(0, MAX_OBJECTS-1), i => (
+			r.object_type(i) == OBJ_FAIRY && r.fairy_type(i) == FAIRY_TREASURE
+		))
 	))
+	*/
 )
-*/
 
 // --- LEADERBOARDS -------------------------------------------------------------------
