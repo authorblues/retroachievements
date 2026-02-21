@@ -195,7 +195,7 @@ class ReqOperand
 			else if (match[10])
 				return new ReqOperand({ type: ReqType.RECALL, });
 		}
-		catch (e) { throw new LogicParseError('operand', def, e); }
+		catch (e) { console.error('operand', def, e); }
 	}
 
 	static sameValue(a, b)
@@ -302,7 +302,7 @@ class Requirement
 
 			if (match[5]) req.hits = +match[5];
 		}
-		catch (e) { throw new LogicParseError('requirement', def, e); }
+		catch (e) { console.error('requirement', def, e); }
 		return req;
 	}
 
@@ -348,7 +348,7 @@ class Logic
 			}
 			logic.mem = def;
 		}
-		catch (e) { throw new LogicParseError('logic', def, e); }
+		catch (e) { console.error('logic', def, e); }
 		return logic;
 	}
 

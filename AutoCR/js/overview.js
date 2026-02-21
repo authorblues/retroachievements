@@ -1547,7 +1547,7 @@ function HighlightedRichPresence({script, onLogicSelected = null})
 	}, []);
 
 	function addLookups(t)
-	{ return t.replaceAll(/(@([ _a-z][ _a-z0-9]*)\((.+?)\))/gi, '<span class="lookup">@<span class="link">$2</span>(<span class="value logic">$3</span>)</span>'); }
+	{ return t.replaceAll(/(@(\S*)\((.+?)\))/gi, '<span class="lookup">@<span class="link">$2</span>(<span class="value logic">$3</span>)</span>'); }
 
 	let display = false;
 	let rptext = script.split(/\r\n|(?!\r\n)[\n-\r\x85\u2028\u2029]/g).map(line => {
@@ -1558,7 +1558,7 @@ function HighlightedRichPresence({script, onLogicSelected = null})
 		if (line.startsWith('Display:')) display = true;
 		return line;
 	}).join('\n');
-	rptext = rptext.replaceAll(/((Lookup|Format|Display):([a-zA-Z0-9_ ]+))/g, '<span class="header" id="def-$3">$1</span>');
+	rptext = rptext.replaceAll(/((Lookup|Format|Display):(\S+))/g, '<span class="header" id="def-$3">$1</span>');
 
 	return (<div className="rich-presence clear">
 		<pre><code ref={ref} dangerouslySetInnerHTML={{__html: rptext}}></code></pre>
@@ -2269,6 +2269,26 @@ function LogicExplanation({ asset, groups, showDecimal = true }) {
 			</div>
 		);
 	}
+}
+
+let _testIndex = 0;
+function testAchievement(mem)
+{
+	_testIndex += 1;
+	let id = 9000000 + _testIndex;
+	current.set.achievements.set(id, 
+		Achievement.fromJSON({
+			ID: id,
+			Title: `Test Achievement #${_testIndex}`,
+			Description: `Test Achievement #${_testIndex}`,
+			Points: 0,
+			Author: "Test User",
+			Type: "",
+			Flags: 5,
+			MemAddr: mem,
+		})
+	);
+	update();
 }
 
 reset_loaded();
