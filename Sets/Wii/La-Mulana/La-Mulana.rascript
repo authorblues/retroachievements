@@ -34,7 +34,9 @@ class Region
 	addr_music_id = -1
 	addr_lamp_status = -1
 	addr_software_enabled = -1
+
 	addr_object_data = -1
+	id_fairy_init = -1
 
 	function inventory(x) => word_be((dword_be(this.addr_inventory_ptr) & 0x1fffffff) + x*2)
 	function weapon_used() => byte(this.addr_weapon_used) // values match enumerated ITEM_* (+1) values below
@@ -69,13 +71,12 @@ class Region
 	function software_enabled(x) => byte(this.addr_software_enabled + x - 85)
 
 	function object_ptr(x) => (dword_be(this.addr_object_data) & 0x1fffffff) + (x * 828)
-	function object_type(x) => dword_be(this.object_ptr(x) + 0x00)
-	function fairy_type(x) => dword_be(this.object_ptr(x) + 0x1C)
+	function is_fairy_type(x, t) => dword_be(this.object_ptr(x) + 0x00) == this.id_fairy_init && dword_be(this.object_ptr(x) + 0x1C) == t
 
 	function is_region() => ascii_string_equals(0x3180, this.diskname)
 	function in_game() => this.is_region() && prev(this.field_id()) != F_TITLE_SCREEN
 
-	function in_room(field, screen) => this.field_id() == field && this.screen_id() == screen
+	function in_room(field, screen) => this.field_id() == field && this.screen_id() == screen // && prev(this.field_id()) != F_TITLE_SCREEN
 	function start_boss_fight(x) => prev(this.boss_state(x)) < 2 && this.boss_state(x) == 2
 	function end_boss_fight(x) => prev(this.boss_state(x)) == 2 && this.boss_state(x) == 3
 }
@@ -99,7 +100,8 @@ REGIONS = [
 		addr_music_id=0x363ABC,
 		addr_lamp_status=0x37617A,
 		addr_software_enabled=0x376600,
-		addr_object_data=0x363E7C
+		addr_object_data=0x363E7C,
+		id_fairy_init=0x801725AC
 	),
 	Region(
 		regionname="EU",
@@ -119,7 +121,8 @@ REGIONS = [
 		addr_music_id=0x363ABC,
 		addr_lamp_status=0x37617A,
 		addr_software_enabled=0x376600,
-		addr_object_data=0x363E7C
+		addr_object_data=0x363E7C,
+		id_fairy_init=0x801725AC
 	),
 	Region(
 		regionname="JP",
@@ -139,7 +142,8 @@ REGIONS = [
 		addr_music_id=0x3AFAFC,
 		addr_lamp_status=0x3C237A,
 		addr_software_enabled=0x3C2800,
-		addr_object_data=0x3AFEEC
+		addr_object_data=0x3AFEEC,
+		id_fairy_init=0x8017D488
 	),
 ]
 
@@ -150,7 +154,6 @@ REGION_JP = REGIONS[2]
 // --- MAIN DATA -------------------------------------------------------------------
 
 MAX_OBJECTS = 256
-OBJ_FAIRY = 0x801725AC
 
 FAIRY_HEALING = 0x00
 FAIRY_WEAPON = 0x01
@@ -478,7 +481,7 @@ function item_achievement(item, field, screen, title, desc, points)
 		description=desc,
 		points=points,
 		trigger=any_of(REGIONS, r => (
-			r.is_region() && r.in_room(field, screen) &&
+			r.is_region() && r.in_room(field, screen) && prev(r.field_id()) != F_TITLE_SCREEN &&
 			// r.boss_shop_gamestate() == 0x41 && // <-- add this for shops
 			prev(r.inventory(item)) == 0 && r.inventory(item) > 0
 		))
@@ -530,7 +533,7 @@ boss_progression_achievement(BOSS_PALENQUE, F_EXTINCTION, 0x0901, "Ancient Machi
 // boss_progression_achievement(BOSS_TIAMAT, F_DIMENSIONAL, 0x0900, "Interstice of the Dimension", 25)
 boss_progression_achievement(BOSS_MOTHER, F_TRUE_SHRINE, 0x0300, "Good Night Mom", 25)
 
-one_finger_achievement(BOSS_AMPHISBAENA, F_GUIDANCE, 0x0801, "All I Need Is One Finger versus Amphibaena", 5)
+one_finger_achievement(BOSS_AMPHISBAENA, F_GUIDANCE, 0x0801, "All I Need Is One Finger versus Amphisbaena", 5)
 one_finger_achievement(BOSS_SAKIT, F_MAUSOLEUM, 0x0801, "All I Need Is One Finger versus Sakit", 5)
 one_finger_achievement(BOSS_ELLMAC, F_SUN_TEMPLE, 0x0800, "All I Need Is One Finger versus Ellmac", 10)
 one_finger_achievement(BOSS_BAHAMUT, F_SPRING, 0x0400, "All I Need Is One Finger versus Bahamut", 10)
@@ -777,11 +780,15 @@ achievement(
 		// low enough to get hit by a bullet (ensuring this isn't spikes damage)
 		r.ypos() > 72.0 &&
 		(
-			// without fairy clothes, pistol does 64 damage
-			(r.inventory(ITEM_FAIRY_CLOTHES) == 0 && r.health() - prev(r.health()) == 64) ||
-			// with fairy clothes, pistol does 30% less damage (44 damage)
-			(r.inventory(ITEM_FAIRY_CLOTHES) == 1 && r.health() - prev(r.health()) == 44)
-		) // TODO: check hard mode numbers
+			// without fairy clothes, not hard mode, pistol does 64 damage
+			(r.inventory(ITEM_FAIRY_CLOTHES) == 0 && !r.is_hard_mode() && prev(r.health()) - r.health() == 64) ||
+			// with fairy clothes, not hard mode, pistol does 30% less damage (44 damage)
+			(r.inventory(ITEM_FAIRY_CLOTHES) == 1 && !r.is_hard_mode() && prev(r.health()) - r.health() == 44) ||
+			// without fairy clothes, hard mode, pistol does 128 damage
+			(r.inventory(ITEM_FAIRY_CLOTHES) == 0 && r.is_hard_mode() && prev(r.health()) - r.health() == 128) ||
+			// with fairy clothes, hard mode, pistol does 30% less damage (89 damage)
+			(r.inventory(ITEM_FAIRY_CLOTHES) == 1 && r.is_hard_mode() && prev(r.health()) - r.health() == 89)
+		)
 	))
 )
 
@@ -876,9 +883,7 @@ achievement(
 			// checking that the number of coin chests opened has changed (sketchy)
 			REGION_US.coin_chest_count() != prev(REGION_US.coin_chest_count()) &&
 			// a luck fairy is loaded into any of the object slots
-			any_of(range(0, MAX_OBJECTS-1), i => (
-				REGION_US.object_type(i) == OBJ_FAIRY && REGION_US.fairy_type(i) == FAIRY_TREASURE
-			))
+			any_of(range(0, MAX_OBJECTS-1), i => REGION_US.is_fairy_type(i, FAIRY_TREASURE))
 		) ||
 		(
 			// checking region is JP
@@ -886,16 +891,14 @@ achievement(
 			// checking that the number of coin chests opened has changed (sketchy)
 			REGION_JP.coin_chest_count() != prev(REGION_JP.coin_chest_count()) &&
 			// a luck fairy is loaded into any of the object slots
-			any_of(range(0, MAX_OBJECTS-1), i => (
-				REGION_JP.object_type(i) == OBJ_FAIRY && REGION_JP.fairy_type(i) == FAIRY_TREASURE
-			))
+			any_of(range(0, MAX_OBJECTS-1), i => REGION_JP.is_fairy_type(i, FAIRY_TREASURE))
 		)	
 	)
 	/*
 	trigger=any_of(REGIONS, r => (
 		r.in_game() && r.coin_chest_count() == prev(r.coin_chest_count()) + 1 &&
 		any_of(range(0, MAX_OBJECTS-1), i => (
-			r.object_type(i) == OBJ_FAIRY && r.fairy_type(i) == FAIRY_TREASURE
+			r.is_fairy_type(i, FAIRY_TREASURE)
 		))
 	))
 	*/
