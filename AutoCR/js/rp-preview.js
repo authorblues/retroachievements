@@ -1,11 +1,3 @@
-// ─── Rich Presence Preview ────────────────────────────────────────────────────
-// Drop this file into the project and add one line to RichPresenceOverview:
-//
-//   <RichPresencePreview />
-//
-// Place it immediately above the existing <AssetFeedback ... /> line.
-// No other changes needed.
-
 function RichPresencePreview()
 {
 	// ── Placeholder labels for numeric / time macros ──────────────────────────
