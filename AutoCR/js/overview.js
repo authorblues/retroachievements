@@ -1620,6 +1620,7 @@ function RichPresenceOverview()
 		</div>
 
 		<AssetFeedback issues={feedback.issues} />
+		<RichPresencePreview />
 	</>);
 }
 
