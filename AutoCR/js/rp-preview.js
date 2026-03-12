@@ -1,3 +1,11 @@
+// ─── Rich Presence Preview ────────────────────────────────────────────────────
+// Drop this file into the project and add one line to RichPresenceOverview:
+//
+//   <RichPresencePreview />
+//
+// Place it immediately above the existing <AssetFeedback ... /> line.
+// No other changes needed.
+
 function RichPresencePreview()
 {
 	// ── Placeholder labels for numeric / time macros ──────────────────────────
@@ -88,19 +96,28 @@ function RichPresencePreview()
 	return (
 		<div className="rp-preview">
 			<h1>Preview</h1>
-			<ul className="rp-preview-list">
-				{lines.map((line, i) => (
-					<li key={i}><PreviewLine text={line} /></li>
-				))}
-				{staticLines.map((line, i) => (
-					<li key={'s' + i} className="rp-preview-static">
-						<PreviewLine text={line} />
-					</li>
-				))}
-			</ul>
-			{dynamicPool.length > 0 &&
+			{staticLines.length > 0 && (
+				<details className="rp-preview-static-panel">
+					<summary>
+						Static Lines <span className="rp-preview-count">({staticLines.length})</span>
+					</summary>
+					<ul className="rp-preview-list">
+						{staticLines.map((line, i) => (
+							<li key={i} className="rp-preview-static">
+								<PreviewLine text={line} />
+							</li>
+						))}
+					</ul>
+				</details>
+			)}
+			{dynamicPool.length > 0 && <>
+				<ul className="rp-preview-list">
+					{lines.map((line, i) => (
+						<li key={i}><PreviewLine text={line} /></li>
+					))}
+				</ul>
 				<button onClick={() => setLines(generateLines())}>&#x1F3B2; Reroll</button>
-			}
+			</>}
 		</div>
 	);
 }
