@@ -413,7 +413,7 @@ COUNTED_ITEMS = [
 	ITEM_SEAL_2_BIRTH,
 	ITEM_SEAL_3_LIFE,
 	ITEM_SEAL_4_DEATH,
-	ITEM_TREASURES,
+	// ITEM_TREASURES, // gets set back to 0 when trading for anchor
 	ITEM_DIARY,
 	ITEM_MULANA_TALISMAN,
 	// ITEM_SECRET_TREASURE_OF_LIFE,
@@ -432,7 +432,7 @@ MAX_COUNTED_ITEMS = length(COUNTED_ITEMS) - 3 + 8
 
 function win_the_game(r) => (
 	// mother has been defeated, we are escaping!
-	r.boss_state(BOSS_MOTHER) == 0x04 &&
+	r.boss_state(BOSS_MOTHER) == 0x03 &&
 	// we're in Mulbruk's room
 	r.in_room(F_SUN_TEMPLE, 0x0300) &&
 	// game is not paused (blocks Enga Musica)...
@@ -456,6 +456,7 @@ function one_finger_achievement(boss, field, screen, title, points)
 			trigger_when(r.end_boss_fight(boss)) &&
 			never(r.is_region() && !r.in_room(field, screen)) &&
 			never(r.is_region() && r.subweapon_used() >= 0x08 && r.subweapon_used() <= 0x0F)
+			// TODO: doesn't unprime with being kicked out of the palenque fight
 		))
 	)
 }
@@ -698,7 +699,7 @@ achievement(
 	points=5,
 	trigger=any_of(REGIONS, r => (
 		r.is_region() && 
-		__ornext(any_of([F_SHRINE_MOTHER, F_TRUE_SHRINE], x => r.screen_id() == x)) && 
+		__ornext(any_of([F_SHRINE_MOTHER, F_TRUE_SHRINE], x => r.field_id() == x)) && 
 		r.screen_id() == 0x0900 &&
 		prev(r.inventory(ITEM_SEAL_4_DEATH)) == 0 && r.inventory(ITEM_SEAL_4_DEATH) > 0
 	))
@@ -875,21 +876,18 @@ achievement(
 	// trigger=byte(0x3B0038 - ((dword_be(0x3180) & 0x15) / (dword_be(0x3180) & 0x15)) * 0x4C068) != 0xFF && (
 
 	// THIS IS THE CORE GROUP, COPY AND PASTE INTO THE EDITOR IF IT NEEDS UPDATING
-	// K:0xG00003180&21_K:{recall}/{recall}_K:{recall}*311400_K:3866680-{recall}_I:{recall}_0xH00000000!=255
+	// contains (check that game is loaded) + (check that the chest count has changed)
+	// K:0xG00003180&21_K:{recall}/{recall}_K:{recall}*311400_K:3866680-{recall}_I:{recall}_0xH00000000!=255_K:0xG00003180&21_K:{recall}/{recall}_K:{recall}*311808_K:3935743-{recall}_I:{recall}_0xH00000000!=d0xH00000000
 	trigger=(
 		(
 			// checking not-JP region to combine US/EU into one check
 			!REGION_JP.is_region() && 
-			// checking that the number of coin chests opened has changed (sketchy)
-			REGION_US.coin_chest_count() != prev(REGION_US.coin_chest_count()) &&
 			// a luck fairy is loaded into any of the object slots
 			any_of(range(0, MAX_OBJECTS-1), i => REGION_US.is_fairy_type(i, FAIRY_TREASURE))
 		) ||
 		(
 			// checking region is JP
 			REGION_JP.is_region() && 
-			// checking that the number of coin chests opened has changed (sketchy)
-			REGION_JP.coin_chest_count() != prev(REGION_JP.coin_chest_count()) &&
 			// a luck fairy is loaded into any of the object slots
 			any_of(range(0, MAX_OBJECTS-1), i => REGION_JP.is_fairy_type(i, FAIRY_TREASURE))
 		)	
