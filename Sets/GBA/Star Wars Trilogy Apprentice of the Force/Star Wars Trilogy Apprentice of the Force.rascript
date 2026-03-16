@@ -791,7 +791,14 @@ achievement(
 	title="\"Your Hate Has Made You Powerful\"",
 	description="Clear the third room of the secret Arena stage",
 	points=10,
-	trigger=in_game() && mission_id() == 0x18 && prev(room_id()) == 2 && room_id() == 0 
+	trigger=(
+		once(in_game() && mission_id() == 0x18 && prev(room_id()) == 1 && room_id() == 2) &&
+		prev(room_id()) == 2 && room_id() == 0 &&
+		never(!in_game()) &&
+		never(mission_id() != 0x18) &&
+		never(current_health() == 0) &&
+		never(arena_counter() == 0)
+	)
 )
 
 // --- LEADERBOARDS -------------------------------------------------------------------
