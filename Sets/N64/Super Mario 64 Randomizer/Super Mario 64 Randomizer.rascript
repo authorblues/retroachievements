@@ -532,7 +532,7 @@ function interacted_key() =>
     prev(ptr_to_last_interacted_obj()) != ptr_to_last_interacted_obj() &&
 
     // type is star (obj->oInteractType == INTERACT_STAR_OR_KEY)
-    prev(dword(vptr_to_addr(ptr_to_last_interacted_obj()) + 0x130)) == 0x00001000
+    dword(vptr_to_addr(ptr_to_last_interacted_obj()) + 0x130) == 0x00001000
 )
 
 // check for collecting any star (or key)
