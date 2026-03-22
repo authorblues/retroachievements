@@ -432,7 +432,7 @@ MAX_COUNTED_ITEMS = length(COUNTED_ITEMS) - 3 + 8
 
 function win_the_game(r) => (
 	// mother has been defeated, we are escaping!
-	r.boss_state(BOSS_MOTHER) == 0x03 &&
+	r.flag(898) == 1 &&
 	// we're in Mulbruk's room
 	r.in_room(F_SUN_TEMPLE, 0x0300) &&
 	// game is not paused (blocks Enga Musica)...
@@ -648,9 +648,11 @@ achievement(
 		// challenge starts when entering Echidna's chamber from the surface
 		once(r.is_region() && prev(r.in_room(F_SURFACE, 0x0402)) && r.in_room(F_INFERNO, 0x0901)) &&
 		// challenge is won when entering the door on the far side of Echidna's chamber
-		trigger_when(r.in_room(F_INFERNO, 0x0900) && prev(r.boss_shop_gamestate()) == 0x00 && r.boss_shop_gamestate() == 0x01) &&
+		trigger_when(prev(r.in_room(F_INFERNO, 0x0900)) && r.in_room(F_RUIN, 0x0801)) &&
+		// BACKUP: check bounding box (x <= 210.0, y <= 152.0)
+		// trigger_when(r.xpos() <= 210.0 && r.ypos() <= 152.0) &&
 		// leaving Echidna's chamber fails the challenge
-		never(r.is_region() && r.field_id() != F_INFERNO && r.room_id() != 0x09) &&
+		never(r.is_region() && prev(r.field_id()) != F_INFERNO && prev(r.room_id()) != 0x09 && r.field_id() != F_INFERNO && r.room_id() != 0x09) &&
 		// taking damage fails the challenge
 		never(r.is_region() && r.health() < prev(r.health()))
 	))
