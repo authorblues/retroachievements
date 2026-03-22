@@ -33,17 +33,21 @@ class Region
 	addr_save_data = -1
 	addr_temp_progress = -1
 	
+	function save_ptr() => ptr(this.addr_save_data)
 	function is_region() => ascii_string_equals(0x3180, this.diskname)
 
-	function in_level() => ascii_string_equals(this.addr_player_root, "Player") || ascii_string_equals(this.addr_player_root, "Submarine")
-	function in_shop() => ascii_string_equals(this.addr_player_root, "EnvPartsShop") // this seems to always be stored in the same spot
-	function in_stage_results() => ascii_string_equals(this.addr_player_root, "EnvDisp_StageResult")
+	function in_level() => ascii_string_equals(ptr(ptr(this.save_ptr() + 0x34) + 0x04) + 0x08, "Game")
+	// function in_level() => ascii_string_equals(this.addr_player_root, "Player") || ascii_string_equals(this.addr_player_root, "Submarine")
+	function in_shop() => ascii_string_equals(ptr(ptr(this.save_ptr() + 0x34) + 0x04) + 0x08, "Shop")
+	// function in_shop() => ascii_string_equals(this.addr_player_root, "EnvPartsShop") // this seems to always be stored in the same spot
+	function in_stage_results() => ascii_string_equals(ptr(ptr(this.save_ptr() + 0x34) + 0x04) + 0x08, "StageRes")
+	// function in_stage_results() => __ornext(any_of(range(-10, 10) , (i) => ascii_string_equals(this.addr_player_root + i*0x30 + 0x0c, "eRes")))
+	function in_music_room() => ascii_string_equals(ptr(ptr(this.save_ptr() + 0x34) + 0x04) + 0x08, "MusicRoo")
 
 	function is_file_loaded() => word_be(this.addr_file_loaded) == 0
 	function health() => float_be(ptr(this.addr_player_root + 0x28) + 0x1F4)
 	function stage_id() => dword_be(this.addr_stage_id)
 
-	function save_ptr() => ptr(this.addr_save_data)
 	function loaded_file() => dword_be(this.save_ptr() + 0x44)
 	function _file_offset(file) => this.save_ptr() + 712 * file
 	function total_gold(file) => dword_be(this._file_offset(file) + 0x90)
@@ -410,6 +414,10 @@ for region in REGIONS
 		rp_shopmap(region.stage_unlocked(region.loaded_file(), 31))
 	)
 
+	rich_presence_conditional_display(region.is_region() && region.in_music_room(),
+		region.flag + " Enjoying the Media Room 🎵"
+	)
+
 	rich_presence_conditional_display(region.is_region() && region.is_file_loaded(),
 		region.flag + " In Menus"
 	)
@@ -643,15 +651,15 @@ achievement(
 	title="A Real Film Buff",
 	description="Purchase and watch every movie",
 	points=5,
-	trigger=any_of(REGIONS, (region) => any_of(ALLFILES, (file) => (
+	trigger=any_of(REGIONS, (r) => any_of(ALLFILES, (file) => (
 		// check correct file
-		region.is_file_loaded() && region.loaded_file() == file &&
+		r.is_file_loaded() && r.loaded_file() == file && r.in_music_room() &&
 		// all of the movies are owned
-		all_of(ALL_MOVIES, (m) => region.movie_owned(file, m) == 1) &&
+		all_of(ALL_MOVIES, (m) => r.movie_owned(file, m) == 1) &&
 		// any of the movies are new (previous frame)
-		__ornext(any_of(ALL_MOVIES, (m) => prev(region.movie_new(file, m)) == 1)) &&
+		__ornext(any_of(ALL_MOVIES, (m) => prev(r.movie_new(file, m)) == 1)) &&
 		// all of the movies are not new
-		all_of(ALL_MOVIES, (m) => region.movie_new(file, m) == 0)
+		all_of(ALL_MOVIES, (m) => r.movie_new(file, m) == 0)
 	)))
 )
 
@@ -670,10 +678,10 @@ for data in TREASURE_THRESHOLDS
 		title=data["title"],
 		description=format("Collect {0}% of the treasure in the Shake Dimension", data["threshold"]),
 		points=data["points"],
-		trigger=any_of(REGIONS, (region) => any_of(ALLFILES, (file) => (
-			region.is_file_loaded() && region.loaded_file() == file &&
-			sum_of(ALL_TREASURES, (t) => prev(t.collected(region, file))) < n &&
-			sum_of(ALL_TREASURES, (t) => t.collected(region, file)) >= n
+		trigger=any_of(REGIONS, (r) => any_of(ALLFILES, (file) => (
+			r.is_file_loaded() && r.loaded_file() == file && r.in_stage_results() &&
+			sum_of(ALL_TREASURES, (t) => prev(t.collected(r, file))) < n &&
+			sum_of(ALL_TREASURES, (t) => t.collected(r, file)) >= n
 		)))
 	)
 }
@@ -682,11 +690,12 @@ achievement(
 	title="Wario Is the Treasure Master",
 	description="Collect all of the treasure in the Shake Dimension",
 	points=25,
-	trigger=any_of(REGIONS, (region) => any_of(ALLFILES, (file) => (
-		sum_of(ALL_TREASURES, (t) => prev(t.collected(region, file))) < length(ALL_TREASURES) &&
-		measured(sum_of(ALL_TREASURES, (t) => t.collected(region, file)) == length(ALL_TREASURES),
-			when=region.is_file_loaded() && region.loaded_file() == file,
-			format="percent")
+	trigger=any_of(REGIONS, (r) => any_of(ALLFILES, (file) => (
+		sum_of(ALL_TREASURES, (t) => prev(t.collected(r, file))) < length(ALL_TREASURES) &&
+		measured(sum_of(ALL_TREASURES, (t) => t.collected(r, file)) == length(ALL_TREASURES),
+			when=r.is_file_loaded() && r.loaded_file() == file,
+			format="percent") &&
+		unless(!r.in_stage_results())
 	)))
 )
 
@@ -706,10 +715,10 @@ for data in MISSION_THRESHOLDS
 		title=data["title"],
 		description=format("Complete {0}% of the extra missions in the Shake Dimension", data["threshold"]),
 		points=data["points"],
-		trigger=any_of(REGIONS, (region) => any_of(ALLFILES, (file) => (
-			region.is_file_loaded() && region.loaded_file() == file &&
-			sum_of(STAGES, (stage) => prev(stage.mission_count(region, file))) < n &&
-			sum_of(STAGES, (stage) => stage.mission_count(region, file)) >= n
+		trigger=any_of(REGIONS, (r) => any_of(ALLFILES, (file) => (
+			r.is_file_loaded() && r.loaded_file() == file && r.in_stage_results() &&
+			sum_of(STAGES, (stage) => prev(stage.mission_count(r, file))) < n &&
+			sum_of(STAGES, (stage) => stage.mission_count(r, file)) >= n
 		)))
 	)
 }
@@ -718,11 +727,12 @@ achievement(
 	title="Mission Accomplished!",
 	description="Complete all of the extra missions in the Shake Dimension",
 	points=25,
-	trigger=any_of(REGIONS, (region) => any_of(ALLFILES, (file) => (
-		sum_of(STAGES, (stage) => prev(stage.mission_count(region, file))) < TOTAL_MISSION_COUNT &&
-		measured(sum_of(STAGES, (stage) => stage.mission_count(region, file)) >= TOTAL_MISSION_COUNT,
-			when=region.is_file_loaded() && region.loaded_file() == file,
-			format="percent")
+	trigger=any_of(REGIONS, (r) => any_of(ALLFILES, (file) => (
+		sum_of(STAGES, (stage) => prev(stage.mission_count(r, file))) < TOTAL_MISSION_COUNT &&
+		measured(sum_of(STAGES, (stage) => stage.mission_count(r, file)) >= TOTAL_MISSION_COUNT,
+			when=r.is_file_loaded() && r.loaded_file() == file,
+			format="percent") &&
+		unless(!r.in_stage_results())
 	)))
 )
 
