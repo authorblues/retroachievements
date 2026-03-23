@@ -630,9 +630,9 @@ achievement(
 	description="Unlock the third floor of the Endless Corridor while treading the fool's path",
 	type="missable",
 	points=5,
-	trigger=any_of(REGIONS, r => (
+	trigger=any_of(REGIONS, (r) => (
 		once(r.is_region() && r.in_room(F_ENDLESS, 0x0303) && prev(r.flag(506)) == 0 && r.flag(506) == 1) &&
-		trigger_when(r.in_room(F_ENDLESS, 0x0303) && prev(r.flag(506)) == 1 && r.flag(506) == 2) &&
+		trigger_when(r.in_room(F_ENDLESS, 0x0303) && prev(r.flag(506)) < 2 && r.flag(506) == 2) &&
 		never(r.is_region() && r.field_id() != F_ENDLESS) && 
 		never(r.is_region() && r.room_id() != 0x03) &&
 		never(r.is_region() && r.flag(506) == 0) &&
