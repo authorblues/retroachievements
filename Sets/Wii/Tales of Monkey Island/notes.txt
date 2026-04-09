@@ -1,0 +1,303 @@
+========= CHAPTER 1 ============
+
+"Legal.lua": "Title Screen",
+"Prologue.lua": "The Rock of Gelato",
+"Beach.lua": "Beach",
+"Dock.lua": "Town",
+"FlotsamJungle": "Jungle",
+"VoodooLady.lua": "Hut",
+"Lab.lua": "de Singe's Lab",
+"Finale.lua": "aboard the Screaming Narwhal",
+
+"FlotsamJungleDay_1.lua", "Ancient Machine",
+"FlotsamJungleDay_6.lua", "Giant Door", // Vaycaylian Porte du Vent
+
+1090442128 = Prologue, crewmates in the hold
+Once we reached the Rock of Gelato, I whipped my crew into shape with a motivational pep-talk.
+
+1124441693 = Prologue, confronting LeChuck
+With a little bit of clever improvization, I defeated my nemesis LeChuck in a sword fight.
+
+1092385049 = Flotsam Jungle, wish to be the mightiest pirate ("FlotsamJungleDay_10.lua")
+I arrived at Flotsam Island, where I wished for good fortune at a wishing well in the jungle.
+
+1095931066 = Flotsam Jungle, get bombs ("FlotsamJungleDay_9.lua")
+---
+
+1117150249 = Dock, get ship
+1088954113 = Dock, after Nipperkin
+I stirred up some trouble on Flotsam Island by commandeering a ship, the Screaming Narwhal.
+
+1109301658 = Beach, thrown out of club
+1085871751 = Beach, after Nipperkin
+I started a fight at a local Flotsam Island bar, and they kicked me out.
+
+1091027022 = Flotsam Jungle, get Pink Pajama Pierre "porcelain" ("FlotsamJungleDay_7.lua")
+1113946948 = Flotsam Jungle, buried treasure ("FlotsamJungleDay_13.lua")
+1093916408 = Flotsam Jungle, after Nipperkin ("FlotsamJungleDay_13.lua")
+I helped a local pirate find genuine buried treasure, too!
+
+1112437587 = Beach, get lead on Deep Gut
+1074903646 = Flotsam Jungle, selling these fine leather jackets ("FlotsamJungleDay_8.lua")
+---
+
+1096216455 = Voodoo Lady, ask about her name
+I met with the Voodoo Lady. After all these years, I still don't know her name, so I asked her.
+
+1088609425 = Voodoo Lady, nor treblig, keeper of the crossroads
+In her hut, the Voodoo Lady keeps a shrine to the keeper of the crossroads.
+
+--- in the voodoo lady's hut, the Scene ID becomes 6 when Guybrush loses his voice from reading the bookshelf
+I investigated the Voodoo Lady's books and started to feel unwell. Maybe it's the weather.
+
+1102661354 = Lab, escape lab
+Back in town, I was captured by the sadistic Marquis de Singe, but I managed a daring escape!
+
+1116400517 = Flotsam Jungle, summon last wind god ("FlotsamJungleDay_4.lua")
+After finding a strange machine in the jungle, I summoned four wind gods and dispelled the death cloud.
+
+1106247680 = Dock, cast off to sea
+1099169792 = Finale, set course for Rock of Gelato
+Once aboard my new ship, we set off for the Rock of Gelato to rescue Elaine.
+
+1116864512 = Finale, ending
+1128824264 = Finale, credits
+But at the last moment, my plans were interrupted by an unpredictable pixie...
+
+
+
+========= CHAPTER 2 ============
+
+"Legal.lua": "Title Screen",
+"Prologue.lua": "aboard the Screaming Narwhal",
+"SpinnerIsland.lua": "Spinner Cay",
+"RoeIsland.lua": "Roe Island",
+"SpoonJungle": "Spoon Isle",
+"IsleOfEwe.lua": "Isle of Ewe",
+"BoulderBeachIsland.lua": "Boulder Beach",
+"BrilligIsland.lua": "Brillig Island",
+"Blockade.lua": "Blockade",
+"OpenSea.lua": "aboard the Screaming Narwhal",
+"ShipBattle.lua": "McGillicutty's Ship",
+"Finale": "aboard the Screaming Narwhal",
+
+1077500725 = Prologue, Morgan angry about being explained the mast several times
+1118189092 = Prologue, win sword fight (18 - 20)
+Fortunately, I managed to escape being captured by my biggest fan.
+
+1100288895 = Roe, a familiar song (trigger @ 8.2)
+On Roe Island, I found a singing manatee that sang a familiar song.
+
+1089523075 = Spoon, red herring ("SpoonJungleSunset_4.lua")
+--- bad bait, not a terribly interesting cutscene
+
+1094608486 = Spoon, embarrass Lechuck ("SpoonJungleSunset_11.lua")
+1101822689 = Spoon, help Lechuck solve puzzle ("Pearls Before Swine") ("SpoonJungleSunset_11.lua")
+On Spoon Isle, I helped LeChuck solve a puzzle. Now he knows what I go through.
+
+1109917696 = Brillig, find Seahorse and get parrot back
+I tricked a few mangy pirates on Brillig Island and managed to steal the summoning seahorse artifact.
+
+1111171026 = Spinner, check out 101 fish jokes
+At the Spinner Cay library, I checked out the funniest book!
+
+1108213760 = Spoon, gone fishing ("SpoonJungleSunset_4.lua")
+Back on Spoon Isle, I found a summoning fish artifact in an unlikely place.
+
+1123731051 = Spinner, rescue Elaine (trigger @ 20.0)
+McGillicutty began his siege of Spinner Cay, and I heroically swooped in to rescue Elaine.
+
+1114780236 = Spoon, Lechuck gets ass kicked ("Big Whooped") ("SpoonJungleSunset_7.lua")
+In the forests of Spoon Isle, LeChuck lost a fight to a group of pox-ridden pirates.
+
+1121541161 = ShipBattle, find McGillicutty and the Mer-Leader
+1115947008 = ShipBattle, sink McGillicutty's ship and save the Mer-Leader
+I rode out through the blockade and rescued the Mer-Leader from McGillicutty and his crew.
+
+1096233899 = Spinner, ask about the Secret of Monkey Island
+I asked the Mer-Leader what the secret of Monkey Island was. I figured they might know.
+
+1105599595 = Spinner, summon sea creatures
+1103189334 = Finale, final scene (done when scene timer == scene length) ("Oh the Huge Manatee")
+Back at sea, we set sail to find La Esponja Grande, but we encountered a bit of a detour...
+
+
+
+========= CHAPTER 3 ============
+
+0x122426a5 state 1 grubs
+0x12465d28 state 2 grubs
+0x1194d458 state 3 grubs
+0x12373128 state 4 grubs
+
+"Legal.lua": "Title Screen",
+"Prologue.lua": "Intro",
+"ManateeMouth.lua": "in the mouth of the manatee",
+"ManateeBelly.lua": "in the belly of the manatee",
+"OpenSea.lua": "aboard the Screaming Narwhal",
+"OceanFloor.lua": "walking on the ocean floor",
+"VoodooLady.lua": "in a trance",
+"Finale.lua": "aboard the Screaming Narwhal",
+
+1110035661 = Mouth, win newlywed game
+In the mouth of the manatee, Morgan and I pretended to be married to appease Coronada De Cava.
+
+1108006586 = Mouth, bring first throat grub to De Cava
+De Cava wanted to create a new cochlea, so I agreed to bring him throat grubs.
+
+1116547445 = Belly, rescue Murray
+I found an old friend hanging around in a treasure chest in the belly of the manatee.
+
+1112046726 = Belly, earn Noogie's vote
+[Guybrush Threepwood, Mighty Wingman]
+I helped a bongo-playing pirate get a date with Morgan LeFlay, and earned his vote.
+
+1111674061 = Belly, earn Santino/Murray's vote (and Moose's vote too)
+I convinced "Santino" to vote for me to join the brotherhood. Oh, and Moose too.
+
+1112932352 = Belly, earn Bugeye's vote
+After winning the face-off, I earned Bugeye's vote to join the brotherhood.
+
+1109196800 = Belly, initiated into DUBMI
+I know it sounds silly, but I became a member of the D.U.B.M.I. by a unanimous vote.
+
+1090173270 = Belly, leaving belly with the cochlea
+1094870630 = Mouth, placing cochlea
+1106069422 = Mouth, talking to De Cava about being back on course
+1118502422 = OpenSea, after escaping the manatee
+After replacing the cochlea, we escaped the manatee and found ourselves on the open sea again!
+
+1102782276 = VoodooLady, learning the language of the manatee
+Thanks to a book that the Voodoo Lady had, I learned to speak the language of the manatees.
+
+// 1092802571 = OpenSea, scare Noogie with Sister Agnes face
+
+1089887101 = OceanFloor, holding breath for 10 minutes
+After returning to the sea floor for a second time, I held my breath for ten minutes, just to prove I could.
+
+1097577157 = OceanFloor, escaping the manatee again, through the back door
+1109831975 = OceanFloor, help the manatee hook up
+1115234781 = OceanFloor, get esponja grande
+Once I managed to help the manatee find a mate, I finally got my hands on La Esponja Grande.
+
+1123432661 = Finale, end of chapter
+But once again, my plans were interrupted by Morgan LeFlay...
+
+1126577606 = Finale, credits
+1104233714 = Finale, post credits scene
+
+
+
+========= CHAPTER 4 ============
+
+"Legal.lua": "Title Screen",
+"Dock.lua": "Flotsam Island Dock",
+"Courtroom.lua": "Flotsam Island Courthouse",
+"Beach.lua": "Flotsam Island Beach",
+"Club.lua": "Club 41",
+"Lab.lua": "de Singe's Lab",
+"FlotsamJungle": "in the jungle",
+
+
+1104730783 = Beach, breaking out of jail
+Back on Flotsam Island, I did a little smooth talking and managed to break out of jail.
+
+1088883261 = ???, examine monkey song (id=144)
+[A Little Diddy]
+Heh, when I examine the monkey in my pockets, it reminds me of a funny little song.
+
+1118510551 = Courtroom, acquitted for Krebbs
+I defended myself in the case of Threepwood v. Krebbs and was acquitted of all charges.
+
+1116837512 = Courtroom, acquitted for D'Oro
+I defended myself in the case of Threepwood v. D'Oro and was acquitted of all charges.
+
+1117774152 = Courtroom, acquitted for Hemlock McGee
+I defended myself in the case of Threepwood v. McGee and was acquitted of all charges.
+
+1111545610 = Courtroom, acquitted for Hardtack
+I managed to get the case of Threepwood v. Hardtack thrown out.
+
+1117353422 = Club, give elaine summons
+I managed to serve Elaine with a summons to appear in court, which was no easy task!
+
+1090361754 = ???, first course (id=225)
+I served the first course in the "Feast for the Senses". What a SIGHT it was!
+
+1084943638 = ???, second course (id=187)
+The second course in the "Feast for the Senses" had quite a SMELL.
+
+1089533438 = Lab, auto-trepination helmet 1st button (numb)
+1099868895 = Lab, auto-trepination helmet 2nd button (tiny)
+1090723587 = Lab, auto-trepination helmet 3rd button (blind)
+1092959117 = Lab, auto-trepination helmet 4th button (spin)
+In one session, I experimented with all of the buttons on the auto-trepination helmet in De Singe's lab.
+
+1108531080 = Club, fugu jolokia challenge
+1078846292 = ???, third course (id=185)
+After the third course in the "Feast for the Senses", I won't be able to TASTE for a year!
+
+1107581429 = Jungle, unlock chest, trippy cards ("FlotsamJungleNight_13.lua")
+1085433446 = ???, fourth course (id=186)
+The fourth course in the "Feast for the Senses" awakened my SIXTH senses.
+
+1098592408 = Club, fifth course (id=285)
+The fifth course of the "Feast for the Senses" was just a TOUCH too shocking for my liking.
+
+1099840164 = Beach, talking about finding 6th course
+1130496000 = Jungle, finale ending ("FlotsamJungleNight_1.lua") (timer @ 215)
+We finished the ritual for La Esponja Grande, and I was dying to see what would happen next...
+
+
+
+========= CHAPTER 5 ============
+
+"Legal.lua": "Title Screen",
+"CrossroadsGateway.lua": "Crossroads Gateway",
+"CrossroadsCenter.lua": "Crossroads Center",
+"CrossroadsSwordfight.lua": "Crossroads Swordfight",
+"CrossroadsThievesDen.lua": "Crossroads Thieves' Den",
+"CrossroadsTreasureHunt.lua": "Crossroads Treasure Hunt",
+"OceanShip.lua": "aboard LeChuck's ship",
+"OceanRaft.lua": "on a raft at sea",
+"OceanFloor.lua": "walking on the ocean floor",
+"Club.lua": "at Club 41",
+"Jail.lua": "in the Flotsam Island jail",
+"JungleClearing.lua": "in the jungles of Flotsam Island",
+"Finale.lua": "aboard LeChuck's ship",
+"Epilogue.lua": "in the Epilogue",
+
+1103474196 = Gateway, two coins leaving for the center
+At the gateway, I paid the ferryman to take me to the center of the crossroads.
+
+1095279575 = Gateway, pick up franklin
+I found a novel way to get around leash laws. Good boy!
+
+1113587712 = Swordfight, help Morgan find her confidence, become guardian
+I met Morgan at the crossroads and I helped her get her confidence back.
+
+1102226391 = Treasure Hunt, get LeChuck's scroll
+I finally managed to get my hands on LeChuck's scroll, explaining how to get back to the physical realm.
+
+1119289344 = Center, complete spell to open the crossroads
+With the spell prepared, I finally opened a pathway out of the crossroads.
+
+1104756081 = Club, banang dance party with monkey
+I took a break to enjoy some dancing back in Club 41. Eight glasses of banang went straight to my head.
+
+1103170063 = Club, re-possess my own body for the first time (temporary)
+I used voodoo magic to temporarily re-possess my old body. What a weird feeling!
+
+1104233270 = Jail, re-possess body permanently (spirit gum)
+Thanks to the Voodoo Lady's advice, I re-possessed my body permanently. Does that make me a zombie?
+
+1075755090 = Center, end of taste of senses
+I completed the Diet of the Senses and managed to shrink La Esponja Grande down to a more manageable size.
+
+1107727224 = Finale, end (id=1112)
+[Sponged and Expunged] [The Pox Exsponjed]
+With help from Laneypoo, we managed to finally save the Gulf of Melange from the ravages of the Pox of LeChuck.
+
+1112117880 = Epilogue, post-credits voodoo lady cutscene
+[The Tides of Destiny]
+In the end, it seems that the Voodoo Lady was even able to help Morgan.
