@@ -475,9 +475,9 @@ function LogicGroup({group, gi, logic, issues, showAliases, collapseAddAddress})
 
 			// Calculate context for the NEXT row, even if this one is hidden
 			if (isAddAddress) {
-				// If starting a chain with 8-bit/16-bit, assume Array Indexing (Index + Base).
+				// If starting a chain with an address that lacks a code note, assume Array Indexing (Index + Base).
 				// Do not add the Index to the chain context, so the Base (next line) resolves as a direct address.
-				const isArrayIndexing = chain_context.length === 0 && req.lhs.type.addr && req.lhs.size && req.lhs.size.bytes < 3;
+				const isArrayIndexing = chain_context.length === 0 && (!req.lhs.type.addr || !ConditionFormatter.getEffectiveNote(current.notes, req.lhs.value));
 
 				if (!isArrayIndexing) {
 					if (chain_context.length === 0 && req.lhs.type.addr) {
@@ -493,7 +493,7 @@ function LogicGroup({group, gi, logic, issues, showAliases, collapseAddAddress})
 				chain_context = [];
 			}
 
-			// FIX: If collapsed, do not render the row at all.
+			// If collapsed, do not render the row at all.
 			// This ensures CSS nth-child striping works correctly on visible rows.
 			if (collapseAddAddress && isAddAddress) return null;
 			
@@ -769,31 +769,34 @@ function CollapsibleExplainer({ title = "Logic Analysis", children })
 		display: 'flex',
 		alignItems: 'center',
 		userSelect: 'none',
-		borderRadius: '5px 5px 0 0',
-		fontWeight: 'bold'
+		borderRadius: isOpen ? '5px 5px 0 0' : '5px',
+		fontWeight: 'bold',
+		transition: 'border-radius 0.3s ease'
 	};
-	
-	// Slight rounding difference if closed vs open
-	if (!isOpen) {
-		headerStyle.borderRadius = '5px';
-	}
 
 	return (
 		<div style={{ marginBottom: '20px' }}>
 			<div onClick={toggle} style={headerStyle}>
-				<span style={{ marginRight: '10px' }}>{isOpen ? '▼' : '▶'}</span>
+				<span style={{ 
+					marginRight: '10px', 
+					display: 'inline-block',
+					transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+					transition: 'transform 0.3s ease'
+				}}>▶</span>
 				{title}
 			</div>
-			{isOpen && (
-				<div className="explanation-container" style={{ 
-					border: '1px solid #ccc', 
-					borderTop: 'none', 
-					borderRadius: '0 0 5px 5px',
-					margin: 0 // Override existing margin in CSS for explanation-container
-				}}>
-					{children}
+			<div className={`explainer-anim-wrapper ${isOpen ? 'open' : ''}`}>
+				<div className="explainer-anim-inner">
+					<div className="explanation-container" style={{ 
+						border: '1px solid #ccc', 
+						borderTop: 'none', 
+						borderRadius: '0 0 5px 5px',
+						margin: 0 // Override existing margin in CSS for explanation-container
+					}}>
+						{children}
+					</div>
 				</div>
-			)}
+			</div>
 		</div>
 	);
 }
@@ -1509,22 +1512,8 @@ function CodeNotesOverview()
 	</>);
 }
 
-/*
-function HighlightedRichPresence({script})
-{
-	let refs = {};
-	function addLookups(text)
-	{ 
-		let parts = text.split(/(@[ _a-z][ _a-z0-9]*\(.+?\))/gi);
-		for (let i = 1; i < parts.length; i += 2)
-		{
-			let m = parts[i].split(/@([ _a-z][ _a-z0-9]*)\((.+?)\)/i);
-			parts[i] = <span className="lookup">@<span class="link">{m[1]}</span>(<span className="value logic">{m[2]}</span>)</span>;
-		}
-		return parts;
-	}
-}
-*/
+// --- RICH PRESENCE SIMULATOR & UI ---
+
 function HighlightedRichPresence({script, onLogicSelected = null})
 {
 	if (!script) return null;
@@ -1565,15 +1554,403 @@ function HighlightedRichPresence({script, onLogicSelected = null})
 	</div>);
 }
 
-function RichPresenceOverview()
-{
+function formatRPSimulationValue(value, format, parameter, scoreVal) {
+	let displayValue = value;
+	
+	if (parameter) {
+		let maxVal = 0xFFFFFFFF;
+		if (parameter.includes("8-bit") || parameter.includes("Bit") || parameter.includes("4")) maxVal = 0xFF;
+		else if (parameter.includes("16-bit")) maxVal = 0xFFFF;
+		else if (parameter.includes("24-bit")) maxVal = 0xFFFFFF;
+		displayValue = value % (maxVal + 1);
+	}
+
+	switch (format.toUpperCase()) {
+		case "SCORE": return String(scoreVal).padStart(6, '0');
+		case "FRAMES": return `${Math.floor(displayValue / 3600)}:${String(Math.floor((displayValue / 60) % 60)).padStart(2, '0')}.${String(Math.floor((displayValue * 100) / 60) % 100).padStart(2, '0')}`;
+		case "MILLISECS": return `${Math.floor(displayValue / 6000)}:${String(Math.floor((displayValue / 100) % 60)).padStart(2, '0')}.${String(displayValue % 100).padStart(2, '0')}`;
+		case "SECS": return `${Math.floor(displayValue / 60)}:${String(displayValue % 60).padStart(2, '0')}`;
+		case "MINUTES": return `${Math.floor(displayValue / 60)}h${String(displayValue % 60).padStart(2, '0')}`;
+		case "SECS_AS_MINS": return `${Math.floor(displayValue / 3600)}h${String(Math.floor((displayValue / 60) % 60)).padStart(2, '0')}:${String(displayValue % 60).padStart(2, '0')}`;
+		case "UNSIGNED": return String(displayValue >>> 0);
+		case "TENS": return String(displayValue * 10);
+		case "HUNDREDS": return String(displayValue * 100);
+		case "THOUSANDS": return String(displayValue * 1000);
+		case "FIXED1": return (displayValue / 10.0).toFixed(1);
+		case "FIXED2": return (displayValue / 100.0).toFixed(2);
+		case "FIXED3": return (displayValue / 1000.0).toFixed(3);
+		case "FLOAT1": return (Math.random() * 1000).toFixed(1);
+		case "FLOAT2": return (Math.random() * 1000).toFixed(2);
+		case "FLOAT3": return (Math.random() * 1000).toFixed(3);
+		case "ASCIICHAR": return displayValue >= 0x20 && displayValue <= 0x7E ? String.fromCharCode(displayValue) : "?";
+		case "UNICODECHAR": return displayValue >= 0x20 ? String.fromCharCode(displayValue) : "?";
+		case "VALUE":
+		default: return String(displayValue);
+	}
+}
+
+function getFormattedPreview(ds, script) {
+	let sb = "";
+	const builtInMacros = {
+		'Number': 'VALUE', 'Unsigned': 'UNSIGNED', 'Score': 'SCORE', 'Centiseconds': 'MILLISECS',
+		'Seconds': 'SECS', 'Minutes': 'MINUTES', 'Fixed1': 'FIXED1', 'Fixed2': 'FIXED2', 'Fixed3': 'FIXED3',
+		'Float1': 'FLOAT1', 'Float2': 'FLOAT2', 'Float3': 'FLOAT3', 'ASCIIChar': 'ASCIICHAR', 'UnicodeChar': 'UNICODECHAR'
+	};
+
+	for (let part of ds.parts) {
+		if (part.isMacro) {
+			let lookup = script.scriptLookups.find(l => l.name.toLowerCase() === part.text.toLowerCase());
+			if (lookup) {
+				if (lookup.entries.length > 0) sb += lookup.defaultVal || "";
+				else sb += formatRPSimulationValue(0, lookup.format, part.parameter, 0);
+			} else if (builtInMacros[part.text]) {
+				sb += formatRPSimulationValue(0, builtInMacros[part.text], part.parameter, 0);
+			} else {
+				sb += `{${part.text}}`;
+			}
+		} else {
+			sb += part.text;
+		}
+	}
+	sb = sb.replace(/\s+/g, ' ').trim();
+	return (ds.isDefault ? "[Default] " : "") + sb;
+}
+
+function RARPLivePreview({ script, displayString }) {
+	const [tick, setTick] = React.useState(0);
+	const [score, setScore] = React.useState(() => Math.floor(Math.random() * 10000));
+	const lookupCache = React.useRef({});
+
+	React.useEffect(() => {
+		const timer = setInterval(() => {
+			setTick(t => t + 1);
+			setScore(s => Math.max(0, s + Math.floor(Math.random() * 101) - 50));
+		}, 1000);
+		return () => clearInterval(timer);
+	}, [displayString]);
+
+	if (!displayString) return <div className="rarp-live-preview" style={{color: '#666'}}>No string selected</div>;
+
+	let previewText = "";
+	const builtInMacros = {
+		'Number': 'VALUE', 'Unsigned': 'UNSIGNED', 'Score': 'SCORE', 'Centiseconds': 'MILLISECS',
+		'Seconds': 'SECS', 'Minutes': 'MINUTES', 'Fixed1': 'FIXED1', 'Fixed2': 'FIXED2', 'Fixed3': 'FIXED3',
+		'Float1': 'FLOAT1', 'Float2': 'FLOAT2', 'Float3': 'FLOAT3', 'ASCIIChar': 'ASCIICHAR', 'UnicodeChar': 'UNICODECHAR'
+	};
+
+	for (let part of displayString.parts) {
+		if (!part.isMacro) { previewText += part.text; continue; }
+
+		let lookup = script.scriptLookups.find(l => l.name.toLowerCase() === part.text.toLowerCase());
+		if (lookup) {
+			if (lookup.entries.length > 0) {
+				if (!lookupCache.current[lookup.name] || tick % 3 === 0) {
+					let randomEntry = lookup.entries[Math.floor(Math.random() * lookup.entries.length)];
+					lookupCache.current[lookup.name] = randomEntry ? randomEntry.value : (lookup.defaultVal || "");
+				}
+				previewText += lookupCache.current[lookup.name];
+			} else {
+				previewText += formatRPSimulationValue(tick, lookup.format, part.parameter, score);
+			}
+		} else if (builtInMacros[part.text]) {
+			previewText += formatRPSimulationValue(tick, builtInMacros[part.text], part.parameter, score);
+		} else {
+			previewText += `{${part.text}}`;
+		}
+	}
+
+	return <div className="rarp-live-preview"> {previewText}</div>;
+}
+
+function RARPTreeView({ script, selectedItem, setSelectedItem, dsSeverities, lookupSeverities, formatterSeverities, sidebarWidth }) {
+	const [expanded, setExpanded] = React.useState({ lookups: true, formatters: true, display: true });
+	const toggle = (cat) => setExpanded(prev => ({ ...prev, [cat]: !prev[cat] }));
+
+	const formatters = script.scriptLookups.filter(l => l.entries.length === 0 && l.defaultVal === null);
+	const lookups = script.scriptLookups.filter(l => l.entries.length > 0 || l.defaultVal !== null);
+
+	const getIcon = (severity) => {
+		if (severity >= 3) return '❌';
+		if (severity === 2) return '⚠️';
+		if (severity === 1) return 'ℹ️';
+		return '✔️';
+	};
+
+	const arrowStyle = (isOpen) => ({
+		width: '20px', 
+		display: 'inline-block', 
+		textAlign: 'center', 
+		fontSize: '10px',
+		transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+		transition: 'transform 0.3s ease'
+	});
+
+	return (
+		<div className="rarp-sidebar" style={{ flexBasis: sidebarWidth }}>
+			<div className="rarp-tree-group" onClick={() => toggle('lookups')}>
+				<span style={arrowStyle(expanded.lookups)}>▶</span> Lookups
+			</div>
+			<div className={`explainer-anim-wrapper ${expanded.lookups ? 'open' : ''}`}>
+				<div className="explainer-anim-inner">
+					{lookups.map((l, i) => {
+						let sev = lookupSeverities[i] || 0;
+						let icon = getIcon(sev);
+						return (
+							<div key={`l-${i}`} className={`rarp-tree-node ${i % 2 === 0 ? 'striped' : ''} ${selectedItem.type === 'lookup' && selectedItem.index === i ? 'selected' : ''}`} onClick={() => setSelectedItem({type: 'lookup', index: i, macro: 'Condition'})} title={l.name}>
+								<span style={{flexShrink: 0}}>{icon}</span> 
+								<span style={{overflow: 'hidden', textOverflow: 'ellipsis'}}>{l.name}</span>
+							</div>
+						);
+					})}
+				</div>
+			</div>
+
+			<div className="rarp-tree-group" onClick={() => toggle('formatters')}>
+				<span style={arrowStyle(expanded.formatters)}>▶</span> Formatters
+			</div>
+			<div className={`explainer-anim-wrapper ${expanded.formatters ? 'open' : ''}`}>
+				<div className="explainer-anim-inner">
+					{formatters.map((f, i) => {
+						let sev = formatterSeverities[i] || 0;
+						let icon = getIcon(sev);
+						return (
+							<div key={`f-${i}`} className={`rarp-tree-node ${i % 2 === 0 ? 'striped' : ''} ${selectedItem.type === 'formatter' && selectedItem.index === i ? 'selected' : ''}`} onClick={() => setSelectedItem({type: 'formatter', index: i, macro: 'Condition'})} title={f.name}>
+								<span style={{flexShrink: 0}}>{icon}</span> 
+								<span style={{overflow: 'hidden', textOverflow: 'ellipsis'}}>{f.name}</span>
+							</div>
+						);
+					})}
+				</div>
+			</div>
+
+			<div className="rarp-tree-group" onClick={() => toggle('display')}>
+				<span style={arrowStyle(expanded.display)}>▶</span> Display Logic
+			</div>
+			<div className={`explainer-anim-wrapper ${expanded.display ? 'open' : ''}`}>
+				<div className="explainer-anim-inner">
+					{script.displayStrings.map((ds, i) => {
+						let displayTitle = getFormattedPreview(ds, script);
+						let sev = dsSeverities[i] || 0;
+						let icon = getIcon(sev);
+						if (ds.isDefault && sev === 0) icon = '⭐';
+
+						return (
+							<div key={`d-${i}`} className={`rarp-tree-node ${i % 2 === 0 ? 'striped' : ''} ${selectedItem.type === 'display' && selectedItem.index === i ? 'selected' : ''}`} onClick={() => setSelectedItem({type: 'display', index: i, macro: 'Condition'})} title={displayTitle}>
+								<span style={{flexShrink: 0}}>{icon}</span> 
+								<span style={{overflow: 'hidden', textOverflow: 'ellipsis'}}>{displayTitle}</span>
+							</div>
+						);
+					})}
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function RARPDisplayEditor({ ds, isHex, toggleHex, selectedItem, setSelectedItem }) {
+	const selectedLogic = selectedItem.macro || "Condition";
+	const macros = ds.parts.filter(p => p.isMacro);
+	const macroNames = [...new Set(macros.map(m => m.text))];
+
+	// Resizer state for the top row panels
+	const [templateWidth, setTemplateWidth] = React.useState(55); // percentage
+	const [isDragging, setIsDragging] = React.useState(false);
+
+	React.useEffect(() => {
+		const handleMouseMove = (e) => {
+			if (!isDragging) return;
+			// Estimate percentage based on window width minus sidebar
+			const containerWidth = document.querySelector('.rarp-top-row').offsetWidth;
+			const containerLeft = document.querySelector('.rarp-top-row').getBoundingClientRect().left;
+			let newPct = ((e.clientX - containerLeft) / containerWidth) * 100;
+			if (newPct < 20) newPct = 20;
+			if (newPct > 80) newPct = 80;
+			setTemplateWidth(newPct);
+		};
+
+		const handleMouseUp = () => {
+			if (isDragging) setIsDragging(false);
+		};
+
+		if (isDragging) {
+			document.addEventListener('mousemove', handleMouseMove);
+			document.addEventListener('mouseup', handleMouseUp);
+			document.body.style.cursor = 'col-resize';
+		} else {
+			document.body.style.cursor = 'default';
+		}
+
+		return () => {
+			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('mouseup', handleMouseUp);
+		};
+	}, [isDragging]);
+
+	const handleLogicChange = (e) => {
+		setSelectedItem({ ...selectedItem, macro: e.target.value });
+	};
+
+	let tableContent = null;
+
+	if (selectedLogic === "Condition") {
+		tableContent = ds.condition ? (
+			<div className="data-table">
+				<LogicTable logic={ds.condition} isHex={isHex} toggleHex={toggleHex} />
+			</div>
+		) : <div style={{padding: '15px', color: '#888', fontStyle: 'italic'}}>No condition defined (Default String).</div>;
+	} else {
+		const targetMacro = macros.find(m => m.text === selectedLogic);
+		if (targetMacro) {
+			let macroLogic;
+			try { macroLogic = Logic.fromString(targetMacro.parameter, true); } catch(e) {}
+
+			tableContent = (
+				<div>
+					{macroLogic ? <div className="data-table"><LogicTable logic={macroLogic} isHex={isHex} toggleHex={toggleHex} /></div> : <div style={{padding: '15px', color: 'red'}}>Invalid logic</div>}
+				</div>
+			);
+		}
+	}
+
+	const rawTemplate = ds.parts.map(p => p.isMacro ? `{${p.text}}` : p.text).join('');
+
+	return (
+		<div className="rarp-main" id={ds.toRefString()}>
+			<div className="rarp-top-row flex-panel-container">
+				<div className="rarp-panel" style={{flexBasis: `${templateWidth}%`, flexGrow: 0, flexShrink: 0}}>
+					<div className="rarp-panel-header">Display String Template</div>
+					<div className="rarp-panel-content">
+						<p className="rarp-template-text">{rawTemplate}</p>
+					</div>
+				</div>
+				
+				{/* Horizontal Splitter */}
+				<div 
+					className={`resizer-x ${isDragging ? 'active' : ''}`} 
+					onMouseDown={(e) => { e.preventDefault(); setIsDragging(true); }}
+				></div>
+
+				<div className="rarp-panel" style={{flexBasis: `calc(${100 - templateWidth}% - 5px)`, flexGrow: 0, flexShrink: 0}}>
+					<div className="rarp-panel-header">Live Preview Panel</div>
+					<div className="rarp-panel-content" style={{ backgroundColor: '#202225', padding: 0 }}>
+						<RARPLivePreview script={current.rp} displayString={ds} />
+					</div>
+				</div>
+			</div>
+			
+			<div className="rarp-panel" style={{ flex: '2' }}>
+				<div className="rarp-panel-header">Logic Explorer</div>
+				<div className="rarp-logic-toolbar">
+					<select className="rarp-logic-select" value={selectedLogic} onChange={handleLogicChange}>
+						<option value="Condition">Condition</option>
+						{macroNames.map(m => <option key={m} value={m}>{m}</option>)}
+					</select>
+				</div>
+				<div className="rarp-panel-content" style={{padding: 0}}>
+					{tableContent}
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function RARPDetailView({ script, selectedItem, setSelectedItem, isHex, toggleHex }) {
+	if (selectedItem.type === 'display') {
+		const ds = script.displayStrings[selectedItem.index];
+		if (!ds) return null;
+		return <RARPDisplayEditor ds={ds} isHex={isHex} toggleHex={toggleHex} selectedItem={selectedItem} setSelectedItem={setSelectedItem} />;
+	}
+
+	const formatters = script.scriptLookups.filter(l => l.entries.length === 0 && l.defaultVal === null);
+	const lookups = script.scriptLookups.filter(l => l.entries.length > 0 || l.defaultVal !== null);
+
+	const item = selectedItem.type === 'lookup' ? lookups[selectedItem.index] : formatters[selectedItem.index];
+	if (!item) return null;
+
+	return (
+		<div className="rarp-main" id={item.toRefString()}>
+			<div className="rarp-panel">
+				<div className="rarp-panel-header">{selectedItem.type === 'lookup' ? 'Lookup Dictionary' : 'Formatter Definition'}</div>
+				<div className="rarp-panel-content">
+					<h2 style={{marginTop: 0}}>{item.name}</h2>
+					<p style={{color: '#888'}}>Format Type: <strong>{item.format}</strong></p>
+					
+					{selectedItem.type === 'lookup' && (
+						<div className="data-table" style={{marginTop: '20px'}}>
+							<table>
+								<thead>
+									<tr className="col-hdr header">
+										<td>Key (Hex)</td>
+										<td>Key (Dec)</td>
+										<td>Value</td>
+									</tr>
+								</thead>
+								<tbody>
+									{item.entries.sort((a,b) => a.keyValue - b.keyValue).map((e, i) => (
+										<tr key={i}>
+											<td>0x{e.keyValue.toString(16).toUpperCase()} {e.keyValueEnd && e.keyValueEnd !== e.keyValue ? `- 0x${e.keyValueEnd.toString(16).toUpperCase()}` : ''}</td>
+											<td>{e.keyValue} {e.keyValueEnd && e.keyValueEnd !== e.keyValue ? `- ${e.keyValueEnd}` : ''}</td>
+											<td>{e.value}</td>
+										</tr>
+									))}
+									{item.defaultVal !== null && (
+										<tr>
+											<td colSpan="2" style={{color: '#999'}}>* (Default/Fallback)</td>
+											<td style={{color: '#999'}}>{item.defaultVal}</td>
+										</tr>
+									)}
+								</tbody>
+							</table>
+						</div>
+					)}
+				</div>
+			</div>
+		</div>
+	);
+}
+
+// Extract text from React detail elements to map null-target issues
+function extractReactText(node) {
+	if (!node) return '';
+	if (typeof node === 'string') return node;
+	if (Array.isArray(node)) return node.map(extractReactText).join('');
+	if (node.props && node.props.children) return extractReactText(node.props.children);
+	return '';
+}
+
+function RPAssetFeedback({ issues, onIssueClick }) {
+	if (!issues || issues.length === 0 || !issues.some(g => g.length > 0)) return null;
+	return (<div className="feedback">
+		<h1>Feedback</h1>
+		{issues.map((group, i) => {
+			if (!group || group.length === 0) return null;
+			return (<React.Fragment key={i}>
+				<h2>{group.label}</h2>
+				<ul>{group.map((issue, j) => (
+					<li key={j}>
+						{issue.target ? <sup>(<a href="#" onClick={(e) => { e.preventDefault(); onIssueClick(issue); }}>#{j+1}</a>)</sup> : null}
+						{' '}{issue.type.desc}
+						{issue.type.ref.map((r, k) => <React.Fragment key={k}><sup key={r}>[<a href={r} target="_blank">ref</a>]</sup></React.Fragment>)}
+						{issue.detail}
+					</li>
+				))}</ul>
+			</React.Fragment>);
+		})}
+	</div>);
+}
+
+function RichPresenceOverview() {
 	const feedback = current.rp.feedback;
-	const feedback_targets = new Set([].concat(...feedback.issues).map(x => x.target));
-	const stats = feedback.stats;
-
-	const logictbl = React.useRef();
-	const [logicData, setLogicData] = React.useState(null);
-
+	const script = current.rp;
+	
+	const [viewMode, setViewMode] = React.useState(() => localStorage.getItem('pref-rpViewMode') || 'rarp');
+	const [selectedItem, setSelectedItem] = React.useState({ type: 'display', index: 0, macro: 'Condition' });
+	const [logicData, setLogicData] = React.useState(null); 
+	
+	// Splitter State for RP UI Sidebar
+	const [sidebarWidth, setSidebarWidth] = React.useState(350);
+	const [isDraggingSidebar, setIsDraggingSidebar] = React.useState(false);
+	
 	const [isHex, setIsHex] = React.useState(() => localStorage.getItem('pref-isHex') === 'true');
 	const toggleHex = () => {
 		const newVal = !isHex;
@@ -1581,45 +1958,180 @@ function RichPresenceOverview()
 		localStorage.setItem('pref-isHex', newVal);
 	};
 
-	// if the logic table is updated with data, scroll it into view
+	const toggleViewMode = () => {
+		const newMode = viewMode === 'rarp' ? 'raw' : 'rarp';
+		setViewMode(newMode);
+		localStorage.setItem('pref-rpViewMode', newMode);
+	};
+
+	// Global mouse events for RP sidebar splitter
 	React.useEffect(() => {
-		if (logicData != null)
-			logictbl.current.scrollIntoView({behavior: 'smooth', block: 'nearest'});
-	}, [logicData]);
+		const handleMouseMove = (e) => {
+			if (!isDraggingSidebar) return;
+			const rarpLayout = document.querySelector('.rarp-layout');
+			if (!rarpLayout) return;
+			const containerLeft = rarpLayout.getBoundingClientRect().left;
+			let newWidth = e.clientX - containerLeft;
+			if (newWidth < 150) newWidth = 150;
+			if (newWidth > window.innerWidth * 0.5) newWidth = window.innerWidth * 0.5;
+			setSidebarWidth(newWidth);
+		};
+
+		const handleMouseUp = () => {
+			if (isDraggingSidebar) setIsDraggingSidebar(false);
+		};
+
+		if (isDraggingSidebar) {
+			document.addEventListener('mousemove', handleMouseMove);
+			document.addEventListener('mouseup', handleMouseUp);
+			document.body.style.cursor = 'col-resize';
+		} else {
+			document.body.style.cursor = 'default';
+		}
+
+		return () => {
+			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('mouseup', handleMouseUp);
+		};
+	}, [isDraggingSidebar]);
+
+	const reqToNav = React.useMemo(() => {
+		const map = {};
+		script.displayStrings.forEach((ds, dsIndex) => {
+			map[ds.toRefString()] = { type: 'display', index: dsIndex, macro: 'Condition' };
+			if (ds.condition) {
+				ds.condition.groups.forEach(g => g.forEach(req => {
+					map[req.toRefString()] = { type: 'display', index: dsIndex, macro: 'Condition' };
+				}));
+			}
+			ds.parts.forEach(p => {
+				if (p.isMacro && p.logic) {
+					p.logic.groups.forEach(g => g.forEach(req => {
+						map[req.toRefString()] = { type: 'display', index: dsIndex, macro: p.text };
+					}));
+				}
+			});
+		});
+		script.scriptLookups.forEach((l) => {
+			const isFormatter = l.entries.length === 0 && l.defaultVal === null;
+			const type = isFormatter ? 'formatter' : 'lookup';
+			
+			const formatters = script.scriptLookups.filter(x => x.entries.length === 0 && x.defaultVal === null);
+			const lookups = script.scriptLookups.filter(x => x.entries.length > 0 || x.defaultVal !== null);
+			
+			const typeIndex = isFormatter ? formatters.indexOf(l) : lookups.indexOf(l);
+			map[l.toRefString()] = { type: type, index: typeIndex, macro: 'Condition' };
+		});
+		return map;
+	}, [script]);
+
+	const { dsSeverities, lookupSeverities, formatterSeverities } = React.useMemo(() => {
+		const dsSev = script.displayStrings.map(() => 0);
+		const formatters = script.scriptLookups.filter(x => x.entries.length === 0 && x.defaultVal === null);
+		const lookups = script.scriptLookups.filter(x => x.entries.length > 0 || x.defaultVal !== null);
+		const lSev = lookups.map(() => 0);
+		const fSev = formatters.map(() => 0);
+		
+		if (feedback && feedback.issues) {
+			feedback.issues.forEach(group => group.forEach(issue => {
+				if (issue.target) {
+					const nav = reqToNav[issue.target.toRefString()];
+					if (nav) {
+						if (nav.type === 'display') dsSev[nav.index] = Math.max(dsSev[nav.index], issue.severity);
+						else if (nav.type === 'lookup') lSev[nav.index] = Math.max(lSev[nav.index], issue.severity);
+						else if (nav.type === 'formatter') fSev[nav.index] = Math.max(fSev[nav.index], issue.severity);
+					}
+				}
+			}));
+		}
+		return { dsSeverities: dsSev, lookupSeverities: lSev, formatterSeverities: fSev };
+	}, [script, feedback, reqToNav]);
+
+	const handleIssueClick = (issue) => {
+		if (!issue.target) return;
+		const reqRef = issue.target.toRefString();
+		const nav = reqToNav[reqRef];
+		
+		if (nav) {
+			const targetMacro = issue.macro || nav.macro || 'Condition';
+			if (viewMode === 'rarp') {
+				setSelectedItem({ type: nav.type, index: nav.index, macro: targetMacro });
+				setTimeout(() => {
+					document.querySelectorAll('.logic-table .selected, .rarp-main.selected').forEach(e => e.classList.remove('selected'));
+					const el = document.getElementById(reqRef);
+					if (el) {
+						el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+						el.classList.add('selected');
+					} else if (issue.target.parts) { // If it's a general Display String issue targeting the string itself
+						const mainContainer = document.getElementById(reqRef);
+						if (mainContainer) mainContainer.classList.add('selected');
+					}
+				}, 100);
+			} else {
+				document.querySelectorAll('.logic-table .selected, .rarp-main.selected').forEach(e => e.classList.remove('selected'));
+				const el = document.getElementById(reqRef);
+				if (el) {
+					el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					el.classList.add('selected');
+				}
+			}
+		}
+	};
+
+	// Generate summary metrics
+	const lookupCount = script.scriptLookups.filter(l => l.entries.length > 0 || l.defaultVal !== null).length;
+	const formatterCount = script.scriptLookups.filter(l => l.entries.length === 0 && l.defaultVal === null).length;
+	const dsCount = script.displayStrings.length;
+	
+	// Strict Check: It is only a valid default display if it's conditionless AND static (contains no macros)
+	const defaultDs = script.displayStrings.filter(ds => ds.isDefault && !ds.parts.some(p => p.isMacro)).length > 0 ? "Yes" : "No";
 
 	return (<>
-		<div className="main-header">
-			<div className="float-right">
+		<div className="main-header" style={{ marginBottom: '0', paddingBottom: '10px' }}>
+			<div className="float-right" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+				<button onClick={toggleViewMode}>
+					{viewMode === 'rarp' ? 'Switch to Raw RP View' : 'Switch to RP UI'}
+				</button>
 				<ConsoleIcon />
 			</div>
 			<SetBadge />
-			<h1 id="asset-title">
+			<h1 id="asset-title" style={{ margin: '0 0 8px 0' }}>
 				{get_game_title()}
 			</h1>
+			<div style={{ fontStyle: 'italic', color: '#888', fontSize: '13px', lineHeight: '1.4' }}>
+				<div>{lookupCount} Lookups</div>
+				<div>{formatterCount} Formatters</div>
+				<div>{dsCount} Display Strings (Default Display: {defaultDs})</div>
+			</div>
+			<div className="clear"></div>
 		</div>
 
-		<HighlightedRichPresence script={current.rp.text} onLogicSelected={setLogicData} />
-		<div className="data-table" ref={logictbl}>
-			{logicData && <LogicTable logic={logicData} isHex={isHex} toggleHex={toggleHex} />}
+		<div key={viewMode} className="fade-in-view">
+			{viewMode === 'rarp' ? (
+				<div className="rarp-layout">
+					<RARPTreeView script={script} selectedItem={selectedItem} setSelectedItem={setSelectedItem} dsSeverities={dsSeverities} lookupSeverities={lookupSeverities} formatterSeverities={formatterSeverities} sidebarWidth={sidebarWidth} />
+					
+					{/* Vertical Splitter */}
+					<div 
+						className={`resizer-x ${isDraggingSidebar ? 'active' : ''}`} 
+						onMouseDown={(e) => { e.preventDefault(); setIsDraggingSidebar(true); }}
+					></div>
+
+					<RARPDetailView script={script} selectedItem={selectedItem} setSelectedItem={setSelectedItem} isHex={isHex} toggleHex={toggleHex} />
+				</div>
+			) : (
+				<div style={{ marginTop: '20px' }}>
+					<HighlightedRichPresence script={script.text} onLogicSelected={setLogicData} />
+					<div className="data-table" style={{marginTop: '20px'}}>
+						{logicData && <LogicTable logic={logicData} isHex={isHex} toggleHex={toggleHex} />}
+					</div>
+				</div>
+			)}
 		</div>
 
-		<div className="stats">
-			<h1>Statistics</h1>
-			<ul>
-				<li>Memory size: {stats.mem_length} / 65535</li>
-				<li>Custom macros: {stats.custom_macros.size}</li>
-				<ul>
-					{[...stats.custom_macros.entries()].map(([k, v]) => <li key={k}><code>{k}</code> &rarr; {v ? <code>{v.type}</code> : 'unknown'}</li>)}
-				</ul>
-				<li>Lookups: {stats.lookups.size} ({[...stats.lookups.values()].filter(lookup => lookup.some(x => x.isFallback())).length} with default values)</li>
-				<li>Display clauses: {stats.display_groups} ({stats.cond_display} conditional displays)</li>
-				<ul>
-					<li>Most lookups in one display clause: {stats.max_lookups}</li>
-				</ul>
-			</ul>
+		<div style={{ marginTop: '20px' }}>
+			<RPAssetFeedback issues={feedback.issues} onIssueClick={handleIssueClick} />
 		</div>
-
-		<AssetFeedback issues={feedback.issues} />
 	</>);
 }
 
@@ -1667,7 +2179,6 @@ function BadgeGrid({set = current.set})
 	React.useEffect(() => {
 		const canvas = canvasRef.current;
 		if (!canvas) return;
-		
 		// Track if this effect is still active to prevent race conditions on fast set switching
 		let isActive = true;
 
@@ -1689,7 +2200,6 @@ function BadgeGrid({set = current.set})
 
 		const render = async () => {
 			setIsReady(false);
-			console.log("Starting render for", achs.length, "achievements");
 			
 			// 1. Draw Background
 			ctx.fillStyle = '#2b374a';
@@ -1782,7 +2292,6 @@ function BadgeGrid({set = current.set})
 			if (!isActive) return;
 			setIsReady(true);
 			setStatus("📋 Copy Image");
-			console.log("Render Complete");
 		};
 
 		render();
@@ -1850,7 +2359,7 @@ function CodeNotesTab()
 
 function RichPresenceTab()
 {
-	if (!current.rp) return null;
+	if (!current.rp || current.rp.displayStrings.length === 0) return null;
 	let warn = SEVERITY_TO_CLASS[current.rp.feedback.status()];
 	return (
 	<tr 
@@ -1922,7 +2431,6 @@ function LeaderboardTabs()
 
 function SidebarTabs()
 {
-	// when the sidebar updates, trigger a route change
 	React.useEffect(route_change);
 
 	return (<>
@@ -2122,39 +2630,18 @@ function LogicExplanation({ asset, groups, showDecimal = true }) {
 					return <em key={i} className="logic-enum">{content}</em>;
 				}
 
-				// 3. Exact phrase matches (Safe)
-				if (lower === 'reset the achievement') 
-					return <span key={i} className="logic-keyword-reset">{part}</span>;
+				if (lower === 'reset the achievement') return <span key={i} className="logic-keyword-reset">{part}</span>;
+				if (lower === 'pause the achievement' || lower === 'lock the achievement') return <span key={i} className="logic-keyword-pause">{part}</span>;
+				if (part === 'MeasuredIf') return <span key={i} className="logic-keyword-measuredif">{part}</span>;
+				if (part === 'Measured' || part === 'Measured%') return <span key={i} className="logic-keyword-measured">{part}</span>;
 				
-				if (lower === 'pause the achievement' || lower === 'lock the achievement') 
-					return <span key={i} className="logic-keyword-pause">{part}</span>;
-				
-				if (part === 'MeasuredIf') // Case sensitive check to avoid variable names
-					return <span key={i} className="logic-keyword-measuredif">{part}</span>;
-
-				// 4. Single Word Keywords
-				// For "Measured", typical Explainer phrasing is "Start measuring" or "A Measured Indicator".
-				// We trust the engine output here.
-				if (part === 'Measured' || part === 'Measured%') {
-					return <span key={i} className="logic-keyword-measured">{part}</span>;
-				}
-
-				// 5. "Trigger" Context Check
-				// Only highlight "Trigger" if it is followed by " when" or " Indicator" in the full string context.
 				if (part === 'Trigger') {
-					// text.split includes the separators, so parts[i+1] is the text AFTER this "Trigger".
 					const nextPart = parts[i+1];
-					if (nextPart && (nextPart.startsWith(" when") || nextPart.startsWith(" Indicator"))) {
-						return <span key={i} className="logic-keyword-trigger">{part}</span>;
-					}
-					// If not followed by specific keywords, treat as plain text (likely variable name)
+					if (nextPart && (nextPart.startsWith(" when") || nextPart.startsWith(" Indicator"))) return <span key={i} className="logic-keyword-trigger">{part}</span>;
 					return part;
 				}
 
-				// 6. "Activate" Context Check (Transition Logic)
-				if (part === 'Activate') {
-					return <span key={i} className="logic-keyword-activate">{part}</span>;
-				}
+				if (part === 'Activate') return <span key={i} className="logic-keyword-activate">{part}</span>;
 
 				return part;
 			});
@@ -2294,3 +2781,129 @@ function testAchievement(mem)
 reset_loaded();
 main();
 window.onhashchange = main;
+
+// --- AutoCR Side Panel Toggle Feature & Main Layout Splitter ---
+(function initAutoCRSidebarLayout() {
+	// 1. Inject Transition CSS
+	if (!document.getElementById('autocr-dynamic-slide-css')) {
+		const style = document.createElement('style');
+		style.id = 'autocr-dynamic-slide-css';
+		style.innerHTML = `
+			#asset-list {
+				transition: flex-basis 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.3s ease;
+			}
+			/* When disabled via JS during drag, removing the class removes the transition */
+			#asset-list.no-transition {
+				transition: none !important;
+			}
+			body.autocr-sidebar-hidden #asset-list {
+				flex-basis: 0 !important;
+				width: 0 !important;
+				min-width: 0 !important;
+				padding-left: 0 !important;
+				padding-right: 0 !important;
+				border: none !important;
+				opacity: 0 !important;
+			}
+			body.autocr-sidebar-hidden #main-splitter {
+				display: none !important;
+			}
+			/* Keep hidden until animation completes */
+			body.autocr-sidebar-fully-hidden #autocr-restore-btn {
+				display: block !important;
+			}
+		`;
+		document.head.appendChild(style);
+	}
+
+	// 2. Create the Splitter between asset-list and asset-info
+	const assetList = document.getElementById('asset-list');
+	const assetInfo = document.getElementById('asset-info');
+	
+	if (assetList && assetInfo && !document.getElementById('main-splitter')) {
+		const splitter = document.createElement('div');
+		splitter.id = 'main-splitter';
+		splitter.className = 'resizer-x';
+		
+		// Insert between sidebar and main info
+		assetList.parentNode.insertBefore(splitter, assetInfo);
+
+		let isDragging = false;
+		splitter.addEventListener('mousedown', (e) => {
+			isDragging = true;
+			assetList.classList.add('no-transition'); // prevent sluggish dragging
+			splitter.classList.add('active');
+			document.body.style.cursor = 'col-resize';
+			e.preventDefault();
+		});
+
+		document.addEventListener('mousemove', (e) => {
+			if (!isDragging) return;
+			let newWidth = e.clientX;
+			if (newWidth < 200) newWidth = 200; // minimum width
+			if (newWidth > window.innerWidth * 0.8) newWidth = window.innerWidth * 0.8; // max width
+			
+			// Force absolute width everywhere so the internal table natively expands
+			assetList.style.flexBasis = newWidth + 'px';
+			assetList.style.width = newWidth + 'px';
+			assetList.style.minWidth = newWidth + 'px';
+			assetList.style.maxWidth = 'none';
+		});
+
+		document.addEventListener('mouseup', () => {
+			if (isDragging) {
+				isDragging = false;
+				assetList.classList.remove('no-transition');
+				splitter.classList.remove('active');
+				document.body.style.cursor = 'default';
+			}
+		});
+	}
+
+	// 3. Create the persistent Restore Button (Hidden when sidebar is active)
+	if (!document.getElementById('autocr-restore-btn')) {
+		const restoreBtn = document.createElement('button');
+		restoreBtn.id = 'autocr-restore-btn';
+		restoreBtn.innerHTML = '&#x25B6;'; // ▶
+		restoreBtn.title = 'Show AutoCR Side Panel';
+		restoreBtn.style.position = 'fixed';
+		restoreBtn.style.bottom = '11px';
+		restoreBtn.style.left = '10px';
+		restoreBtn.style.zIndex = '99999';
+		restoreBtn.style.display = 'none'; // CSS toggles this
+		restoreBtn.style.padding = '6px 12px'; // Squarish to match the screenshot footprint
+		
+		restoreBtn.addEventListener('click', () => {
+			document.body.classList.remove('autocr-sidebar-fully-hidden');
+			document.body.classList.remove('autocr-sidebar-hidden');
+		});
+		document.body.appendChild(restoreBtn);
+	}
+
+	// 4. Reliable loop to inject the Collapse button into the Sidebar footer next to Unload
+	setInterval(() => {
+		const footerTd = document.querySelector('#list-foot td');
+		
+		if (footerTd && !footerTd.querySelector('.autocr-collapse-btn')) {
+			const collapseBtn = document.createElement('button');
+			collapseBtn.innerHTML = '&#x25C0;'; // ◀
+			collapseBtn.title = 'Hide Side Panel';
+			collapseBtn.className = 'autocr-collapse-btn';
+			collapseBtn.style.padding = '6px 12px';
+			collapseBtn.style.marginRight = '5px'; // Separate it slightly from "Unload Set"
+			
+			collapseBtn.addEventListener('click', () => {
+				document.body.classList.add('autocr-sidebar-hidden');
+				setTimeout(() => {
+					// Only add fully-hidden class if it hasn't been un-hidden in the meantime
+					if (document.body.classList.contains('autocr-sidebar-hidden')) {
+						document.body.classList.add('autocr-sidebar-fully-hidden');
+					}
+				}, 300); // 300ms matches the CSS transition duration
+			});
+			
+			// Insert BEFORE the Unload Set button
+			footerTd.insertBefore(collapseBtn, footerTd.firstChild);
+		}
+	}, 500); 
+})();

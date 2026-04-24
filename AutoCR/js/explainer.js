@@ -55,31 +55,7 @@ class ExplanationContext
 		// 2. Standard address lookup
 		let name = this.getNameFromAddr(op.value, index, suppressPointers);
 
-        // 3. Array Indexing Suffix Logic
-        // If this address is modified by an 8-bit/16-bit AddAddress (Array Indexing),
-        // append the name of the index to the base name for clarity.
-		if (this.group && index > 0)
-		{
-			const prevReq = this.group[index - 1];
-			if (prevReq.flag && prevReq.flag.name === "AddAddress" && prevReq.lhs.size && prevReq.lhs.size.bytes < 3)
-			{
-                // Resolve the name of the Index address.
-                // Pass -1 to prevent recursive chain building for the index itself.
-                const indexName = this.getNameFromAddr(prevReq.lhs.value, -1, true);
-                
-                // If we have both names, format as "Base [offset by Index]"
-                // Remove existing brackets from Base to look cleaner if needed, 
-                // but keeping them distinguishes the two distinct memory lookups.
-                if (name && indexName)
-                {
-                    // Clean up "Memory 0x..." fallback to be shorter if used in suffix
-                    const cleanIndex = indexName.replace("Memory ", "");
-                    name = `${name} [offset by ${cleanIndex}]`;
-                }
-			}
-		}
-
-        return name;
+		return name;
 	}
 
 	// Shared Helper: Get operand name using Address String
@@ -92,15 +68,12 @@ class ExplanationContext
 		if (alias) return `[${alias}]`;
 
 		// Check for Pointer chain context (AddAddress on previous line)
-		if (this.group && index > 0 && index < this.group.length)
+		if (this.group && index > 0 && index <= this.group.length)
 		{
 			const prevReq = this.group[index - 1];
-            
-            // Note: If this was Array Indexing, buildChainInfo excluded it, so resolveAlias failed (correctly).
-            // We check here if it's a standard pointer to show the fallback text.
-            // If it IS Array Indexing (bytes < 3), we treat it as a direct memory read + modifier, 
-            // so we usually fall through to "Memory 0x..." which getName() decorates.
-			if (prevReq.flag && prevReq.flag.name === "AddAddress" && (!prevReq.lhs.size || prevReq.lhs.size.bytes >= 3))
+			
+			// If it IS Array Indexing (determined by no code note on lhs), we treat it as a direct memory read + modifier.
+			if (prevReq && prevReq.flag && prevReq.flag.name === "AddAddress" && (prevReq.lhs.type.addr && ConditionFormatter.getEffectiveNote(this.notesLookup, prevReq.lhs.value)))
 			{
 				const hexAddr = "0x" + addrVal.toString(16).toUpperCase();
 				if (suppressPointers)
@@ -207,7 +180,7 @@ class ExplanationContext
 		while(scan >= 0) {
 			if (scan >= this.group.length) { scan--; continue; }
 			const req = this.group[scan];
-			if (req.flag && req.flag.name === "AddAddress") {
+			if (req && req.flag && req.flag.name === "AddAddress") {
 				stack.unshift(req);
 				scan--;
 			} else {
@@ -215,14 +188,25 @@ class ExplanationContext
 			}
 		}
 
-        // Handle Array Indexing (Index + Base)
-        // If the chain starts with an 8-bit or 16-bit AddAddress, it is likely an Index.
-        // We REMOVE it from the chainContext used for resolving the Base Address.
-        // This ensures ConditionFormatter looks up the Base Address directly in the notes,
-        // rather than treating it as an offset inside the Index's note.
-        if (stack.length > 0 && stack[0].lhs.size && stack[0].lhs.size.bytes < 3) {
-            stack.shift();
-        }
+		// Handle Array Indexing (Index + Base)
+		// If an AddAddress chain starts with something that has no code note, we assume it is an Index.
+		if (stack.length > 0) {
+			while (stack.length > 1) {
+				const firstReq = stack[0];
+				if (!firstReq.lhs.type.addr || !ConditionFormatter.getEffectiveNote(this.notesLookup, firstReq.lhs.value)) {
+					stack.shift();
+				} else {
+					break;
+				}
+			}
+			// Ensure we don't accidentally preserve a non-address value if it's the only one left
+			if (stack.length === 1) {
+				const firstReq = stack[0];
+				if (!firstReq.lhs.type.addr || !ConditionFormatter.getEffectiveNote(this.notesLookup, firstReq.lhs.value)) {
+					stack.shift();
+				}
+			}
+		}
 
 		for(let i=0; i<stack.length; i++) {
 			const req = stack[i];
@@ -314,7 +298,8 @@ class ExplanationContext
 	{
 		if (!content) return "";
 		const lines = content.split(/\r\n|\r|\n/);
-		const regex = new RegExp(`^\\s*Bit\\s*${bitIndex}\\s*[:=]\\s*(.+)`, "i");
+		// Added |\\- to catch `-` and `|` as delimiters
+		const regex = new RegExp(`^\\s*Bit\\s*${bitIndex}\\s*[:=|\\-]\\s*(.+)`, "i");
 
 		for (const line of lines)
 		{
@@ -2388,6 +2373,48 @@ class LogicExplainer
 		new StandardConditionProcessor()
 	];
 
+	static getRegionKeywords(group, notesLookup)
+	{
+		// Match regions either enclosed in brackets/parentheses e.g. [US], (PAL)
+		// OR as standalone words e.g. "USA", "Europe", "SLUS"
+		const regions = "US|USA|PAL|EU|EUR|Europe|JAP|JP|Japan|UK|KOR|Korea|Serial|SLUS|SLES|SCUS|SCES|SLPM|NTSC|NTSC\\-U|NTSC\\-J";
+		const keywords = new RegExp(`(?:\\[|\\()(?:${regions})(?:\\]|\\))|\\b(?:${regions})\\b`, 'ig');
+		
+		let found = new Set();
+		
+		for (const req of group) {
+			for (const op of [req.lhs, req.rhs]) {
+				if (op && op.type && op.type.addr) {
+					const note = ConditionFormatter.getEffectiveNote(notesLookup, op.value);
+					if (note && note.note) {
+						// Grab the first line that actually has text (handles empty top lines)
+						const lines = note.note.split(/\r\n|\r|\n/);
+						const firstLine = lines.find(l => l.trim().length > 0) || "";
+						
+						const matches = firstLine.match(keywords);
+						if (matches) {
+							for (let m of matches) {
+								// Clean brackets/parentheses and uppercase it
+								const cleanMatch = m.replace(/[\[\]\(\)]/g, '').toUpperCase();
+								
+								// Prevent false positives on the English word "us" (e.g. "gives us health")
+								// Only accept "US" if it was capitalized in the raw note, OR if it was explicitly bracketed
+								if (cleanMatch === "US") {
+									if (m.includes('[') || m.includes('(') || m.includes('US')) {
+										found.add(cleanMatch);
+									}
+								} else {
+									found.add(cleanMatch);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return [...found];
+	}
+
 	static explainAsset(asset, groups, notesLookup, rangeCache, showDecimal)
 	{
 		let mainText = "";
@@ -2461,7 +2488,9 @@ class LogicExplainer
 			{
 				mainText += "## Global Reset Conditions (Applies to all):\n";
 				const flatResets = globalResets.flat();
-				const dummyCtx = new ExplanationContext([], notesLookup, rangeCache, showDecimal);
+				
+				// Pass flatResets instead of [] to prevent undefined errors
+				const dummyCtx = new ExplanationContext(flatResets, notesLookup, rangeCache, showDecimal);
 				const resetProc = new ResetProcessor();
 
 				for (let k = 0; k < flatResets.length; k++)
@@ -2503,7 +2532,6 @@ class LogicExplainer
 				let isSequential = true;
 				for (let k = 0; k < matchingIndices.length - 1; k++)
 				{
-					// Check if Wrapper Index (Alt Number) is sequential
 					if (groupWrappers[matchingIndices[k+1]].index !== groupWrappers[matchingIndices[k]].index + 1)
 					{
 						isSequential = false;
@@ -2512,14 +2540,26 @@ class LogicExplainer
 				}
 
 				const isLargeGroup = matchingIndices.length > 4;
+				
+				// Multi-Region Check
+				let groupsWithRegions = 0;
+				for (const idx of matchingIndices) {
+					const regions = LogicExplainer.getRegionKeywords(groupWrappers[idx].group, notes);
+					if (regions.length > 0) {
+						groupsWithRegions++;
+					}
+				}
+				
+				// Confirmation rule: At least 2 Alts must have a region keyword
+				const isMultiRegion = groupsWithRegions >= 2;
+				const isArrayLogic = ((isSequential && matchingIndices.length > 2) || isLargeGroup) && !isMultiRegion;
 
-				if ((isSequential && matchingIndices.length > 2) || isLargeGroup)
+				if (isArrayLogic)
 				{
 					// Array Logic
 					const firstAlt = groupWrappers[matchingIndices[0]].index;
 					const lastAlt = groupWrappers[matchingIndices[matchingIndices.length-1]].index;
 
-					// Header Handling
 					if (isSequential)
 					{
 						sb += `### Alt ${firstAlt} - Alt ${lastAlt} (Array Logic):\n`;
@@ -2549,7 +2589,6 @@ class LogicExplainer
 
 					const explanation = LogicExplainer.explainGroupNatural(groupWrappers[i].group, notes, range, showDec, details, isUxHeader);
 					
-					// Indent
 					let sbIndent = "";
 					const lines = explanation.split(/\r\n|\r|\n/);
 					for (const line of lines) {
@@ -2560,7 +2599,7 @@ class LogicExplainer
 					details[arrayId] = sbIndent.trim();
 					sb += `[[EXPAND:${arrayId}:Array Details]]\n\n`;
 				}
-				else
+				else if (isMultiRegion)
 				{
 					// Multi-Region Logic
 					const names = matchingIndices.map(idx => `Alt ${groupWrappers[idx].index}`);
@@ -2583,8 +2622,32 @@ class LogicExplainer
 					sb += `### ${headerNames} (Multi-Region):\n`;
 					
 					const explanation = LogicExplainer.explainGroupNatural(groupWrappers[i].group, notes, range, showDec, details, isUxHeader, true);
-					sb += explanation + "\n";
-					sb += "- (Region specific locks apply)\n\n";
+					sb += explanation + "\n\n";
+				}
+				else
+				{
+					// Generic Alternative Logic (Matched structure but not definitively region/array)
+					const names = matchingIndices.map(idx => `Alt ${groupWrappers[idx].index}`);
+					let headerNames = "";
+
+					if (names.length > 5)
+					{
+						const shortList = names.slice(0, 3).join(", ");
+						const hiddenList = names.slice(3).join(", ");
+						const listId = crypto.randomUUID();
+						
+						details[listId] = hiddenList;
+						headerNames = `${shortList}... [[EXPAND:${listId}:and ${names.length - 3} more]]`;
+					}
+					else
+					{
+						headerNames = names.join(", ");
+					}
+
+					sb += `### ${headerNames} (Alternative Logic):\n`;
+					
+					const explanation = LogicExplainer.explainGroupNatural(groupWrappers[i].group, notes, range, showDec, details, isUxHeader);
+					sb += explanation + "\n\n";
 				}
 			}
 			else

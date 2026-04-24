@@ -35,14 +35,18 @@ ul li {
    ========================================= */
 #container #asset-list {
 	flex: 0 0 400px;
+	width: 400px;
+	max-width: none !important; /* Overrides any lingering mobile width caps */
 	height: 100%;
-	overflow-y: scroll;
-	overflow-x: clip;
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 
 #asset-list table {
-	width: 100%;
+	width: 100% !important;
+	min-width: 100% !important;
 	cursor: default;
+	border-collapse: collapse;
 }
 
 #asset-list thead {
@@ -73,6 +77,10 @@ ul li {
 	background-repeat: no-repeat;
 	background-position: 5px center;
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 0; /* Forces the cell to shrink and apply the ellipsis */
+	width: 100%;
 }
 
 /* Status Icons */
@@ -94,7 +102,7 @@ ul li {
 #asset-list tbody tr.selected::after {
 	content: "";
 	position: absolute;
-	left: 360px;
+	right: 15px; /* Anchors to the right edge dynamically instead of hardcoded left: 360px */
 	top: 0;
 	bottom: 0;
 	width: 16px;
@@ -500,11 +508,8 @@ span[title] {
 .rich-presence .logic.selected { color: rgb(213, 094, 000); }
 
 /* =========================================
-   /* 
    8. TOOLTIPS & CHARTS
-   ========================================= 
-*/
-
+   ========================================= */
 .tooltip {
 	position: relative;
 	display: inline-block;
@@ -703,6 +708,18 @@ pre code {
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.explainer-anim-wrapper {
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows 0.3s ease-in-out;
+}
+.explainer-anim-wrapper.open {
+	grid-template-rows: 1fr;
+}
+.explainer-anim-inner {
+	overflow: hidden;
+}
 
 .explanation-container {
     background-color: #fcfcfc;
@@ -939,3 +956,197 @@ body.dark-theme .logic-variable {
     border-color: #555;
 }
 body.dark-theme .logic-enum { color: #ce9178; }
+/* =========================================
+   11. RARP EDITOR PORT (RICH PRESENCE)
+   ========================================= */
+.rp-view-toggle {
+	margin-bottom: 15px;
+	padding: 8px 15px;
+	background-color: #0078d7;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	font-weight: bold;
+	cursor: pointer;
+}
+.rp-view-toggle:hover { background-color: #005a9e; }
+
+.rarp-layout {
+	display: flex;
+	height: calc(100vh - 200px);
+	border: 1px solid #ccc;
+	background-color: #f0f0f0;
+	color: #333;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+/* Left Pane: Tree View */
+.rarp-sidebar {
+	flex: 0 0 350px; /* Default width, manipulated by JS splitter */
+	border-right: 1px solid #ccc;
+	background-color: #fafafa;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding: 5px 0;
+	user-select: none;
+}
+.rarp-tree-group {
+	font-weight: bold;
+	padding: 4px 12px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+}
+.rarp-tree-group:hover { background-color: #eee; }
+.rarp-tree-node {
+	padding: 6px 12px 6px 32px;
+	cursor: pointer;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 14px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.rarp-tree-node.striped {
+	background-color: rgba(0, 0, 0, 0.04);
+}
+.rarp-tree-node:hover { background-color: #eee; }
+.rarp-tree-node.selected { background-color: #0078d7 !important; color: #fff; }
+
+/* Right Pane: Editor & Preview */
+.rarp-main {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	background-color: #e5e5e5;
+	overflow-y: auto;
+	min-width: 0;
+	padding: 10px;
+	gap: 10px;
+}
+.rarp-main.selected {
+	animation-name: bg-highlight;
+	animation-duration: 1s;
+	animation-iteration-count: 5;
+	animation-delay: 0s;
+}
+
+.rarp-top-row { display: flex; gap: 10px; min-height: 120px; }
+
+.rarp-panel {
+	flex: 1;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	display: flex;
+	flex-direction: column;
+}
+.rarp-panel-header {
+	font-size: 11px;
+	text-transform: uppercase;
+	color: #666;
+	padding: 6px 10px;
+	border-bottom: 1px solid #ccc;
+	background-color: #f8f8f8;
+	font-weight: bold;
+}
+.rarp-panel-content { padding: 10px; flex: 1; overflow-y: auto; }
+
+/* Logic Explorer (Dropdown & Tabs) */
+.rarp-logic-toolbar {
+	padding: 8px;
+	background-color: #f8f8f8;
+	border-bottom: 1px solid #ccc;
+}
+.rarp-logic-select {
+	width: 100%;
+	padding: 5px;
+	font-family: inherit;
+	border: 1px solid #ccc;
+}
+.rarp-tabs {
+	display: flex;
+	background-color: #f0f0f0;
+	border-bottom: 1px solid #ccc;
+}
+.rarp-tab {
+	padding: 6px 15px;
+	cursor: pointer;
+	font-size: 13px;
+	border-right: 1px solid #ccc;
+	color: #666;
+}
+.rarp-tab.active {
+	background-color: #fff;
+	border-bottom: 2px solid #0078d7;
+	color: #333;
+	font-weight: bold;
+}
+
+/* Specific Styles */
+.rarp-template-text {
+	font-family: Consolas, "Courier New", monospace;
+	font-size: 13px;
+	white-space: pre-wrap;
+	word-break: break-all;
+	margin: 0;
+}
+.rarp-live-preview { font-size: 15px; font-weight: bold; display: flex; align-items: center; height: 100%; }
+
+/* DARK THEME OVERRIDES */
+body.dark-theme .rarp-layout { border-color: #3e3e42; background-color: #2d2d30; color: #d4d4d4; }
+body.dark-theme .rarp-sidebar { background-color: #252526; border-color: #3e3e42; }
+body.dark-theme .rarp-tree-group { color: #fff; }
+body.dark-theme .rarp-tree-group:hover, body.dark-theme .rarp-tree-node:hover { background-color: #2a2d2e; }
+body.dark-theme .rarp-tree-node.striped { background-color: rgba(255, 255, 255, 0.04); }
+body.dark-theme .rarp-tree-node.selected { background-color: #04395e !important; color: #fff; }
+body.dark-theme .rarp-main { background-color: #1e1e1e; }
+body.dark-theme .rarp-panel { background-color: #252526; border-color: #3e3e42; }
+body.dark-theme .rarp-panel-header { background-color: #2d2d30; border-color: #3e3e42; color: #999; }
+body.dark-theme .rarp-logic-toolbar { background-color: #2d2d30; border-color: #3e3e42; }
+body.dark-theme .rarp-logic-select { background-color: #3e3e42; color: #fff; border-color: #555; }
+body.dark-theme .rarp-tabs { background-color: #2d2d30; border-color: #3e3e42; }
+body.dark-theme .rarp-tab { border-color: #3e3e42; color: #aaa; }
+body.dark-theme .rarp-tab.active { background-color: #252526; color: #fff; }
+body.dark-theme .rarp-template-text { color: #ce9178; }
+
+/* =========================================
+   12. SPLITTERS (RESIZERS) & ANIMATIONS
+   ========================================= */
+.resizer-x {
+	width: 5px;
+	background-color: transparent;
+	cursor: col-resize;
+	flex-shrink: 0;
+	z-index: 100;
+	transition: background-color 0.2s;
+}
+.resizer-x:hover, .resizer-x.active {
+	background-color: #0078d7;
+}
+body.dark-theme .resizer-x:hover, body.dark-theme .resizer-x.active {
+	background-color: #569CD6;
+}
+
+/* Used for RARP top row panels */
+.flex-panel-container {
+	display: flex;
+	width: 100%;
+}
+
+@keyframes fadeInView {
+	from { opacity: 0; transform: translateY(5px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-view {
+	animation: fadeInView 0.2s ease-out forwards;
+}
+
+/* Sidebar Hide/Show Button Restyling */
+body.autocr-sidebar-fully-hidden #autocr-restore-btn {
+	display: block !important;
+}
