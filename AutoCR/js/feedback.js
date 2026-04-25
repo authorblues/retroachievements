@@ -113,6 +113,22 @@ const Feedback = Object.freeze({
 		ref: [], },
 	MISSING_NOTE_RP: { severity: FeedbackSeverity.FAIL, desc: "All addresses used in rich presence require a code note.",
 		ref: [], },
+
+	// NEW RP RULES (Ported from RARP Editor)
+	RP_MACRO_NAME_INVALID: { severity: FeedbackSeverity.ERROR, desc: "Macro name should not be empty or contain spaces.", ref: [] },
+	RP_MACRO_BUILTIN_SHADOW: { severity: FeedbackSeverity.WARN, desc: "Macro name shadows a built-in macro. Defining it manually is redundant.", ref: [] },
+	RP_MACRO_CASE_COLLISION: { severity: FeedbackSeverity.WARN, desc: "Another lookup/formatter exists with a similar name but different casing. Macro names are case-sensitive.", ref: [] },
+	RP_LOOKUP_OVERLAP: { severity: FeedbackSeverity.WARN, desc: "Lookup keys overlap. The first entry will take precedence.", ref: [] },
+	RP_FORMATTER_DUPLICATE: { severity: FeedbackSeverity.INFO, desc: "Format type is already used by another formatter. This may be redundant.", ref: [] },
+	RP_LOOKUP_EMPTY: { severity: FeedbackSeverity.ERROR, desc: "Lookup is empty. A Lookup must have at least one entry or a non-empty default value.", ref: [] },
+	RP_MACRO_UNUSED: { severity: FeedbackSeverity.INFO, desc: "This lookup or formatter is not currently used in any display string.", ref: [] },
+	RP_CONDITION_MISSING_OPERATOR: { severity: FeedbackSeverity.ERROR, desc: "Condition line must have a comparison operator (e.g., '=', '!=', '<').", ref: [] },
+	RP_CONDITION_UNNECESSARY_FLAG: { severity: FeedbackSeverity.WARN, desc: "Flag is not typically used in a display condition and may have no effect.", ref: [] },
+	RP_MACRO_INVALID_REFERENCE: { severity: FeedbackSeverity.ERROR, desc: "Macro does not point to any defined Lookup, Formatter, or built-in macro.", ref: [] },
+	RP_MACRO_EMPTY: { severity: FeedbackSeverity.ERROR, desc: "Macro has no logic defined.", ref: [] },
+	RP_MACRO_SYNTAX_ERROR: { severity: FeedbackSeverity.ERROR, desc: "Invalid macro logic syntax.", ref: [] },
+	RP_MACRO_SYNTAX_WARN: { severity: FeedbackSeverity.WARN, desc: "Macro logic warning.", ref: [] },
+	RP_LIMIT_EXCEEDED: { severity: FeedbackSeverity.WARN, desc: "Comparison value exceeds the maximum value for the memory size.", ref: [] },
 		
 	// code errors
 	BAD_CHAIN: { severity: FeedbackSeverity.ERROR, desc: "The last requirement of a group cannot have a chaining flag.",
@@ -677,13 +693,12 @@ function* check_missing_notes(logic)
 					chainIsDynamic = true;
 				}
 
-				// If the chain starts with a small memory read (8-bit/16-bit), 
+				// If the chain starts with a memory read that has NO matching code note,
 				// it is likely an Array Indexing operation (Index + Base) rather than a Pointer (Base + Offset).
 				// In this case, we do not add it to the pointer chain context, so the next line is validated 
-				// as a standalone Base address.
-				// We must still validate the Index address itself here.
-				if (chain.length === 0 && req.lhs && req.lhs.type.addr && req.lhs.size && req.lhs.size.bytes < 3) {
-					if (!current.notes.get(req.lhs.value)) {
+				// as a standalone Base address. We must still validate the Index address itself here.
+				if (chain.length === 0 && (!req.lhs || !req.lhs.type.addr || !ConditionFormatter.getEffectiveNote(current.notes, req.lhs.value))) {
+					if (req.lhs && req.lhs.type.addr) {
 						yield new Issue(Feedback.MISSING_NOTE, req,
 							<ul>
 								<li>Address {toDisplayHex(req.lhs.value)} missing note</li>
@@ -1270,11 +1285,258 @@ function* check_notes_enum_size_mismatch(notes)
 	}
 }
 
+function* validate_condition_values(logic, context) {
+	let memTypes = new Set([ReqType.MEM, ReqType.DELTA, ReqType.PRIOR, ReqType.BCD, ReqType.INVERT]);
+	
+	for (let group of logic.groups) {
+		let hasAccumulator = false;
+		
+		for (let req of group) {
+			// If this requirement is an accumulator, mark the chain as active
+			if (req.flag && ['AddSource', 'SubSource'].includes(req.flag.name)) {
+				hasAccumulator = true;
+			}
+
+			if (req.op && ['=', '!=', '<', '<=', '>', '>='].includes(req.op) && req.lhs && req.rhs) {
+				// Only perform the limit check if we are NOT at the end of an accumulator chain
+				if (!hasAccumulator) {
+					if (memTypes.has(req.lhs.type) && req.rhs.type === ReqType.VALUE) {
+						let limit = req.lhs.maxValue();
+						if (limit !== null && limit !== Number.POSITIVE_INFINITY && req.rhs.value > limit) {
+							yield new Issue(Feedback.RP_LIMIT_EXCEEDED, req, <ul><li>In {context}: Comparison value '{req.rhs.value}' exceeds max value for {req.lhs.size?.name} ({limit}). This comparison will unlikely behave as expected.</li></ul>);
+						}
+					} else if (memTypes.has(req.rhs.type) && req.lhs.type === ReqType.VALUE) {
+						let limit = req.rhs.maxValue();
+						if (limit !== null && limit !== Number.POSITIVE_INFINITY && req.lhs.value > limit) {
+							yield new Issue(Feedback.RP_LIMIT_EXCEEDED, req, <ul><li>In {context}: Comparison value '{req.lhs.value}' exceeds max value for {req.rhs.size?.name} ({limit}). This comparison will unlikely behave as expected.</li></ul>);
+						}
+					}
+				}
+			}
+
+			// Reset the accumulator chain tracker if the current requirement does not logically carry the math forward
+			if (!req.flag || !['AddSource', 'SubSource', 'AddAddress'].includes(req.flag.name)) {
+				hasAccumulator = false;
+			}
+		}
+	}
+}
+
+function* validate_macro_logic(part, ds) {
+	let logic = part.logic;
+	if (!logic) return;
+	
+	yield* validate_condition_values(logic, `macro '{${part.text}}'`);
+	
+	let allSingletons = [];
+	let conditionalLines = [];
+	let totalValueProviders = 0;
+	
+	for (let group of logic.groups) {
+		let groupValueProviders = 0;
+		let isGroupChain = false;
+
+		for (let req of group) {
+			if (req.flag && ['AddAddress', 'AddSource', 'SubSource', 'Remember'].includes(req.flag.name)) isGroupChain = true;
+			
+			let isCmp = ['=', '!=', '<', '<=', '>', '>='].includes(req.op);
+			if (isCmp) {
+				conditionalLines.push(req);
+				if (req.flag && (req.flag.name === 'Measured' || req.flag.name === 'Measured%')) {
+					yield new Issue(Feedback.RP_MACRO_SYNTAX_ERROR, req, <ul><li>In macro '{part.text}', 'Measured' cannot be combined with a comparison operator.</li></ul>);
+				}
+			} else {
+				allSingletons.push(req);
+				if (req.flag && (req.flag.name === 'Measured' || req.flag.name === 'Measured%')) {
+					groupValueProviders++;
+					totalValueProviders++;
+				}
+			}
+			
+			if (req.flag && req.flag.name === 'Trigger') {
+				yield new Issue(Feedback.RP_MACRO_SYNTAX_WARN, req, <ul><li>In macro '{part.text}', the 'Trigger' flag has no effect here.</li></ul>);
+			}
+		}
+
+		// Validation 1: Per-group Measured limit
+		if (groupValueProviders > 1) {
+			let issue = new Issue(Feedback.RP_MACRO_SYNTAX_ERROR, ds, <ul><li>In macro '{part.text}', a Value Group cannot have more than one 'Measured' value.</li></ul>);
+			issue.macro = part.text;
+			yield issue;
+		}
+
+		// Validation 2: Per-group chain endpoint check
+		if (isGroupChain) {
+			let lastReq = group.length > 0 ? group[group.length - 1] : null;
+			if (lastReq && (!lastReq.flag || (lastReq.flag.name !== 'Measured' && lastReq.flag.name !== 'Measured%'))) {
+				yield new Issue(Feedback.RP_MACRO_SYNTAX_ERROR, lastReq, <ul><li>In macro '{part.text}', the arithmetic chain does not end with a 'Measured' flag.</li></ul>);
+			}
+		}
+	}
+	
+	// Validation 3: Conditional macros must provide a value
+	if (conditionalLines.length > 0 && totalValueProviders === 0) {
+		let issue = new Issue(Feedback.RP_MACRO_SYNTAX_ERROR, ds, <ul><li>In macro '{part.text}', conditional logic exists but is missing a 'Measured' flag to specify the return value.</li></ul>);
+		issue.macro = part.text;
+		yield issue;
+	}
+	
+	// Validation 4: If returning a Measured value, all non-chain lines MUST be conditions
+	if (totalValueProviders > 0) {
+		for (let group of logic.groups) {
+			for (let req of group) {
+				if (req.flag && (req.flag.name === 'Measured' || req.flag.name === 'Measured%')) continue;
+				if (req.flag && ['AddAddress', 'AddSource', 'SubSource', 'Remember'].includes(req.flag.name)) continue;
+				
+				let isCmp = ['=', '!=', '<', '<=', '>', '>='].includes(req.op);
+				if (!isCmp) {
+					yield new Issue(Feedback.RP_MACRO_SYNTAX_ERROR, req, <ul><li>In macro '{part.text}', this line is treated as a condition (since a 'Measured' value exists) and must have a comparison operator.</li></ul>);
+				}
+			}
+		}
+	}
+	
+	// Validation 5: Multiple raw addresses without comparisons/Measured flags
+	if (allSingletons.length > 1) {
+		let trueEndpoints = allSingletons.filter(c => !c.flag || !['AddAddress', 'AddSource', 'SubSource', 'Remember'].includes(c.flag.name));
+		if (trueEndpoints.length === 0 && allSingletons.length > 0) {
+			trueEndpoints.push(allSingletons[allSingletons.length - 1]);
+		}
+		if (trueEndpoints.length > 1) {
+			let hasMeasured = trueEndpoints.some(c => c.flag && (c.flag.name === 'Measured' || c.flag.name === 'Measured%'));
+			if (!hasMeasured) {
+				let issue = new Issue(Feedback.RP_MACRO_SYNTAX_ERROR, ds, <ul><li>In macro '{part.text}', multiple memory addresses are provided without a comparison. One must be marked with a 'Measured' flag.</li></ul>);
+				issue.macro = part.text;
+				yield issue;
+			}
+		}
+	}
+}
+
+function* check_rp_lookups(rp) {
+	const builtInMacros = new Set(['Number', 'Unsigned', 'Score', 'Centiseconds', 'Seconds', 'Minutes', 'Fixed1', 'Fixed2', 'Fixed3', 'Float1', 'Float2', 'Float3', 'Float4', 'Float5', 'Float6', 'ASCIIChar', 'UnicodeChar']);
+	
+	let usedMacros = new Set();
+	rp.displayStrings.forEach(ds => ds.parts.filter(p => p.isMacro).forEach(p => usedMacros.add(p.text)));
+
+	for (let i = 0; i < rp.scriptLookups.length; i++) {
+		let lookup = rp.scriptLookups[i];
+		
+		if (!lookup.name || lookup.name.includes(" ")) {
+			yield new Issue(Feedback.RP_MACRO_NAME_INVALID, lookup, <ul><li>Name '{lookup.name}' should not be empty or contain spaces.</li></ul>);
+		}
+		if (builtInMacros.has(lookup.name)) {
+			yield new Issue(Feedback.RP_MACRO_BUILTIN_SHADOW, lookup, <ul><li>'{lookup.name}' is a built-in formatter name. Defining it manually is redundant.</li></ul>);
+		}
+		
+		let caseCollisions = rp.scriptLookups.filter(l => l !== lookup && l.name.toLowerCase() === lookup.name.toLowerCase() && l.name !== lookup.name);
+		if (caseCollisions.length > 0) {
+			yield new Issue(Feedback.RP_MACRO_CASE_COLLISION, lookup, <ul><li>Another lookup/formatter exists with a similar name but different casing. Macro names are case-sensitive.</li></ul>);
+		}
+		
+		for (let a = 0; a < lookup.entries.length; a++) {
+			let entryA = lookup.entries[a];
+			let startA = entryA.keyValue;
+			let endA = entryA.keyValueEnd !== null ? entryA.keyValueEnd : startA;
+			for (let b = a + 1; b < lookup.entries.length; b++) {
+				let entryB = lookup.entries[b];
+				let startB = entryB.keyValue;
+				let endB = entryB.keyValueEnd !== null ? entryB.keyValueEnd : startB;
+				if (startA <= endB && endA >= startB) {
+					yield new Issue(Feedback.RP_LOOKUP_OVERLAP, lookup, <ul><li>Key '{entryA.keyString}' overlaps with key '{entryB.keyString}' in '{lookup.name}'. The first entry will take precedence.</li></ul>);
+				}
+			}
+		}
+		
+		let isFormatter = lookup.entries.length === 0 && lookup.defaultVal === null;
+		if (isFormatter) {
+			let duplicateFormatters = rp.scriptLookups.filter(l => l !== lookup && l.entries.length === 0 && l.defaultVal === null && l.format.toLowerCase() === lookup.format.toLowerCase());
+			if (duplicateFormatters.length > 0) {
+				yield new Issue(Feedback.RP_FORMATTER_DUPLICATE, lookup, <ul><li>The format type '{lookup.format}' is already used by another formatter. This may be redundant.</li></ul>);
+			}
+		} else if (lookup.format === "VALUE" && lookup.defaultVal !== null) {
+			if (lookup.entries.length === 0 && !lookup.defaultVal) {
+				yield new Issue(Feedback.RP_LOOKUP_EMPTY, lookup, <ul><li>Lookup '{lookup.name}' is empty. A Lookup must have at least one entry or a non-empty default value.</li></ul>);
+			}
+		}
+		
+		if (!usedMacros.has(lookup.name)) {
+			yield new Issue(Feedback.RP_MACRO_UNUSED, lookup, <ul><li>Lookup/Formatter '{lookup.name}' is not currently used in any display string.</li></ul>);
+		}
+	}
+}
+
+function* check_rp_display_strings(rp) {
+	const builtInMacros = new Set(['Number', 'Unsigned', 'Score', 'Centiseconds', 'Seconds', 'Minutes', 'Fixed1', 'Fixed2', 'Fixed3', 'Float1', 'Float2', 'Float3', 'Float4', 'Float5', 'Float6', 'ASCIIChar', 'UnicodeChar']);
+	
+	for (let i = 0; i < rp.displayStrings.length; i++) {
+		let ds = rp.displayStrings[i];
+		
+		if (!ds.isDefault) {
+			if (!ds.conditionStr || ds.conditionStr.trim() === "") {
+				yield new Issue(Feedback.RP_CONDITION_MISSING_OPERATOR, ds, <ul><li>Conditional string should have a condition.</li></ul>);
+			} else if (ds.condition) {
+				yield* validate_condition_values(ds.condition, "the display condition");
+				
+				let warningFlags = new Set(["Measured", "Measured%", "MeasuredIf", "Trigger"]);
+				let arithmeticFlags = new Set(["AddAddress", "AddSource", "SubSource", "Remember"]);
+				let cmpOps = new Set(["=", "!=", "<", "<=", ">", ">="]);
+				
+				for (let group of ds.condition.groups) {
+					for (let req of group) {
+						if (req.flag && warningFlags.has(req.flag.name)) {
+							yield new Issue(Feedback.RP_CONDITION_UNNECESSARY_FLAG, req, <ul><li>The flag '{req.flag.name}' is not typically used in a display condition and may have no effect.</li></ul>);
+						}
+						if ((!req.flag || !arithmeticFlags.has(req.flag.name)) && !cmpOps.has(req.op)) {
+							yield new Issue(Feedback.RP_CONDITION_MISSING_OPERATOR, req, <ul><li>Condition line must have a comparison operator (e.g., '=', '!=', '&lt;').</li></ul>);
+						}
+					}
+				}
+			}
+		}
+		
+		for (let part of ds.parts.filter(p => p.isMacro)) {
+			if (builtInMacros.has(part.text)) {
+				if (!part.parameter || part.parameter.trim() === "") {
+					let issue = new Issue(Feedback.RP_MACRO_EMPTY, ds, <ul><li>Built-in formatter '&#123;{part.text}&#125;' has no logic defined.</li></ul>);
+					issue.macro = part.text;
+					yield issue;
+				} else {
+					yield* validate_macro_logic(part, ds);
+				}
+				continue;
+			}
+			
+			let exactMatch = rp.scriptLookups.some(l => l.name === part.text);
+			if (!exactMatch) {
+				let caseMatch = rp.scriptLookups.find(l => l.name.toLowerCase() === part.text.toLowerCase());
+				if (caseMatch) {
+					let issue = new Issue(Feedback.RP_MACRO_INVALID_REFERENCE, ds, <ul><li>Macro '&#123;{part.text}&#125;' is invalid. Did you mean '&#123;{caseMatch.name}&#125;'? Macro names are case-sensitive.</li></ul>);
+					issue.macro = part.text;
+					yield issue;
+				} else {
+					let issue = new Issue(Feedback.RP_MACRO_INVALID_REFERENCE, ds, <ul><li>Macro '&#123;{part.text}&#125;' does not point to any defined Lookup or Formatter.</li></ul>);
+					issue.macro = part.text;
+					yield issue;
+				}
+			}
+			
+			if (!part.parameter || part.parameter.trim() === "") {
+				let issue = new Issue(Feedback.RP_MACRO_EMPTY, ds, <ul><li>Macro '&#123;{part.text}&#125;' has no logic defined.</li></ul>);
+				issue.macro = part.text;
+				yield issue;
+			} else {
+				yield* validate_macro_logic(part, ds);
+			}
+		}
+	}
+}
+
 function* check_rp_dynamic(rp)
 {
-	if (!rp.display.some(x => x.condition != null))
+	if (!rp.displayStrings.some(x => !x.isDefault))
 	{
-		if (!rp.display.some(x => x.lookups.length > 0))
+		if (!rp.displayStrings.some(ds => ds.parts.some(p => p.isMacro)))
 			yield new Issue(Feedback.NO_DYNAMIC_RP, null);
 		else
 			yield new Issue(Feedback.NO_CONDITIONAL_DISPLAY, null);
@@ -1283,16 +1545,17 @@ function* check_rp_dynamic(rp)
 
 function* check_rp_default(rp)
 {
-	if (!rp.display.some(x => x.condition == null))
+	let defaultDs = rp.displayStrings.find(x => x.isDefault);
+	if (!defaultDs) {
 		yield new Issue(Feedback.NO_DEFAULT_RP, null);
-	else
-	{
-		if (rp.display.some(x => x.condition == null && x.lookups.length > 0))
-			yield new Issue(Feedback.DYNAMIC_DEFAULT_RP, null,
+	} else {
+		if (defaultDs.parts.some(x => x.isMacro)) {
+			yield new Issue(Feedback.DYNAMIC_DEFAULT_RP, defaultDs,
 				<ul>
 					<li>Unknown state may produce unreliable output with memory lookups.</li>
 					<li>Consider <code>Playing {get_game_title() ?? "<Game Name>"}</code></li>
 				</ul>);
+		}
 	}
 }
 
@@ -1479,6 +1742,8 @@ const RICH_PRESENCE_TESTS = [
 	check_rp_dynamic,
 	check_rp_default,
 	check_rp_notes,
+    check_rp_lookups,
+	check_rp_display_strings,
 ];
 
 const SET_TESTS = [
