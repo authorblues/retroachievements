@@ -1832,7 +1832,7 @@ function RARPDisplayEditor({ ds, isHex, toggleHex, selectedItem, setSelectedItem
 
 				<div className="rarp-panel" style={{flexBasis: `calc(${100 - templateWidth}% - 5px)`, flexGrow: 0, flexShrink: 0}}>
 					<div className="rarp-panel-header">Live Preview Panel</div>
-					<div className="rarp-panel-content" style={{ backgroundColor: '#202225', padding: 0 }}>
+					<div className="rarp-panel-content">
 						<RARPLivePreview script={current.rp} displayString={ds} />
 					</div>
 				</div>
