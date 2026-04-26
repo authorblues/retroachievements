@@ -1155,7 +1155,6 @@ function* check_title_case(asset)
 		yield new Issue(Feedback.TITLE_CASE, 'title',
 			<ul>
 				<li>Automated suggestion: <em>{corrected_title}</em></li>
-				<li>Additional suggestions</li>
 				<li>Additional suggestions (links below take have been auto-filled with this title)</li>
 				<ul>
 					<li><a href={`https://titlecaseconverter.com/?style=CMOS&showExplanations=1&keepAllCaps=1&multiLine=1&highlightChanges=1&convertOnPaste=1&straightQuotes=1&title=${q}`}>titlecaseconverter.com</a> &mdash; preferred by Writing Team</li>
@@ -1360,7 +1359,6 @@ function* validate_macro_logic(part, ds) {
 			if (isCmp) {
 				conditionalLines.push(req);
 				if (req.flag && (req.flag.name === 'Measured' || req.flag.name === 'Measured%')) {
-					yield new Issue(Feedback.RP_MACRO_SYNTAX_ERROR, req, <ul><li>In macro '{part.text}', 'Measured' cannot be combined with a comparison operator.</li></ul>);
 					yield new Issue(Feedback.RP_MACRO_SYNTAX_ERROR, req, <ul><li>In macro <code>{part.text}</code>, <code>Measured</code> cannot be combined with a comparison operator.</li></ul>);
 				}
 			} else {
