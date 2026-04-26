@@ -1202,6 +1202,7 @@ class RichPresenceLookup {
 		this.entries = [];
 		this.#ref = crypto.randomUUID();
 	}
+	isFormatter() { return this.entries?.length === 0 && this.defaultVal === null; }
 	toRefString() { return `lookup-${this.#ref}`; }
 }
 
