@@ -1423,7 +1423,7 @@ function* validate_macro_logic(part, ds) {
 			if (!hasMeasured) {
 				let issue = new Issue(Feedback.RP_MACRO_SYNTAX_ERROR, ds, <ul><li>In macro <code>{part.text}</code>, multiple memory addresses are provided without a comparison. One must be marked with a <code>Measured</code> flag.</li></ul>);
 				issue.macro = part.text;
-				yield issue;
+				// yield issue;
 			}
 		}
 	}
