@@ -44,21 +44,21 @@ const Feedback = Object.freeze({
 	// writing policy feedback
 	TITLE_CASE: { severity: FeedbackSeverity.INFO, desc: "Titles should be written in title case according to the Chicago Manual of Style.",
 		ref: ["https://en.wikipedia.org/wiki/Title_case#Chicago_Manual_of_Style",], },
-	TITLE_PUNCTUATION: { severity: FeedbackSeverity.INFO, desc: "Achievement titles are not full sentences, and should not end with punctuation (exception: ?, !, or ellipses).",
+	TITLE_PUNCTUATION: { severity: FeedbackSeverity.INFO, desc: "Asset titles are not full sentences, and should not end with punctuation (exception: ?, !, or ellipses).",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#punctuation",], },
-	DESC_SENTENCE_CASE: { severity: FeedbackSeverity.INFO, desc: "Achievement descriptions should not be in title case, but rather sentence case.",
+	DESC_SENTENCE_CASE: { severity: FeedbackSeverity.INFO, desc: "Asset descriptions should not be in title case, but rather sentence case.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#capitalization-1",], },
-	DESC_PUNCT_CONSISTENCY: { severity: FeedbackSeverity.INFO, desc: "Achievement descriptions should be consistent about whether or not they end with punctuation.",
+	DESC_PUNCT_CONSISTENCY: { severity: FeedbackSeverity.INFO, desc: "Asset descriptions should be consistent about whether or not they end with punctuation.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#punctuation-1",], },
-	DESC_BRACKETS: { severity: FeedbackSeverity.INFO, desc: "Achievement descriptions should avoid brackets where possible.",
+	DESC_BRACKETS: { severity: FeedbackSeverity.INFO, desc: "Asset descriptions should avoid brackets where possible.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#brackets-parentheses",], },
-	DESC_SYMBOLS: { severity: FeedbackSeverity.INFO, desc: "Achievement descriptions are discouraged from using symbols to describe conditions.",
+	DESC_SYMBOLS: { severity: FeedbackSeverity.INFO, desc: "Asset descriptions are discouraged from using symbols to describe conditions.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#symbols-and-emojis",], },
-	DESC_QUOTES: { severity: FeedbackSeverity.INFO, desc: "Achievement descriptions should only use double quotation marks, except for quotes inside quotes.",
+	DESC_QUOTES: { severity: FeedbackSeverity.INFO, desc: "Asset descriptions should only use double quotation marks, except for quotes inside quotes.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#symbols-and-emojis",], },
 	NUM_FORMAT: { severity: FeedbackSeverity.INFO, desc: "Numbers should be formatted to conform to English standards (period for decimal separation, commas for grouping).",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#number-formatting",], },
-	NO_EMOJI: { severity: FeedbackSeverity.WARN, desc: "Achievement titles and descriptions may not contain emoji.",
+	NO_EMOJI: { severity: FeedbackSeverity.WARN, desc: "Asset titles and descriptions may not contain emoji.",
 		ref: [
 			"https://docs.retroachievements.org/guidelines/content/writing-policy.html#emojis",
 			"https://docs.retroachievements.org/guidelines/content/writing-policy.html#symbols-and-emojis",
@@ -68,7 +68,7 @@ const Feedback = Object.freeze({
 		//	"https://docs.retroachievements.org/guidelines/content/naming-conventions.html",
 			"https://docs.retroachievements.org/developer-docs/tips-and-tricks.html#naming-convention-tips",
 		], },
-	FOREIGN_CHARS: { severity: FeedbackSeverity.INFO, desc: `Achievement titles and descriptions should be written in English and should avoid special characters, unless given special approval.`,
+	FOREIGN_CHARS: { severity: FeedbackSeverity.INFO, desc: `Asset titles and descriptions should be written in English and should avoid special characters, unless given special approval.`,
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#language",], },
 
 	// set design errors
@@ -149,13 +149,13 @@ const Feedback = Object.freeze({
 	// code errors
 	BAD_CHAIN: { severity: FeedbackSeverity.ERROR, desc: "The last requirement of a group cannot have a chaining flag.",
 		ref: [], },
-	MISSING_NOTE: { severity: FeedbackSeverity.FAIL, desc: "All addresses used in achievement logic require a code note.",
+	MISSING_NOTE: { severity: FeedbackSeverity.FAIL, desc: "All addresses used in asset logic require a code note.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html",], },
 	ONE_CONDITION: { severity: FeedbackSeverity.FAIL, desc: "One-condition achievements are dangerous and should be avoided.",
 		ref: ["https://docs.retroachievements.org/developer-docs/tips-and-tricks.html#achievement-creation-tips",], },
-	MISSING_DELTA: { severity: FeedbackSeverity.FAIL, desc: "Achievements must contain a Delta to isolate the specific moment that an achievement should trigger.",
+	MISSING_DELTA: { severity: FeedbackSeverity.FAIL, desc: "Logic must contain a Delta to isolate the specific moment that an asset should trigger.",
 		ref: ['https://docs.retroachievements.org/developer-docs/delta-values.html',], },
-	IMPROPER_DELTA: { severity: FeedbackSeverity.WARN, desc: "Proper use of Delta can help identify the precise moment that an achievement should trigger.",
+	IMPROPER_DELTA: { severity: FeedbackSeverity.WARN, desc: "Proper use of Delta can help identify the precise moment that an asset should trigger.",
 		ref: ['https://docs.retroachievements.org/developer-docs/delta-values.html',], },
 	BAD_PRIOR: { severity: FeedbackSeverity.FAIL, desc: "Questionable use of Prior. See below for more information.",
 		ref: ['https://docs.retroachievements.org/developer-docs/prior-values.html',], },
@@ -186,15 +186,15 @@ const Feedback = Object.freeze({
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/andnext-ornext.html',], },
 	USELESS_ALT: { severity: FeedbackSeverity.ERROR, desc: "A Reset-only Alt group is considered satisfied, making all other Alt groups useless.",
 		ref: [], },
-	UUO_RESET: { severity: FeedbackSeverity.FAIL, desc: "ResetIf should only be used with achievements that have hitcounts.",
+	UUO_RESET: { severity: FeedbackSeverity.FAIL, desc: "ResetIf should only be used with requirements containing hit targets.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/resetif.html',], },
-	UUO_RNI: { severity: FeedbackSeverity.FAIL, desc: "ResetNextIf should only be used with requirements that have hitcounts, and must be placed immediately before the requirement with the hits.",
+	UUO_RNI: { severity: FeedbackSeverity.FAIL, desc: "ResetNextIf should only be used with requirements containing hit targets, and must be placed immediately before the requirement with the hit target.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/resetnextif.html',], },
-	UUO_PAUSE: { severity: FeedbackSeverity.FAIL, desc: "PauseIf should only be used with requirements that have hitcounts.",
+	UUO_PAUSE: { severity: FeedbackSeverity.FAIL, desc: "PauseIf should only be used with requirements containing hit targets.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/pauseif.html',], },
 	ADDHITS_WITHOUT_TARGET: { severity: FeedbackSeverity.ERROR, desc: "AddHits in a chain should end in a hit target. Without a hit target, AddHits does nothing.",
 		ref: [], },
-	PAUSING_MEASURED: { severity: FeedbackSeverity.PASS, desc: "PauseIf should only be used with requirements that have hitcounts, unless being used to freeze updates to a Measured requirement.",
+	PAUSING_MEASURED: { severity: FeedbackSeverity.PASS, desc: "PauseIf should only be used with requirements containing hit targets, unless being used to freeze updates to a Measured requirement.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/measured.html#measured',], },
 	RESET_HITCOUNT_1: { severity: FeedbackSeverity.WARN, desc: "A ResetIf or ResetNextIf with a hitcount of 1 does not require a hitcount. The hitcount can be safely removed.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/resetif.html',], },
@@ -1156,9 +1156,10 @@ function* check_title_case(asset)
 			<ul>
 				<li>Automated suggestion: <em>{corrected_title}</em></li>
 				<li>Additional suggestions</li>
+				<li>Additional suggestions (links below take have been auto-filled with this title)</li>
 				<ul>
-					<li><a href={`https://titlecaseconverter.com/?style=CMOS&showExplanations=1&keepAllCaps=1&multiLine=1&highlightChanges=1&convertOnPaste=1&straightQuotes=1&title=${q}`}>titlecaseconverter.com</a></li>
-					<li><a href={`https://capitalizemytitle.com/style/Chicago/?title=${q}`}>capitalizemytitle.com</a></li>
+					<li><a href={`https://titlecaseconverter.com/?style=CMOS&showExplanations=1&keepAllCaps=1&multiLine=1&highlightChanges=1&convertOnPaste=1&straightQuotes=1&title=${q}`}>titlecaseconverter.com</a> &mdash; preferred by Writing Team</li>
+					<li><a href={`https://capitalizemytitle.com/style/Chicago/?title=${q}`}>capitalizemytitle.com</a> &mdash; for backup feedback</li>
 				</ul>
 				<li><em>Warning: automated suggestions don't handle hyphenated or otherwise-separated words gracefully. When in doubt, please rely on the sites linked above.</em></li>
 			</ul>);
