@@ -1307,7 +1307,7 @@ class RichPresence
 		let currentComment = null;
 
 		for (let line of lines) {
-			let trimmed = line.trim();
+			let trimmed = line.trimStart();
 
 			if (trimmed.includes('//')) {
 				let commentIndex = trimmed.indexOf('//');
@@ -1347,12 +1347,12 @@ class RichPresence
 				let parts = trimmed.split('=');
 				if (parts.length >= 2) {
 					// Join back in case value had an '='
-					let valStr = parts.slice(1).join('=').trim(); 
+					let valStr = parts.slice(1).join('=');
 					if (parts[0].trim() === '*') {
 						currentLookup.defaultVal = valStr;
 					} else {
 						// Handle comma-separated keys (e.g. 0x1,0x2=Value)
-						let keys = parts[0].trim().split(',');
+						let keys = parts[0].split(',');
 						for (let rawKey of keys) {
 							let keyString = rawKey.trim();
 							let parsed = RichPresenceParser.parseKeyString(keyString);

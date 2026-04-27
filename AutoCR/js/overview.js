@@ -1890,7 +1890,7 @@ function RARPDetailView({ script, selectedItem, setSelectedItem, isHex, toggleHe
 										<tr key={i}>
 											<td>0x{e.keyValue.toString(16).toUpperCase()} {e.keyValueEnd && e.keyValueEnd !== e.keyValue ? `- 0x${e.keyValueEnd.toString(16).toUpperCase()}` : ''}</td>
 											<td>{e.keyValue} {e.keyValueEnd && e.keyValueEnd !== e.keyValue ? `- ${e.keyValueEnd}` : ''}</td>
-											<td>{e.value}</td>
+											<td style={{'white-space': 'pre-wrap'}}>{e.value}</td>
 										</tr>
 									))}
 									{item.defaultVal !== null && (
