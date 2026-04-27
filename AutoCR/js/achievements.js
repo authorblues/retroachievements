@@ -1309,7 +1309,7 @@ class RichPresence
 		for (let line of lines) {
 			let trimmed = line.trim();
 
-			if (trimmed.contains('//')) {
+			if (trimmed.includes('//')) {
 				let commentIndex = trimmed.indexOf('//');
 				currentComment = trimmed.substring(commentIndex + 2).trim();
 				trimmed = trimmed.substring(0, commentIndex).trim();
