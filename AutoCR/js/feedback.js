@@ -1158,8 +1158,8 @@ function* check_title_case(asset)
 				<li>Automated suggestion: <em>{corrected_title}</em></li>
 				<li>Additional suggestions (links below have been auto-filled with original title)</li>
 				<ul>
-					<li><a href={`https://titlecaseconverter.com/?style=CMOS&showExplanations=1&keepAllCaps=1&multiLine=1&highlightChanges=1&convertOnPaste=1&straightQuotes=1&title=${q}`}>titlecaseconverter.com</a> &mdash; preferred by Writing Team</li>
-					<li><a href={`https://capitalizemytitle.com/style/Chicago/?title=${q}`}>capitalizemytitle.com</a> &mdash; for backup feedback</li>
+					<li><a target="_blank" href={`https://titlecaseconverter.com/?style=CMOS&showExplanations=1&keepAllCaps=1&multiLine=1&highlightChanges=1&convertOnPaste=1&straightQuotes=1&title=${q}`}>titlecaseconverter.com</a> &mdash; preferred by Writing Team</li>
+					<li><a target="_blank" href={`https://capitalizemytitle.com/style/Chicago/?title=${q}`}>capitalizemytitle.com</a> &mdash; for backup feedback</li>
 				</ul>
 				<li><em>Warning: automated suggestions don't handle hyphenated or otherwise-separated words gracefully. When in doubt, please rely on the sites linked above.</em></li>
 			</ul>);
