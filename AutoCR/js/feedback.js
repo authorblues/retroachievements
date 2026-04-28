@@ -8,12 +8,13 @@ function make_title_case(phrase)
 	]);
 	function tc_minor(word) { return TITLE_CASE_MINORS.has(word); }
 	function tc(s) { return s.charAt(0).toUpperCase() + s.substring(1); }
+	const lastws = phrase.matchAll(/\s/g).toArray()?.pop()?.index;
 	return phrase.replace(/[0-9'\u2018\u2019\p{Script=Latin}]+/gu, function(x, i)
 	{
 		// if the word is presented in allcaps, assume it is done so intentionally
 		if (x == x.toUpperCase()) return x;
 		// first and last word of a phrase should be capitalized
-		if (i == 0 || i + x.length == phrase.length) return tc(x);
+		if (i == 0 || lastws + 1 == i) return tc(x);
 		// if this is part of a hyphenated word, don't change it
 		if (phrase[i-1] == '-') return x;
 		// first word of a new sentence should be capitalized again
