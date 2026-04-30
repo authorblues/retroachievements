@@ -1177,7 +1177,7 @@ function HighlightedFeedback({text, pattern})
 const EMOJI_RE = /(\p{Emoji_Presentation})/gu;
 const TYPOGRAPHY_PUNCT = /([\u2018\u2019\u201C\u201D])/gu;
 const FOREIGN_RE = /([\p{Script=Arabic}\p{Script=Armenian}\p{Script=Bengali}\p{Script=Bopomofo}\p{Script=Braille}\p{Script=Buhid}\p{Script=Canadian_Aboriginal}\p{Script=Cherokee}\p{Script=Cyrillic}\p{Script=Devanagari}\p{Script=Ethiopic}\p{Script=Georgian}\p{Script=Greek}\p{Script=Gujarati}\p{Script=Gurmukhi}\p{Script=Han}\p{Script=Hangul}\p{Script=Hanunoo}\p{Script=Hebrew}\p{Script=Hiragana}\p{Script=Inherited}\p{Script=Kannada}\p{Script=Katakana}\p{Script=Khmer}\p{Script=Lao}\p{Script=Limbu}\p{Script=Malayalam}\p{Script=Mongolian}\p{Script=Myanmar}\p{Script=Ogham}\p{Script=Oriya}\p{Script=Runic}\p{Script=Sinhala}\p{Script=Syriac}\p{Script=Tagalog}\p{Script=Tagbanwa}\p{Script=Tamil}\p{Script=Telugu}\p{Script=Thaana}\p{Script=Thai}\p{Script=Tibetan}\p{Script=Yi}]+)/gu;
-const NON_ASCII_RE = /([^\x00-\x7F\xA5\xA3]+)/g;
+const NON_ASCII_RE = /([^\x00-\x7F\xA5\xA3\p{L}]+)/gu;
 
 function* check_writing_mistakes(asset)
 {
