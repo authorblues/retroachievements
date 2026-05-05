@@ -515,7 +515,7 @@ achievement(
 	title="Red Coins Around the Fortress",
 	description="Collect the red coin star in Bowser's Flying Fortress",
 	points=2,
-	trigger=map_id() == MAP_B1_FORTRESS_A && collected_star(0x11, 1)
+	trigger=map_id() == MAP_B1_FORTRESS_A && is_set(b1_reds())
 )
 
 achievement(
@@ -534,6 +534,7 @@ achievement(
 			mario_y() >= 3230.0 && mario_y() <= 4100.0 &&
 			mario_z() >= 5150.0 && mario_z() <= 6150.0
 		) &&
+		never(mario_z() < -6170.0) && // return to before the tunnel
 		never(map_id() != MAP_B1_FORTRESS_A) &&
 		never(guards_alerted())
 	)
@@ -562,7 +563,7 @@ achievement(
 	title="Red Coins in the Doggiverse",
 	description="Collect the red coin star in Bowser's Furious Finale",
 	points=5,
-	trigger=map_id() == MAP_B3_FINALE_B && prev(animation()) != 0x1307 && animation() == 0x1307 && last_star_stage() == 0x13 && last_star_num() == 1
+	trigger=map_id() == MAP_B3_FINALE_B && is_set(b3_reds())
 )
 
 achievement(
