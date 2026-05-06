@@ -673,7 +673,7 @@ TREASURE_THRESHOLDS = [
 
 for data in TREASURE_THRESHOLDS
 {
-	n = (data["threshold"] * length(ALL_TREASURES)) / 100
+	n = (data["threshold"] * length(ALL_TREASURES)) / 100.0
 	achievement(
 		title=data["title"],
 		description=format("Collect {0}% of the treasure in the Shake Dimension", data["threshold"]),
@@ -710,7 +710,7 @@ MISSION_THRESHOLDS = [
 TOTAL_MISSION_COUNT = sum_of(STAGES, (stage) => stage.missions)
 for data in MISSION_THRESHOLDS
 {
-	n = (data["threshold"] * TOTAL_MISSION_COUNT) / 100
+	n = (data["threshold"] * TOTAL_MISSION_COUNT) / 100.0
 	achievement(
 		title=data["title"],
 		description=format("Complete {0}% of the extra missions in the Shake Dimension", data["threshold"]),
