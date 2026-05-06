@@ -45,6 +45,7 @@ class Region
 	function flag(x) => byte(this.addr_flag_table + x)
 	function field_id() => byte(this.addr_field_id)
 	function screen_id() => word_be(this.addr_roomscreen_id)
+	function full_screen() => tbyte_be(this.addr_field_id)
 	function room_id() => byte(this.addr_roomscreen_id)
 	function music_id() => dword_be(this.addr_music_id)
 
@@ -76,7 +77,8 @@ class Region
 	function is_region() => ascii_string_equals(0x3180, this.diskname)
 	function in_game() => this.is_region() && prev(this.field_id()) != F_TITLE_SCREEN
 
-	function in_room(field, screen) => this.field_id() == field && this.screen_id() == screen // && prev(this.field_id()) != F_TITLE_SCREEN
+	// function in_room(field, screen) => this.field_id() == field && this.screen_id() == screen // && prev(this.field_id()) != F_TITLE_SCREEN
+	function in_room(field, screen) => this.full_screen() == field * 0x10000 + screen
 	function start_boss_fight(x) => prev(this.boss_state(x)) < 2 && this.boss_state(x) == 2
 	function end_boss_fight(x) => prev(this.boss_state(x)) == 2 && this.boss_state(x) == 3
 }
@@ -537,7 +539,20 @@ boss_progression_achievement(BOSS_MOTHER, F_TRUE_SHRINE, 0x0300, "Good Night Mom
 one_finger_achievement(BOSS_AMPHISBAENA, F_GUIDANCE, 0x0801, "All I Need Is One Finger versus Amphisbaena", 5)
 one_finger_achievement(BOSS_SAKIT, F_MAUSOLEUM, 0x0801, "All I Need Is One Finger versus Sakit", 5)
 one_finger_achievement(BOSS_ELLMAC, F_SUN_TEMPLE, 0x0800, "All I Need Is One Finger versus Ellmac", 10)
-one_finger_achievement(BOSS_BAHAMUT, F_SPRING, 0x0400, "All I Need Is One Finger versus Bahamut", 10)
+
+// one_finger_achievement(BOSS_BAHAMUT, F_SPRING, 0x0400, "All I Need Is One Finger versus Bahamut", 10)
+achievement(
+	title="All I Need Is One Finger versus Bahamut",
+	description="Defeat Bahamut without using any sub-weapons in hard mode",
+	points=10,
+	trigger=any_of(REGIONS, r => (
+		once(r.is_region() && r.is_hard_mode() && r.full_screen() == 0x040400 && r.start_boss_fight(BOSS_BAHAMUT)) &&
+		trigger_when(r.end_boss_fight(BOSS_BAHAMUT)) &&
+		never(r.is_region() && r.full_screen() != 0x040400 && r.full_screen() != 0x010601) &&
+		never(r.is_region() && r.subweapon_used() >= 0x08 && r.subweapon_used() <= 0x0F)
+	))
+)
+
 one_finger_achievement(BOSS_VIY, F_INFERNO, 0x0801, "All I Need Is One Finger versus Viy", 10)
 one_finger_achievement(BOSS_BAPHOMET, F_TWIN_LABS, 0x0401, "All I Need Is One Finger versus Baphomet", 10)
 one_finger_achievement(BOSS_PALENQUE, F_EXTINCTION, 0x0901, "All I Need Is One Finger versus Palenque", 25)
