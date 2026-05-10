@@ -1096,7 +1096,7 @@ function AchievementSetOverview()
 					<li>Achievement features:</li>
 					<ul>
 						<li>Achievements using <code>Delta</code> checks: <ShowPercentage x={stats.using_delta} /></li>
-						<li>Achievements using <code>Prior</code> checks: <ShowPercentage x={stats.using_prior} /></li>
+						<li>Achievements using <code>Prior</code>: <ShowPercentage x={stats.using_prior} /></li>
 						<li>Achievements using Alt groups: {stats.using_alt_groups.length}</li>
 						<li>Achievements using hitcounts: {stats.using_hitcounts.length}</li>
 						<li>Achievements using <span title="requirements with a hitcount of 1">checkpoint hits</span>: {stats.using_checkpoint_hits.length}</li>
