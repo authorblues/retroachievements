@@ -534,6 +534,7 @@ function generate_set_stats(set)
 	// number of achievements using each feature
 	stats.using_alt_groups = achievements.filter(ach => ach.feedback.stats.alt_groups > 0);
 	stats.using_delta = achievements.filter(ach => ach.feedback.stats.deltas > 0);
+	stats.using_prior = achievements.filter(ach => ach.feedback.stats.priors > 0);
 	stats.using_hitcounts = achievements.filter(ach => ach.feedback.stats.hit_target_many > 0);
 	stats.using_checkpoint_hits = achievements.filter(ach => ach.feedback.stats.checkpoint_hits > 0);
 	stats.using_pauselock = achievements.filter(ach => ach.feedback.stats.pause_locks > 0);
