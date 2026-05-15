@@ -485,7 +485,7 @@ achievement(
 
 achievement(
 	title="It's a Major Award",
-	description="I defended myself in the case of Threepwood v. Krebbs and was acquitted of all charges.",
+	description="I defended myself in the case of Krebbs v. Threepwood and was acquitted of all charges.",
 	type="progression",
 	points=3,
 	trigger=cs_end_by_len(CHAPTER4, "Courtroom.lua", 1118510551)
@@ -493,7 +493,7 @@ achievement(
 
 achievement(
 	title="Colluding with the Plaintiff",
-	description="I defended myself in the case of Threepwood v. D'Oro and was acquitted of all charges.",
+	description="I defended myself in the case of D'Oro v. Threepwood and was acquitted of all charges.",
 	type="progression",
 	points=3,
 	trigger=cs_end_by_len(CHAPTER4, "Courtroom.lua", 1116837512)
@@ -501,7 +501,7 @@ achievement(
 
 achievement(
 	title="Jacques' Shocking Testimony",
-	description="I defended myself in the case of Threepwood v. McGee and was acquitted of all charges.",
+	description="I defended myself in the case of McGee v. Threepwood and was acquitted of all charges.",
 	type="progression",
 	points=3,
 	trigger=cs_end_by_len(CHAPTER4, "Courtroom.lua", 1117774152)
@@ -509,14 +509,14 @@ achievement(
 
 achievement(
 	title="Badgering the Witness",
-	description="I defended myself in the case of Threepwood v. Hardtack and was acquitted of all charges.",
+	description="I defended myself in the case of Hardtack v. Threepwood and was acquitted of all charges.",
 	type="progression",
 	points=1,
 	trigger=cs_end_by_len(CHAPTER4, "Courtroom.lua", 1111545610)
 )
 
 achievement(
-	title="This Isn't What I Meant by \"Summoned\"",
+	title="If You Like Tuna Colada, or Getting Cod in the Rain",
 	description="I managed to serve Elaine with a summons to appear in court, which was no easy task!",
 	type="progression",
 	points=5,
