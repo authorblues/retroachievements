@@ -1438,10 +1438,12 @@ function CodeNotesOverview()
 	const [authState, setAuthState] = React.useState(Object.fromEntries([...authors].map(a => [a, true])));
 	const [warnsOnly, setWarnsOnly] = React.useState(false);
 	const [hideUnused, setHideUnused] = React.useState(false);
+	const [hideUsed, setHideUsed] = React.useState(false);
 
 	let displaynotes = current.notes.filter(note => authState[note.author]);
 	if (warnsOnly) displaynotes = displaynotes.filter(note => feedback_targets.has(note))
 	if (hideUnused) displaynotes = displaynotes.filter(note => note.assetList.length > 0)
+	if (hideUsed) displaynotes = displaynotes.filter(note => note.assetList.length == 0)
 	let displayissues = feedback.issues.filter(issue => !issue.target || displaynotes.includes(issue.target));
 
 	return (<>
@@ -1471,6 +1473,10 @@ function CodeNotesOverview()
 					{" | "}
 					<label htmlFor="hideUnused">Hide unused notes</label><input id="hideUnused" type="checkbox" onChange={(e) => {
 						setHideUnused(e.currentTarget.checked);
+					}} />
+					{" | "}
+					<label htmlFor="hideUsed">Hide used notes</label><input id="hideUsed" type="checkbox" onChange={(e) => {
+						setHideUsed(e.currentTarget.checked);
 					}} />
 				</li>
 			</ul>
