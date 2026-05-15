@@ -105,11 +105,12 @@ ALL_FILE_DATA = 0xC6B5C4
 function bike_ptr() => 0x00551880 + dword_be(ptr_chain(0x005C5680-0x67CC, [0x0024,]))*4
 function temp_gauge() => float_be(ptr(bike_ptr()) + 0x0784)
 
+// top lane is 0.0, bottom lane is 3.0
 function current_lane() => float_be(ptr(0x575F4C) + 0x0048)
 
 RACE_STATUS = ptr_chain(0x005C0450, [0x04, 0x14]) + 3
-function is_race_started() => bit0(RACE_STATUS) == 1
-function is_race_ended() => bit1(RACE_STATUS) == 1
+function is_race_started() => bit0(RACE_STATUS)
+function is_race_ended() => bit1(RACE_STATUS)
 
 // TODO: find time out timer to determine cause of race ending
 
@@ -162,6 +163,8 @@ function track() => current_cup()*10 + current_course()
 
 function track_time() => raw_track_time() - 1.0/60
 
+function crossed_finish_line() => is_set(is_race_ended()) && raw_track_time() < 5*60 + 30 // 5:30 seems to be the cutoff for timeout on all tracks, afaik
+
 function get_course_index(cup, course) => if_else(cup == 0, course, 1 + cup*4 + course)
 function get_course_offset(file, cup, course) => ALL_FILE_DATA + 1280*file + 4*get_course_index(cup, course)
 
@@ -201,14 +204,14 @@ rich_presence_conditional_display(game_state() != STATE_PLAYING,
 	"🏁 Getting Ready to Race"
 )
 
-rich_presence_conditional_display(is_race_ended(),
+rich_presence_conditional_display(is_race_ended() == 1,
 	"🏁 Race Ended · 🏆 {0} Cup · 🗺️ {1} · ⏱️ {2}",
 	rich_presence_lookup("Cup", current_cup(), CUPS, fallback=CUPS[0]),
 	rich_presence_lookup("Course", track(), TRACKS, fallback="???"),
-	rich_presence_value("_T", measured(track_time()*100) && unless(is_race_ended()), "MILLISECS")
+	rich_presence_value("_T", measured(track_time()*100) && unless(is_race_ended() == 1), "MILLISECS")
 )
 
-rich_presence_conditional_display(is_race_started(),
+rich_presence_conditional_display(is_race_started() == 1,
 	"🏁 Racing · 🏆 {0} Cup · 🗺️ {1} · ⏱️ {2}",
 	rich_presence_lookup("Cup", current_cup(), CUPS, fallback=CUPS[0]),
 	rich_presence_lookup("Course", track(), TRACKS, fallback="???"),
@@ -231,7 +234,7 @@ rich_presence_display(
 // progression achievements
 achievement(
 	title="Road Warrior",
-	description="Complete all courses in the Bronze cup to unlock the Silver cup",
+	description="Complete all courses in the Bronze cup with a B rank or higher to unlock the Silver cup",
 	type="progression",
 	points=5,
 	trigger=complete_cup(0, range(1,4))
@@ -239,7 +242,7 @@ achievement(
 
 achievement(
 	title="Cosmopolitan",
-	description="Complete all courses in the Silver cup to unlock the Gold cup",
+	description="Complete all courses in the Silver cup with a B rank or higher to unlock the Gold cup",
 	type="progression",
 	points=5,
 	trigger=complete_cup(1, range(0,3))
@@ -247,7 +250,7 @@ achievement(
 
 achievement(
 	title="World Traveller",
-	description="Complete all courses in the Gold cup to unlock the Platinum cup",
+	description="Complete all courses in the Gold cup with a B rank or higher to unlock the Platinum cup",
 	type="progression",
 	points=10,
 	trigger=complete_cup(2, range(0,3))
@@ -255,7 +258,7 @@ achievement(
 
 achievement(
 	title="Globetrotter",
-	description="Complete all courses in the Platinum cup",
+	description="Complete all courses in the Platinum cup with a B rank or higher",
 	type="win_condition",
 	points=25,
 	trigger=complete_cup(3, range(0,3))
@@ -296,4 +299,46 @@ s_rank_achievement(cup=3, course=1, points=5, title="Jiayou")
 s_rank_achievement(cup=3, course=2, points=5, title="Castles in the Sand")
 s_rank_achievement(cup=3, course=3, points=5, title="The Big Apple")
 
+achievement(
+	title="Clean Racing",
+	description="Complete any track in the Platinum cup without crashing or overheating",
+	points=3,
+	trigger=(
+		once(game_state() == STATE_PLAYING && is_set(is_race_started())) &&
+		trigger_when(crossed_finish_line()) &&
+		// only trigger on Platinum cup
+		never(current_cup() != 3) &&
+		// just to catch it earlier. this will still move the player out of
+		// their lane
+		never(temp_gauge() >= 1.0) &&
+		// this catches generic crashes. player is moved out of lane
+		never(current_lane() < 0.0) &&
+		never(current_lane() > 3.0) &&
+		// clear if not playing
+		never(game_state() != STATE_PLAYING) &&
+		// or if the race is ended without triggering the achievement
+		never(prev(is_race_ended()) == 1)
+	)
+)
+
 // --- LEADERBOARDS -------------------------------------------------------------------
+
+for cup in range(0,3)
+	for _course in range(0,3)
+	{
+		course = _course
+		if (cup == 0) course = _course + 1
+
+		leaderboard(
+			title=format("{0} ({1} Cup) Speedrun", TRACKS[cup*10+course], CUPS[cup]),
+			description=format("Fastest time on {0} in the {1} cup", TRACKS[cup*10+course], CUPS[cup]),
+		
+			start=loaded_profile() != 0xffffffff && current_cup() == cup && current_course() == course && crossed_finish_line(),
+			cancel=always_false(),
+			submit=always_true(),
+		
+			value=measured(track_time()*100),
+			format="MILLISECS",
+			lower_is_better=true
+		)
+	}
