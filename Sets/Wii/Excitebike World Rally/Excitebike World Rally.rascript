@@ -93,14 +93,14 @@ function raw_track_time() => float_be(ptr(0x5C03C4) + 0x1C)
 //          +0x2C = Controller Type [32-bit BE] (0 = normal, 1 = classic)
 function profile_blocks() => byte(0xB9A080)
 
-// $C6B5C4: File Info [5120 Bytes]
-//          each file is 1280 bytes x 4 files
+// $C6B5C0: File Info [5120 Bytes]
+//          each file is 1284 bytes x 4 files
 //          4 bytes per track
 //          
 //          +1 = has played [8 bit]
 //          +2 = medal (0 = S, 4 = D, 5 = none) [8 bit]
 //          +3 = completed [8 bit]
-ALL_FILE_DATA = 0xC6B5C4
+ALL_FILE_DATA = 0xC6B5C0
 
 function bike_ptr() => 0x00551880 + dword_be(ptr_chain(0x005C5680-0x67CC, [0x0024,]))*4
 function temp_gauge() => float_be(ptr(bike_ptr()) + 0x0784)
@@ -110,9 +110,8 @@ function current_lane() => float_be(ptr(0x575F4C) + 0x0048)
 
 RACE_STATUS = ptr_chain(0x005C0450, [0x04, 0x14]) + 3
 function is_race_started() => bit0(RACE_STATUS)
-function is_race_ended() => bit1(RACE_STATUS)
-
-// TODO: find time out timer to determine cause of race ending
+function is_race_ended() => dword_be(ptr_chain(0x005C0450, [0x18C, ]))
+function final_time() => float_be(ptr_chain(0x005C0450, [0x1A0, ]))
 
 // --- MAIN DATA -------------------------------------------------------------------
 
@@ -157,16 +156,14 @@ GAME_TITLES = {
 
 // --- AUX FUNCTIONS  -------------------------------------------------------------------
 
-function get_medal(cup, course) => byte(ALL_FILE_DATA + loaded_profile()*1280 + 4*(1 + cup*4 + course))
-
 function track() => current_cup()*10 + current_course()
 
 function track_time() => raw_track_time() - 1.0/60
 
-function crossed_finish_line() => is_set(is_race_ended()) && raw_track_time() < 5*60 + 30 // 5:30 seems to be the cutoff for timeout on all tracks, afaik
+function crossed_finish_line() => is_set(is_race_ended()) && game_state() == STATE_PLAYING && raw_track_time() < 5*60 + 30 // 5:30 seems to be the cutoff for timeout on all tracks, afaik
 
 function get_course_index(cup, course) => if_else(cup == 0, course, 1 + cup*4 + course)
-function get_course_offset(file, cup, course) => ALL_FILE_DATA + 1280*file + 4*get_course_index(cup, course)
+function get_course_offset(file, cup, course) => ALL_FILE_DATA + 1284*file + 4 + 4*get_course_index(cup, course)
 
 function get_course_played(file, cup, course) => byte(get_course_offset(file, cup, course) + 1)
 function get_course_medal(file, cup, course) => byte(get_course_offset(file, cup, course) + 2)
@@ -208,7 +205,7 @@ rich_presence_conditional_display(is_race_ended() == 1,
 	"🏁 Race Ended · 🏆 {0} Cup · 🗺️ {1} · ⏱️ {2}",
 	rich_presence_lookup("Cup", current_cup(), CUPS, fallback=CUPS[0]),
 	rich_presence_lookup("Course", track(), TRACKS, fallback="???"),
-	rich_presence_value("_T", measured(track_time()*100) && unless(is_race_ended() == 1), "MILLISECS")
+	rich_presence_value("_T", final_time()*100, "MILLISECS")
 )
 
 rich_presence_conditional_display(is_race_started() == 1,
@@ -333,11 +330,11 @@ for cup in range(0,3)
 			title=format("{0} ({1} Cup) Speedrun", TRACKS[cup*10+course], CUPS[cup]),
 			description=format("Fastest time on {0} in the {1} cup", TRACKS[cup*10+course], CUPS[cup]),
 		
-			start=loaded_profile() != 0xffffffff && current_cup() == cup && current_course() == course && crossed_finish_line(),
+			start=loaded_profile() != 0xffffffff && current_cup() == cup && current_course() == course && crossed_finish_line() && final_time() < 99999.0,
 			cancel=always_false(),
 			submit=always_true(),
 		
-			value=measured(track_time()*100),
+			value=measured(final_time()*100),
 			format="MILLISECS",
 			lower_is_better=true
 		)
