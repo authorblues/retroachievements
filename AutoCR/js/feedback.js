@@ -634,6 +634,7 @@ function* check_deltas(logic)
 		}
 	}
 
+	let core_unmatched_delta_set = new Set();
 	let delta_groups = logic.groups.map((g, gi) =>
 	{
 		// If the group contains an always-false condition, it can never trigger.
@@ -666,8 +667,13 @@ function* check_deltas(logic)
 			{
 				// a delta only counts if it has a matching mem value
 				for (let op of [req.lhs, req.rhs])
-					if (op && op.type == ReqType.DELTA)
-						has_delta ||= memset.has(_prefix + op.toString());
+					if (op && op.type == ReqType.DELTA) {
+						let delta_has_mem = memset.has(_prefix + op.toString());
+						has_delta ||= delta_has_mem;
+
+						if(!delta_has_mem && gi == 0)
+							core_unmatched_delta_set.add(_prefix + op.toString())
+					}
 				_prefix = '';
 			}
 			
@@ -683,6 +689,37 @@ function* check_deltas(logic)
 
 	// either the core group must have the valid mem/delta check, or *all* alt groups
 	if (delta_groups[0] || (delta_groups.length > 1 && delta_groups.slice(1).every(x => x))) return;
+	
+	// At this point, delta_groups[0] could be "wrongfully" tagged as false in the case the core holds a delta that is 
+	//  matched by a Mem in each alt (but not in core)
+	for(const core_unmatched_delta of core_unmatched_delta_set)
+	{
+		let mem_groups = logic.groups.slice(1).map((g, gi) =>
+		{
+			// If the group contains an always-false condition, it can never trigger.
+			// Therefore, it doesn't need a mem matching this delta from the core
+			if (g.some(req => req.isAlwaysFalse()))
+				return true;
+
+			_prefix = '';
+			for (const [ri, req] of g.entries())
+			{
+				if (req.flag == ReqFlag.ADDADDRESS)
+					_prefix += req.lhs.toString() + (!req.rhs ? '' : (req.op + req.rhs.toString())) + ':';
+				else
+				{					
+					for (let op of [req.lhs, req.rhs])
+						if (op && op.type == ReqType.MEM && core_unmatched_delta == _prefix + op.toString())
+							return true;
+					_prefix = '';
+				}				
+			}
+			return false;
+		});
+
+		// We only need one delta in core that is matched by a mem in all alts
+		if(mem_groups.every(x => x)) return;
+	}
 	
 	// we know there's an issue
 	yield new Issue(Feedback.IMPROPER_DELTA, null, DELTA_FEEDBACK);
