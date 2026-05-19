@@ -161,6 +161,7 @@ function track() => current_cup()*10 + current_course()
 function track_time() => raw_track_time() - 1.0/60
 
 function crossed_finish_line() => is_set(is_race_ended()) && game_state() == STATE_PLAYING && raw_track_time() < 5*60 + 30 // 5:30 seems to be the cutoff for timeout on all tracks, afaik
+function out_of_lane() => current_lane() < -0.5 || current_lane() > 3.5
 
 function get_course_index(cup, course) => if_else(cup == 0, course, 1 + cup*4 + course)
 function get_course_offset(file, cup, course) => ALL_FILE_DATA + 1284*file + 4 + 4*get_course_index(cup, course)
@@ -305,12 +306,10 @@ achievement(
 		trigger_when(crossed_finish_line()) &&
 		// only trigger on Platinum cup
 		never(current_cup() != 3) &&
-		// just to catch it earlier. this will still move the player out of
-		// their lane
+		// just to catch it earlier. this will still move the player out of their lane
 		never(temp_gauge() >= 1.0) &&
 		// this catches generic crashes. player is moved out of lane
-		never(current_lane() < 0.0) &&
-		never(current_lane() > 3.0) &&
+		never(out_of_lane()) &&
 		// clear if not playing
 		never(game_state() != STATE_PLAYING) &&
 		// or if the race is ended without triggering the achievement
