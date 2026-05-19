@@ -127,6 +127,8 @@ class ExplanationContext
         // 3. Fallback formatting
         if (op.type === ReqType.FLOAT) return op.value.toString();
 
+		if (op.type == ReqType.RECALL) return "recalled value";
+
 		if (typeof op.value === 'number')
 		{
 			if (this.showDecimal) return op.value.toString();
