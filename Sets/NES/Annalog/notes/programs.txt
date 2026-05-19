@@ -1,0 +1,159 @@
+# https://github.com/mdsteele/annalog/blob/main/src/program.inc
+
+Opcodes
+    Empty = 0x00  ; (no args)        Jumps to program start (in zero cycles).
+    Copy  = 0x01  ; r, r/i           Sets register to value of second arg.
+    Sync  = 0x02  ; (no args)        Pauses until all machines are at a SYNC
+    Add   = 0x03  ; r, r/i, r/i      Sets register to sum of other args.
+    Sub   = 0x04  ; r, r/i, r/i      Sets register to difference of other args.
+    Mul   = 0x05  ; r, r/i, r/i      Sets register to product of other args.
+    Goto  = 0x06  ; addr             Jumps to an absolute address (0-15).
+    Skip  = 0x07  ; r/i              Skips next N instructions.
+    If    = 0x08  ; oper, r/i, r/i   Skips next instruction if false.
+    Til   = 0x09  ; oper, r/i, r/i   Jumps to prev instruction if false.
+    Act   = 0x0a  ; (no args)        Performs machine action (e.g. firing gun).
+    Move  = 0x0b  ; dir              Moves machine in the specified direction.
+    Rest  = 0x0c  ; r/i              Pauses for N * 16 frames.
+    Beep  = 0x0d  ; r/i              Plays a sound with one of ten pitches.
+    End   = 0x0e  ; (no args)        Halts the program.
+    Nop   = 0x0f  ; (no args)        Does nothing (but still takes a cycle).
+
+Comparison
+    Eq = 0 ; equal
+    Ne = 1  ; not equal
+    Lt = 2  ; less than
+    Le = 3  ; less than or equal
+    Gt = 4  ; greater than
+    Ge = 5  ; greater than or equal
+
+Direction
+    Up    = 0
+    Right = 1
+    Down  = 2
+    Left  = 3
+
+Instruction Fields
+    Erase     = 0 ; used for the erase-program menu (not really a field type)
+    Debug     = 1 ; used for the debug menu (not really a field type)
+    Opcode    = 2 ; the instruction's opcode
+    LValue    = 3 ; a writable register
+    RValue    = 4 ; an immediate value (0-9) or readable register
+    Address   = 5 ; an instruction number (for GOTO instructions)
+    Compare   = 6 ; a comparison operator (for IF and TIL instructions)
+    Direction = 7 ; a cardinal direction (for MOVE instructions)
+
+program instructions are 2 bytes
+    ;; The low nibble stores the second argument (if any), and the high nibble
+    ;; stores the third argument (if any).
+    Arg_byte .byte
+    ;; The high nibble stores an eOpcode, and the low nibble stores the first
+    ;; argument (if any).
+    Op_byte  .byte
+programs are 16 instructions
+    ;; The instructions in the program.  The length of the program is the index
+    ;; of the first eOpcode::Empty instruction if any, or kMaxProgramLength
+    ;; otherwise.
+    Code_sIns_arr .res .sizeof(sIns) * kMaxProgramLength
+
+Saved Program IDs
+0	BossCityAmmoRack
+1	BossCityLauncher
+2	BossCityReloader
+3	BossCryptWinch
+4	BossGardenCannon
+5	BossLavaBlaster
+6	BossLavaBoiler
+7	BossMineCrane
+8	BossMineTrolley
+9	BossShadowEmitterX
+10	BossShadowEmitterY
+11	BossTempleMinigun
+12	CityBuilding3AmmoRack
+13	CityBuilding3Launcher
+14	CityBuilding3Reloader
+15	CityCenterSemaphore1
+16	CityCenterSemaphore2
+17	CityCenterSemaphore3
+18	CityCenterSemaphore4
+19	CityOutskirtsLauncher
+20	CitySinkholeLift
+21	CoreBossBlaster
+22	CoreBossCannon
+23	CoreBossLaser
+24	CoreBossWinch
+25	CoreElevatorJet
+26	CoreLockLift1
+27	CoreLockLift2
+28	CoreLockLift3
+29	CryptFlowerWinch
+30	CryptGalleryWinch
+31	CryptNorthLift
+32	CryptNorthWinch
+33	CryptSouthWinch
+34	CryptTombWinch
+35	CryptWestWinch
+36	FactoryAccessRotor
+37	FactoryFlowerLowerRotor
+38	FactoryFlowerUpperRotor
+39	FactoryLockLift
+40	FactoryUpperRotor
+41	FactoryWestCrane
+42	GardenCrossroadLift
+43	GardenEastBridge
+44	GardenEastCannon
+45	GardenHallwayLift
+46	GardenShaftLowerBridge
+47	GardenShaftUpperBridge
+48	GardenTowerCannon
+49	LavaCavernBoiler
+50	LavaCenterBlaster
+51	LavaEastBlaster
+52	LavaEastLowerBoiler
+53	LavaEastUpperBoiler
+54	LavaStationBoiler
+55	LavaTeleportField
+56	LavaTunnelBoiler
+57	LavaVentLift
+58	LavaWestBoiler
+59	MermaidElevatorJet
+60	MermaidHut6Drums
+61	MermaidHut6Organ
+62	MermaidHut6Trombone
+63	MermaidSpringPump
+64	MineCollapseCrane
+65	MineCollapseTrolley
+66	MineEastHoist
+67	MineEastLift
+68	MineFlowerHoistEast
+69	MineFlowerHoistWest
+70	MineNorthConveyor
+71	MineNorthHoist
+72	MinePitHoistEast
+73	MinePitHoistWest
+74	MineSouthHoist
+75	MineSouthTrolley
+76	MineWestCrane
+77	PrisonCellLauncher
+78	PrisonCellLift
+79	PrisonEastLift
+80	PrisonEscapeTrolley
+81	SewerBasinMultiplexer
+82	SewerFlowerPump
+83	SewerNorthMultiplexer
+84	SewerSouthMultiplexer
+85	SewerTrapLift
+86	SewerWestMultiplexer
+87	ShadowDrillLaser
+88	ShadowEntryLift
+89	ShadowFlowerLaser
+90	ShadowHallMinigun
+91	ShadowHeartEmitterX
+92	ShadowHeartEmitterY
+93	ShadowOfficeLift
+94	ShadowTeleportField
+95	ShadowTrapLaser
+96	TempleAltarLowerMinigun
+97	TempleAltarUpperMinigun
+98	TempleFoyerCarriage
+99	TempleNaveLowerCarriage
+100	TempleNaveUpperCarriage

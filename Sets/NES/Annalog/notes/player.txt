@@ -1,0 +1,29 @@
+AvatarFlags
+	Airborne   = %10000000  ; if set, the avatar is in midair
+	Swimming   = %01000000  ; if set, the avatar is in water
+	Jumping    = %00100000  ; set during upward jump; release A button to slow
+	CoyoteMask = %00011111  ; bits used for the coyote timer (if airborne)
+	DepthMask  = %00011111  ; bits used for water depth (if swimming)
+	LandMask   = %00011111  ; bits used for landing timer (if grounded)
+
+AvatarPoses
+	0	Hidden     ; not drawn (e.g. for cutscenes)
+    1	Standing   ; (grounded) standing still on the ground
+    2	Looking    ; (grounded) standing still and looking upward
+    3	Reaching   ; (grounded) standing still and reaching upward
+    4	Straining  ; (grounded) standing still and reaching way upward
+    5	Kneeling   ; (grounded) kneeling down on the ground
+    6	Landing    ; (grounded) just landed from a jump
+    7	Reading    ; (grounded) facing away from camera (e.g. to read a sign)
+    8	Running1   ; (grounded) running along the ground (1st frame)
+    9	Running2   ; (grounded) running along the ground (2nd and 4th frames)
+    10	Running3   ; (grounded) running along the ground (3rd frame)
+    11	Swimming1  ; (swimming) swimming in water (1st frame)
+    12	Swimming2  ; (swimming) swimming in water (2nd frame)
+    13	SwimDoor   ; (swimming) facing into a doorway while swimming
+    14	Jumping    ; (airborne) jumping up
+    15	Hovering   ; (airborne) mid-jump hang time
+    16	Falling    ; (airborne) falling down
+    17	Slumping   ; (sleeping) falling down unconscious
+    18	Sleeping   ; (sleeping) lying down unconscious
+
