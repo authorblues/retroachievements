@@ -1,0 +1,20 @@
+https://lichess.org/training/themes
+https://www.chess.com/terms/paul-morphy-puzzle
+https://chessfox.com/opera-mate/
+
+--- WEIRD GAME STATES ---
+
+Checkers (bishops, doesn't work)
+pQjp00JPpQ554K4K4K4zDzDzDlD
+
+Checkers (pawns) - works but janky
+pQjp00JPpQj5kTkTkTk%t%t%tlG
+
+Diagonal setup
+HXw0108wc3bJg9jKk#G%v$Cl
+
+Shogi
+:9.>00w>2#Q9dX3TkTkTk%t%t%*:VpH
+
+Symmetric Zugzwang #1
+hBmhw0gh2LB,d#t#tTt#kWXj
