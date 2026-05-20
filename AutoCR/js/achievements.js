@@ -394,6 +394,8 @@ class AchievementSet
 			let asset;
 			switch (row[0][0])
 			{
+				case 'M': // local memory region
+					break;
 				case 'N': // local code note
 					notes.add(new CodeNote(row[1], row[2], null))
 					break;
