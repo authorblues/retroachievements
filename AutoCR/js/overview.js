@@ -1020,7 +1020,7 @@ function AchievementSetOverview()
 
 	let setNotReady = null;
 	if (!isSetReady && !achievements.some((ach) => ach.state == AssetState.CORE))
-		setNotReady = (<div class="set-warning">
+		setNotReady = (<div className="set-warning">
 			<h2>⚠️ This set may not yet be ready for review ⚠️</h2>
 			<p>There are several errors not yet addressed. Please check the feedback provided for each asset.</p>
 		</div>);
