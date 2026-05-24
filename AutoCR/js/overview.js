@@ -1367,12 +1367,14 @@ function CodeNotesTable({notes = [], issues = []})
 			jump_to_asset(asset);
 			TooltipManager.startHide();
 			e.preventDefault();
+			return false;
 		};
 
+		let route = document.getElementById(asset?.toRefString?.())?.getAttribute('data-route');
 		if (asset instanceof Achievement)
-			return <>🏆 <a href="#" onClick={handleclick}>{asset.title}</a></>;
+			return <>🏆 <a href={`#!/game/${current.id}${route}`} onClick={handleclick}>{asset.title}</a></>;
 		else if (asset instanceof Leaderboard)
-			return <>📊 <a href="#" onClick={handleclick}>{asset.title}</a></>;
+			return <>📊 <a href={`#!/game/${current.id}${route}`} onClick={handleclick}>{asset.title}</a></>;
 		else
 			return <>{asset}</>;
 	}
@@ -1413,7 +1415,7 @@ function CodeNotesTable({notes = [], issues = []})
 							<span className="tooltip"
 								onMouseEnter={(e) => {
 									const rect = e.currentTarget.getBoundingClientRect();
-									TooltipManager.show(<ul style={{width: "500px", "list-style-type": "none", "padding": 0, "margin": 0, }}>
+									TooltipManager.show(<ul style={{width: "500px", "listStyleType": "none", "padding": 0, "margin": 0, }}>
 										{note.assetList.map((a, i) => <li key={i}><LinkToAsset asset={a}/></li>)}
 									</ul>, rect);
 								}}
