@@ -342,8 +342,9 @@ COUNTED_ITEMS = [
 	ITEM_WHIP_CHAIN,
 	ITEM_WHIP_FLAIL,
 	ITEM_KNIFE,
-	ITEM_KEY_SWORD, // stays 1 even when empowered (state change, not tracking empowered)
-	// ITEM_KEY_SWORD_EMPOWERED,
+	ITEM_KEY_SWORD, // stays 1 even when empowered
+	ITEM_KEY_SWORD_EMPOWERED, // have to double count because, if we collect after mantras, unempowered is never set
+	// this double count gets fixed in item_count(r)
 	ITEM_AXE,
 	ITEM_KATANA,
 	ITEM_SHURIKEN,
@@ -425,12 +426,14 @@ COUNTED_ITEMS = [
 
 function item_count(r) => (
 	// 3 (-2) rotating grail states, 2 (-1) rotating lamp states
-	sum_of(COUNTED_ITEMS, x => r.inventory(x) / r.inventory(x)) +
+	sum_of(COUNTED_ITEMS, x => r.inventory(x) / r.inventory(x))
 	// 8 ankh jewels
-	sum_of(range(0,7), x => r.ankh_jewel_chest(x) / 2)
+	+ sum_of(range(0,7), x => r.ankh_jewel_chest(x) / 2)
+	// double counted empowered and unempowered key sword (-1), so we want to subtract the combination
+	- (r.inventory(ITEM_KEY_SWORD) & r.inventory(ITEM_KEY_SWORD_EMPOWERED))
 )
 
-MAX_COUNTED_ITEMS = length(COUNTED_ITEMS) - 3 + 8
+MAX_COUNTED_ITEMS = length(COUNTED_ITEMS) - 3 + 8 - 1
 
 function win_the_game(r) => (
 	// mother has been defeated, we are escaping!
@@ -750,7 +753,19 @@ item_achievement(ITEM_SPAULDER, F_TOWER_GODDESS, 0x0700, "Natural Flail Enhancem
 item_achievement(ITEM_ICE_CAPE, F_INFERNO, 0x0701, "Prepare for Frostbite", "Collect the Ice Cape", 3)
 item_achievement(ITEM_WHIP_FLAIL, F_TOWER_GODDESS, 0x0500, "Bloody Tears", "Collect the Flail Whip", 10)
 item_achievement(ITEM_AXE, F_MOONLIGHT, 0x0300, "Axe of the Apostles", "Collect the Axe", 5)
-item_achievement(ITEM_KEY_SWORD, F_ENDLESS, 0x0201, "Probably Useless", "Collect the Key Sword", 5)
+
+// item_achievement(ITEM_KEY_SWORD, F_ENDLESS, 0x0201, "Probably Useless", "Collect the Key Sword", 5)
+achievement(
+	title="Probably Useless",
+	description="Collect the Key Sword",
+	points=5,
+	trigger=any_of(REGIONS, r => (
+		r.is_region() && r.in_room(F_ENDLESS, 0x0201) && prev(r.field_id()) != F_TITLE_SCREEN &&
+		// check for both key sword or empowered, in case they already did the mantras. Thanks TheJewker :)
+		any_of([ITEM_KEY_SWORD, ITEM_KEY_SWORD_EMPOWERED], item => prev(r.inventory(item)) == 0 && r.inventory(item) > 0)
+	))
+)
+
 item_achievement(ITEM_ROLLING_SHURIKEN, F_MAUSOLEUM, 0x0300, "Minimum Motors", "Collect the Rolling Shuriken", 5)
 item_achievement(ITEM_FLARE_GUN, F_INFERNO, 0x0400, "A Flare for the Dramatic", "Collect the Flare Gun", 5)
 item_achievement(ITEM_CALTROPS, F_SPRING, 0x0100, "Danger Underfoot", "Collect the Caltrops", 2)
