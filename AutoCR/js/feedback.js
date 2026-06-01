@@ -468,7 +468,7 @@ function generate_code_note_stats(notes)
 	}
 
 	notes.forEach(note => {
-		note.assetList = asset_addresses.filter(e => e.addrs.includes(note.addr)).map(e => e.asset);
+		note.assetList = asset_addresses.filter(e => e.addrs.some(x => note.contains(x))).map(e => e.asset);
 	});
 
 	let used_notes = notes.filter(x => x.assetList.length > 0);
