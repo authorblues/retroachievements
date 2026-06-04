@@ -216,46 +216,21 @@ function draw_offered() => byte(0x07E0)
 function forced_draw() => byte(0x07E1)
 
 // $07E9: Black Clock (Frames) [8 bit]
-function black_clock_frames() => byte(0x07E9)
-
 // $07EA: Black Clock (00:00:0X) [8 bit]
-function black_clock_00_00_0x() => byte(0x07EA)
-
 // $07EB: Black Clock (00:00:X0) [8 bit]
-function black_clock_00_00_x0() => byte(0x07EB)
-
 // $07EC: Black Clock (00:0X:00) [8 bit]
-function black_clock_00_0x_00() => byte(0x07EC)
-
 // $07ED: Black Clock (00:X0:00) [8 bit]
-function black_clock_00_x0_00() => byte(0x07ED)
-
 // $07EE: Black Clock (0X:00:00) [8 bit]
-function black_clock_0x_00_00() => byte(0x07EE)
-
 // $07EF: Black Clock (X0:00:00) [8 bit]
-function black_clock_x0_00_00() => byte(0x07EF)
 
 // $07F0: White Clock (Frames) [8 bit]
-function white_clock_frames() => byte(0x07F0)
-
-// $07F1: White Clock (00:00:0X) [8 bit]
-function white_clock_00_00_0x() => byte(0x07F1)
-
-// $07F2: White Clock (00:00:X0) [8 bit]
-function white_clock_00_00_x0() => byte(0x07F2)
-
-// $07F3: White Clock (00:0X:00) [8 bit]
-function white_clock_00_0x_00() => byte(0x07F3)
-
-// $07F4: White Clock (00:X0:00) [8 bit]
-function white_clock_00_x0_00() => byte(0x07F4)
-
-// $07F5: White Clock (0X:00:00) [8 bit]
-function white_clock_0x_00_00() => byte(0x07F5)
-
-// $07F6: White Clock (X0:00:00) [8 bit]
-function white_clock_x0_00_00() => byte(0x07F6)
+function clock_frames(c)   => byte(0x07F0 - 7*c)
+function clock_00_00_0x(c) => byte(0x07F1 - 7*c)
+function clock_00_00_x0(c) => byte(0x07F2 - 7*c)
+function clock_00_0x_00(c) => byte(0x07F3 - 7*c)
+function clock_00_x0_00(c) => byte(0x07F4 - 7*c)
+function clock_0x_00_00(c) => byte(0x07F5 - 7*c)
+function clock_x0_00_00(c) => byte(0x07F6 - 7*c)
 
 // $07FE: Chessmaster Forced Mate Moves [8 bit]
 //        0 = 1 move
@@ -448,7 +423,8 @@ BOARD_CHECKERS = [
 	WP_, XX_, WP_, XX_, WK_, XX_, WP_, XX_, 
 ]
 
-BOARD_DIAGONAL = [
+/*
+BOARD_DIAGONAL = [ // HXw0108wc3bJg9jKk#G%v$Cl
 	BK_, BB_, BR_, BP_, XX_, XX_, XX_, XX_, 
 	BQ_, BN1, BP_, XX_, XX_, XX_, XX_, XX_, 
 	BB_, BP_, XX_, XX_, XX_, XX_, XX_, XX_, 
@@ -457,6 +433,18 @@ BOARD_DIAGONAL = [
 	XX_, XX_, XX_, XX_, XX_, XX_, WP_, WB_, 
 	XX_, XX_, XX_, XX_, XX_, WP_, WN2, WQ_, 
 	XX_, XX_, XX_, XX_, WP_, WR_, WB_, WK_, 
+]
+*/
+
+BOARD_DIAGONAL = [ // b*w136D/wgbN-ShS6T:St#q%r%B%W>9
+	BK_, BN1, BN2, BR_, BP_, XX_, XX_, XX_, 
+	BB_, BQ_, BP_, BP_, XX_, XX_, XX_, XX_, 
+	BB_, BP_, BP_, XX_, XX_, XX_, XX_, XX_, 
+	BR_, BP_, XX_, XX_, XX_, XX_, XX_, WP_, 
+	BP_, XX_, XX_, XX_, XX_, XX_, WP_, WR_, 
+	XX_, XX_, XX_, XX_, XX_, WP_, WP_, WB_, 
+	XX_, XX_, XX_, XX_, WP_, WP_, WQ_, WB_, 
+	XX_, XX_, XX_, WP_, WR_, WN1, WN2, WK_, 
 ]
 
 BOARD_SHOGI = [
@@ -493,6 +481,42 @@ BOARD_PAWN_ODDS = [
 	WR_, WN1, WB_, WQ_, WK_, WB_, WN2, WR_,
 ]
 
+// https://www.reddit.com/r/chess/comments/io3m6z
+MATE4_DISTRACTION = [
+	BR_, XX_, XX_, XX_, XX_, XX_, XX_, XX_, 
+	XX_, XX_, XX_, XX_, XX_, XX_, XX_, WP_, 
+	XX_, XX_, BP_, XX_, WR_, XX_, BP_, XX_, 
+	BP_, BP_, BK_, XX_, BP_, XX_, XX_, XX_, 
+	XX_, XX_, XX_, BP_, WB_, XX_, XX_, BQ_, 
+	XX_, XX_, XX_, XX_, XX_, XX_, XX_, XX_, 
+	WP_, WP_, WP_, XX_, XX_, XX_, WP_, XX_, 
+	XX_, XX_, XX_, XX_, XX_, XX_, WK_, XX_, 
+]
+
+// https://www.sparkchess.com/chess-puzzles/mikhail-botvinnik-vs-victor-goglidze.html
+MATE4_GORDIAN_KNOT = [
+	XX_, XX_, BB_, BK_, XX_, XX_, XX_, XX_, 
+	XX_, XX_, XX_, XX_, XX_, XX_, BB_, XX_, 
+	XX_, XX_, BP_, WN2, BP_, XX_, XX_, XX_, 
+	BR_, XX_, WP_, BP_, WP_, XX_, WP_, XX_, 
+	WP_, XX_, BP_, WP_, XX_, WQ_, XX_, XX_, 
+	XX_, XX_, BR_, BQ_, XX_, XX_, XX_, XX_, 
+	XX_, XX_, XX_, XX_, XX_, XX_, XX_, WR_, 
+	XX_, XX_, XX_, XX_, XX_, XX_, WR_, WK_, 
+]
+
+// https://thechessworld.com/articles/problems/3-hardest-mate-in-4-ever/
+MATE4_DIE_WELT = [
+	XX_, XX_, XX_, XX_, XX_, XX_, XX_, XX_, 
+	XX_, XX_, XX_, XX_, XX_, XX_, XX_, BP_, 
+	XX_, XX_, XX_, XX_, XX_, XX_, XX_, WR_, 
+	XX_, BP_, XX_, XX_, BK_, BP_, XX_, XX_, 
+	XX_, WR_, XX_, XX_, XX_, XX_, XX_, XX_, 
+	XX_, XX_, XX_, WK_, XX_, XX_, XX_, XX_, 
+	XX_, XX_, XX_, XX_, XX_, XX_, XX_, XX_, 
+	XX_, XX_, XX_, XX_, XX_, XX_, XX_, XX_, 
+]
+
 // --- AUX FUNCTIONS  -------------------------------------------------------------------
 
 // check board state
@@ -519,6 +543,16 @@ function on_human_turn(f) => (
 	prev(color_to_move()) == human_color() &&
 	// check predicate, pass prev turn number for an index into the logs
 	f(turns_taken() - 1)
+)
+
+// compute the time of the human player
+function human_seconds() => (
+	clock_00_00_0x(human_color()) +
+	clock_00_00_x0(human_color())*10 +
+	clock_00_0x_00(human_color())*60 +
+	clock_00_x0_00(human_color())*600 +
+	clock_0x_00_00(human_color())*3600 +
+	clock_x0_00_00(human_color())*36000
 )
 
 // move types
@@ -560,15 +594,29 @@ function any_illegal() => (
 
 ILLEGAL_RULES = "You may not force the Chessmaster to move, solve for mate, rewind, or load a game, or change sides or difficulty after the first move."
 LOADED_GAME_PREAMBLE = "Playing as White against The Chessmaster at level 3 or higher, enter the following password in the load game menu and win a standard fair game -- "
-function loaded_game_achievement(b) => once(loaded_game(b)) && chessmaster_level() >= 3 && human_color() == WHITE && trigger_when(win()) && never(any_illegal())
-function mate_in(n) => format("Playing as White against The Chessmaster at level 3 or higher, enter the following password in the load game menu and mate in {0} move{1} -- ", n, if_else(n==1, "", "s"))
+function loaded_game_achievement(b, n) => once(loaded_game(b)) && chessmaster_level() >= n && human_color() == WHITE && trigger_when(win()) && never(any_illegal())
+function mate_in(n) => format("Playing as White against The Chessmaster at level 12 or higher, enter the following password in the load game menu and mate in {0} move{1} (rewind allowed) -- ", n, if_else(n==1, "", "s"))
+
+function mate_in_achievement(b, n) => (
+	once(loaded_game(b)) && 
+	chessmaster_level() >= 12 && 
+	human_color() == WHITE &&
+	trigger_when(win()) && 
+	never(illegal_change_difficulty()) &&
+	never(illegal_change_sides()) &&
+	never(illegal_computer_count()) &&
+	never(illegal_force_move()) &&
+	never(illegal_solve_for_mate()) &&
+	never(illegal_setup_board()) &&
+	never(illegal_load_game()) &&
+	turns_taken() < n*2
+)
 
 // sets a flag when *any* valid game is being played (for RP)
 function any_valid() => (
 	once(turns_taken() == 0 && screen_id() == SCREEN_BOARD)
-	&& never(chessmaster_level() < 1)
-	&& never(chessmaster_level() > 13)
-//	&& never(any_illegal())
+	&& valid_difficulty()
+	&& never(any_illegal())
 )
 
 function valid_game() => once(new_game()) && valid_difficulty() && never(any_illegal())
@@ -618,19 +666,19 @@ rich_presence_display(
 	/*  0 */ "", // rich_presence_flag("", when=any_valid(), fallback="⚠️ ", lookupname="WarningFlag"),
 	/*  1 */ rp_game_state,
 	/*  2 */ rp_white_player,
-	/*  3 */ rich_presence_number(white_clock_x0_00_00()),
-	/*  4 */ rich_presence_number(white_clock_0x_00_00()),
-	/*  5 */ rich_presence_number(white_clock_00_x0_00()),
-	/*  6 */ rich_presence_number(white_clock_00_0x_00()),
-	/*  7 */ rich_presence_number(white_clock_00_00_x0()),
-	/*  8 */ rich_presence_number(white_clock_00_00_0x()),
+	/*  3 */ rich_presence_number(clock_x0_00_00(WHITE)),
+	/*  4 */ rich_presence_number(clock_0x_00_00(WHITE)),
+	/*  5 */ rich_presence_number(clock_00_x0_00(WHITE)),
+	/*  6 */ rich_presence_number(clock_00_0x_00(WHITE)),
+	/*  7 */ rich_presence_number(clock_00_00_x0(WHITE)),
+	/*  8 */ rich_presence_number(clock_00_00_0x(WHITE)),
 	/*  9 */ rp_black_player,
-	/* 10 */ rich_presence_number(black_clock_x0_00_00()),
-	/* 11 */ rich_presence_number(black_clock_0x_00_00()),
-	/* 12 */ rich_presence_number(black_clock_00_x0_00()),
-	/* 13 */ rich_presence_number(black_clock_00_0x_00()),
-	/* 14 */ rich_presence_number(black_clock_00_00_x0()),
-	/* 15 */ rich_presence_number(black_clock_00_00_0x()),
+	/* 10 */ rich_presence_number(clock_x0_00_00(BLACK)),
+	/* 11 */ rich_presence_number(clock_0x_00_00(BLACK)),
+	/* 12 */ rich_presence_number(clock_00_x0_00(BLACK)),
+	/* 13 */ rich_presence_number(clock_00_0x_00(BLACK)),
+	/* 14 */ rich_presence_number(clock_00_00_x0(BLACK)),
+	/* 15 */ rich_presence_number(clock_00_00_0x(BLACK)),
 	/* 16 */ rp_chessmaster_level
 )
 
@@ -675,6 +723,20 @@ achievement(
 	)
 )
 
+BULLET_SECONDS = 5
+achievement(
+	title="Taking a Bullet",
+	description=format("Win a standard fair game against The Chessmaster at level 3 or higher with fewer than {0} minutes on your game clock.", BULLET_SECONDS),
+	points=5,
+	trigger=(
+		valid_game() &&
+		chessmaster_level() >= 3 &&
+		human_seconds() < BULLET_SECONDS*60 &&
+		win() &&
+		never(screen_id() == SCREEN_TITLE)
+	)
+)
+
 // ######################################
 // ####        Common Moves         #####
 // ######################################
@@ -690,7 +752,7 @@ achievement(
 )
 
 achievement(
-	title="Google En Passant",
+	title="Google \"En Passant\"",
 	description="Capture The Chessmaster's pawn via en passant during a standard fair game.",
 	points=3,
 	trigger=(
@@ -710,21 +772,21 @@ achievement(
 	title="You're Playing Checkers; I'm Playing Chess",
 	description=LOADED_GAME_PREAMBLE + "pQjp00JPpQj5kTkTkTk%t%t%tlG",
 	points=5,
-	trigger=loaded_game_achievement(BOARD_CHECKERS)
+	trigger=loaded_game_achievement(BOARD_CHECKERS, 3)
 )
 
 achievement(
-	title="Cutting on the Bias",
-	description=LOADED_GAME_PREAMBLE + "HXw0108wc3bJg9jKk#G%v$Cl",
+	title="Let the Wookie Win",
+	description=LOADED_GAME_PREAMBLE + "b*w136D/wgbN-ShS6T:St#q%r%B%W>9",
 	points=5,
-	trigger=loaded_game_achievement(BOARD_DIAGONAL)
+	trigger=loaded_game_achievement(BOARD_DIAGONAL, 3)
 )
 
 achievement(
 	title="Shogi Master",
 	description=LOADED_GAME_PREAMBLE + ":9.>00w>2#Q9dX3TkTkTk%t%t%*:VpH",
 	points=5,
-	trigger=loaded_game_achievement(BOARD_SHOGI)
+	trigger=loaded_game_achievement(BOARD_SHOGI, 3)
 )
 
 // ######################################
@@ -735,29 +797,60 @@ achievement(
 	title="Knightmare",
 	description=LOADED_GAME_PREAMBLE + "<=H00000>>>JLJgTkTkTt%t%t>>>#>H",
 	points=10,
-	trigger=loaded_game_achievement(BOARD_KNIGHTMARE)
+	trigger=loaded_game_achievement(BOARD_KNIGHTMARE, 3)
 )
 
 achievement(
 	title="Pawn Odds",
 	description=LOADED_GAME_PREAMBLE + ">>H00000W>>Nh4.FkTkTk#t%tvFq9>C",
 	points=5,
-	trigger=loaded_game_achievement(BOARD_PAWN_ODDS)
+	trigger=loaded_game_achievement(BOARD_PAWN_ODDS, 3)
 )
 
 // chess960 stats: https://github.com/welyab/chess960-win-by-position-setup
 achievement(
 	title="Chess960 Theocracy",
-	description=LOADED_GAME_PREAMBLE + ">>H00000W>>>43KLYkTkTk#t%t%=kCzV>",
+	description=LOADED_GAME_PREAMBLE + ">>H00000W>>>43KLYkTkTk#t%t%=kCzV> (Chess960 castling rules do not apply)",
 	points=10,
-	trigger=loaded_game_achievement(chess960([BR_, BK_, BR_, BB_, BB_, BQ_, BN1, BN2])) // RKRBBQNN: -126
+	trigger=loaded_game_achievement(chess960([BR_, BK_, BR_, BB_, BB_, BQ_, BN1, BN2]), 3) // RKRBBQNN: -126
+)
+
+// ######################################
+// #####     Mate in N puzzles      #####
+// ######################################
+
+achievement(
+	title="Distraction: Mate in 4",
+	description=mate_in(4) + "108PRc9071./:Vk5kxf%tl",
+	points=2,
+	trigger=mate_in_achievement(MATE4_DISTRACTION, 4)
 )
 
 achievement(
-	title="Chess960 Fianchetto",
-	description=LOADED_GAME_PREAMBLE + "",
-	points=5,
-	trigger=loaded_game_achievement(chess960([BQ_, BN1, BB_, BR_, BK_, BB_, BN2, BR_])) // QNBRKBNR: balanced
+	title="The Gordian Knot: Mate in 4",
+	description=mate_in(4) + "D047Y,2302D5h<:/k%t#$8%k",
+	points=2,
+	trigger=mate_in_achievement(MATE4_GORDIAN_KNOT, 4)
+)
+
+achievement(
+	title="Die Welt: Mate in 4",
+	description=mate_in(4) + "008cy80200csQSW2",
+	points=2,
+	trigger=mate_in_achievement(MATE4_DIE_WELT, 4)
 )
 
 // --- LEADERBOARDS -------------------------------------------------------------------
+
+leaderboard(
+	title="Bullet Chess",
+	description="Complete a standard fair game against The Chessmaster at level 3 or above as fast as possible.",
+
+	start=valid_game() && chessmaster_level() >= 3 && win(),
+	cancel=always_false(),
+	submit=always_true(),
+
+	value=measured(human_seconds()),
+	format="SECS",
+	lower_is_better=true
+)
