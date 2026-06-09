@@ -1182,7 +1182,7 @@ function CodeReviewOverview()
 		'', 
 		!all_stats.some(stats => stats.addhits_complex_or > 0) ? '-' : 1, 
 		!stats.all_flags.has(ReqFlag.ADDSOURCE) && !stats.all_flags.has(ReqFlag.SUBSOURCE) ? '-' : 1, 
-		!achievements.filter(ach => ['*', '/', '+', '-'].some(op => ach.feedback.stats.source_modification.get(op) > 0)) ? '-' : 1, 
+		!achievements.some(ach => ['*', '/', '+', '-'].some(op => ach.feedback.stats.source_modification.get(op) > 0)) ? '-' : 1, 
 		!all_stats.some(stats => stats.pause_ifs > stats.pause_locks) ? '-' : has_issue(all_assets, [Feedback.UUO_PAUSE, ]) ? 0 : 1, 
 		'', 
 		!stats.all_flags.has(ReqFlag.RESETNEXTIF) ? '-' : has_issue(all_assets, [Feedback.UUO_RNI, ]) ? 0 : 1, 
@@ -1194,7 +1194,7 @@ function CodeReviewOverview()
 		!stats.all_flags.has(ReqFlag.ADDADDRESS) ? '-' : 1, 
 		'', 
 		!stats.using_remember_recall.length ? '-' : 1, 
-		!achievements.filter(ach => ['&', '^', '%'].some(op => ach.feedback.stats.source_modification.get(op) > 0)) ? '-' : 1, 
+		!achievements.some(ach => ['&', '^', '%'].some(op => ach.feedback.stats.source_modification.get(op) > 0)) ? '-' : 1, 
 		![MemSize.DBL32, MemSize.DBL32_BE, MemSize.FLOAT, MemSize.FLOAT_BE, MemSize.MBF32, MemSize.MBF32_LE].some(size => stats.all_sizes.has(size)) ? '-' : 1, 
 		'', 
 	];
