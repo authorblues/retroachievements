@@ -1155,7 +1155,7 @@ function CodeReviewOverview()
 		'', 
 		'', 
 		current.notes.some(note => note.type != null && note.type != MemSize.BYTE) ? '' : 0, 
-		stats.using_bit_ops.length ? 1 : '-', 
+		current.notes.some(note => note.note.match(/bit\s?[0-7]/g) != null) ? 1 : 0,
 		'', 
 		current.notes.some(note => note.isProbablePointer()) ? 1 : '-', 
 		'', 
