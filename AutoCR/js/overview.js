@@ -1120,9 +1120,83 @@ function CodeReviewOverview()
 	const achievements = current.set.getAchievements();
 	const leaderboards = current.set.getLeaderboards();
 
+	const all_assets = [...achievements, ...leaderboards];
+	const all_stats = [
+		...achievements.map(ach => ach.feedback.stats), 
+		...leaderboards.map(lb => lb.feedback.stats['STA']),
+	];
+
 	let set_contents = [
 		[achievements.length, 'achievement'],
 		[leaderboards.length, 'leaderboard'],
+	];
+
+	function has_issue(assets, warn)
+	{
+		return assets.some(asset => asset.feedback.issues.some(g => g.some(issue => warn.includes(issue.type) && issue.severity > FeedbackSeverity.INFO)))
+	}
+
+	let pOCA = all_stats.filter(stats => stats.memlookups.size <= 1) / all_assets.length;
+	let pDelta = all_assets.filter(asset => asset.feedback.issues.some(g => g.some(issue => [Feedback.IMPROPER_DELTA, Feedback.MISSING_DELTA, ].includes(issue.type)))) / all_assets.length;
+	let pUUO = all_assets.filter(asset => asset.feedback.issues.some(g => g.some(issue => [Feedback.UUO_PAUSE, Feedback.UUO_RESET, Feedback.UUO_RNI, ].includes(issue.type)))) / all_assets.length;
+
+	let review_row = [
+		'', 
+		achievements.some(x => x.achtype == 'progression' || x.achtype == 'win_condition') ? 1 : 0, 
+		'', 
+		'', 
+		'', 
+		leaderboards.length ? '' : 0, 
+		achievements.some(x => x.achtype != '') ? '' : 1, 
+		'', 
+		'', 
+		all_assets.some(asset => asset.feedback.issues.some(g => g.some(issue => issue.type == 'writing' && issue.severity > FeedbackSeverity.INFO))) ? 0 : 1, 
+		'', 
+		'', 
+		'', 
+		current.notes.some(note => note.type != null && note.type != MemSize.BYTE) ? '' : 0, 
+		stats.using_bit_ops.length ? 1 : '-', 
+		'', 
+		current.notes.some(note => note.isProbablePointer()) ? 1 : '-', 
+		'', 
+		current.notes.feedback.issues.some(g => g.some(issue => issue.type == 'codenotes' && issue.severity > FeedbackSeverity.INFO)) ? 0 : 1, 
+		'', 
+		has_issue(all_assets, [Feedback.IMPROPER_DELTA, Feedback.MISSING_DELTA, ]) ? 0 : 1, 
+		Math.min(1, stats.all_cmps.difference(new Set(['='])).size * 0.2), 
+		has_issue(all_assets, [Feedback.TYPE_MISMATCH, ]) ? 0 : 1, 
+		!stats.all_flags.has(ReqFlag.ANDNEXT) ? '-' : has_issue(all_assets, [Feedback.USELESS_ANDNEXT, ]) ? 0 : 1, 
+		!stats.using_alt_groups.length ? '-' : has_issue(all_assets, [Feedback.COMMON_ALT, Feedback.USELESS_ALT, ]) ? 0 : 1, 
+		!stats.all_flags.has(ReqFlag.ORNEXT) ? '-' : 1, 
+		!stats.using_hitcounts.length ? '-' : has_issue(all_assets, [Feedback.HIT_NO_RESET, Feedback.RESET_HITCOUNT_1, ]) ? 0 : 1, 
+		achievements.some(ach => ach.feedback.stats.start_reset_trigger) ? '-' : 1, 
+		!stats.using_pauselock.length ? '-' : has_issue(all_assets, [Feedback.PAUSELOCK_NO_RESET, ]) ? 0 : 1, 
+		(current.rp.display.length == 1 ? 0 : 0.5) + (current.rp.lookups.size == 0 ? 0 : 0.5), 
+		!leaderboards.length ? '-' : 1, 
+		pOCA ? (-pOCA).toFixed(1) : '', 
+		'', 
+		pDelta ? (-pDelta).toFixed(1) : '', 
+		'', 
+		pUUO ? (-pUUO).toFixed(1) : '', 
+		!stats.using_prior.length ? '-' : 1, 
+		!stats.all_sizes.has(MemSize.BITCOUNT) ? '-' : 1, 
+		'', 
+		!all_stats.some(stats => stats.addhits_complex_or > 0) ? '-' : 1, 
+		!stats.all_flags.has(ReqFlag.ADDSOURCE) && !stats.all_flags.has(ReqFlag.SUBSOURCE) ? '-' : 1, 
+		!achievements.filter(ach => ['*', '/', '+', '-'].some(op => ach.feedback.stats.source_modification.get(op) > 0)) ? '-' : 1, 
+		!all_stats.some(stats => stats.pause_ifs > stats.pause_locks) ? '-' : has_issue(all_assets, [Feedback.UUO_PAUSE, ]) ? 0 : 1, 
+		'', 
+		!stats.all_flags.has(ReqFlag.RESETNEXTIF) ? '-' : has_issue(all_assets, [Feedback.UUO_RNI, ]) ? 0 : 1, 
+		![ReqFlag.MEASURED, ReqFlag.MEASUREDP, ReqFlag.MEASUREDIF].some(flag => stats.all_flags.has(flag)) ? '-' : 1, 
+		!stats.all_flags.has(ReqFlag.TRIGGER) ? '-' : has_issue(all_assets, [Feedback.UUO_TRIGGER, ]) ? 0 : 1, 
+		!all_stats.some(stats => stats.mixed_andor_chains > 0) ? '-' : 1, 
+		'', 
+		!stats.all_flags.has(ReqFlag.SUBHITS) ? '-' : 1, 
+		!stats.all_flags.has(ReqFlag.ADDADDRESS) ? '-' : 1, 
+		'', 
+		!stats.using_remember_recall.length ? '-' : 1, 
+		!achievements.filter(ach => ['&', '^', '%'].some(op => ach.feedback.stats.source_modification.get(op) > 0)) ? '-' : 1, 
+		![MemSize.DBL32, MemSize.DBL32_BE, MemSize.FLOAT, MemSize.FLOAT_BE, MemSize.MBF32, MemSize.MBF32_LE].some(size => stats.all_sizes.has(size)) ? '-' : 1, 
+		'', 
 	];
 
 	function AssetCardList({assets, label, warn = []})
@@ -1159,6 +1233,9 @@ function CodeReviewOverview()
 			<h1 id="asset-title">
 				{get_game_title()}
 			</h1>
+			<div className="float-right">
+				<button onClick={e => copy_to_clipboard(review_row.join('\t'))}>Review Data</button>
+			</div>
 			<p>
 				Set contains {set_contents.filter(([c, _]) => c).map(([c, t]) => `${c} ${t}${c == 1 ? '' : 's'}`).join(' and ')}
 			</p>

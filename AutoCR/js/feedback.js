@@ -43,170 +43,243 @@ const SEVERITY_TO_CLASS = ['pass', 'info', 'warn', 'fail', 'fail'];
 
 const Feedback = Object.freeze({
 	// writing policy feedback
-	TITLE_CASE: { severity: FeedbackSeverity.INFO, desc: "Titles should be written in title case according to the Chicago Manual of Style.",
+	TITLE_CASE: { type: 'writing', severity: FeedbackSeverity.INFO, 
+		desc: "Titles should be written in title case according to the Chicago Manual of Style.",
 		ref: ["https://en.wikipedia.org/wiki/Title_case#Chicago_Manual_of_Style",], },
-	TITLE_PUNCTUATION: { severity: FeedbackSeverity.INFO, desc: "Asset titles are not full sentences, and should not end with punctuation (exception: ?, !, or ellipses).",
+	TITLE_PUNCTUATION: { type: 'writing', severity: FeedbackSeverity.INFO, 
+		desc: "Asset titles are not full sentences, and should not end with punctuation (exception: ?, !, or ellipses).",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#punctuation",], },
-	DESC_SENTENCE_CASE: { severity: FeedbackSeverity.INFO, desc: "Asset descriptions should not be in title case, but rather sentence case.",
+	DESC_SENTENCE_CASE: { type: 'writing', severity: FeedbackSeverity.INFO, 
+		desc: "Asset descriptions should not be in title case, but rather sentence case.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#capitalization-1",], },
-	DESC_PUNCT_CONSISTENCY: { severity: FeedbackSeverity.INFO, desc: "Asset descriptions should be consistent about whether or not they end with punctuation.",
+	DESC_PUNCT_CONSISTENCY: { type: 'writing', severity: FeedbackSeverity.INFO, 
+		desc: "Asset descriptions should be consistent about whether or not they end with punctuation.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#punctuation-1",], },
-	DESC_BRACKETS: { severity: FeedbackSeverity.INFO, desc: "Asset descriptions should avoid brackets where possible.",
+	DESC_BRACKETS: { type: 'writing', severity: FeedbackSeverity.INFO, 
+		desc: "Asset descriptions should avoid brackets where possible.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#brackets-parentheses",], },
-	DESC_SYMBOLS: { severity: FeedbackSeverity.INFO, desc: "Asset descriptions are discouraged from using symbols to describe conditions.",
+	DESC_SYMBOLS: { type: 'writing', severity: FeedbackSeverity.INFO, 
+		desc: "Asset descriptions are discouraged from using symbols to describe conditions.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#symbols-and-emojis",], },
-	DESC_QUOTES: { severity: FeedbackSeverity.INFO, desc: "Asset descriptions should only use double quotation marks, except for quotes inside quotes.",
+	DESC_QUOTES: { type: 'writing', severity: FeedbackSeverity.INFO, 
+		desc: "Asset descriptions should only use double quotation marks, except for quotes inside quotes.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#symbols-and-emojis",], },
-	NUM_FORMAT: { severity: FeedbackSeverity.INFO, desc: "Numbers should be formatted to conform to English standards (period for decimal separation, commas for grouping).",
+	NUM_FORMAT: { type: 'writing', severity: FeedbackSeverity.INFO, 
+		desc: "Numbers should be formatted to conform to English standards (period for decimal separation, commas for grouping).",
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#number-formatting",], },
-	NO_EMOJI: { severity: FeedbackSeverity.WARN, desc: "Asset titles and descriptions may not contain emoji.",
+	NO_EMOJI: { type: 'writing', severity: FeedbackSeverity.WARN, 
+		desc: "Asset titles and descriptions may not contain emoji.",
 		ref: [
 			"https://docs.retroachievements.org/guidelines/content/writing-policy.html#emojis",
 			"https://docs.retroachievements.org/guidelines/content/writing-policy.html#symbols-and-emojis",
 		], },
-	SPECIAL_CHARS: { severity: FeedbackSeverity.WARN, desc: "Avoid using accented/special characters, as they can have rendering issues.",
+	SPECIAL_CHARS: { type: 'writing', severity: FeedbackSeverity.WARN, 
+		desc: "Avoid using accented/special characters, as they can have rendering issues.",
 		ref: [
 		//	"https://docs.retroachievements.org/guidelines/content/naming-conventions.html",
 			"https://docs.retroachievements.org/developer-docs/tips-and-tricks.html#naming-convention-tips",
 		], },
-	FOREIGN_CHARS: { severity: FeedbackSeverity.INFO, desc: `Asset titles and descriptions should be written in English and should avoid special characters, unless given special approval.`,
+	FOREIGN_CHARS: { type: 'writing', severity: FeedbackSeverity.INFO, 
+		desc: `Asset titles and descriptions should be written in English and should avoid special characters, unless given special approval.`,
 		ref: ["https://docs.retroachievements.org/guidelines/content/writing-policy.html#language",], },
 
 	// set design errors
-	NO_PROGRESSION: { severity: FeedbackSeverity.INFO, desc: "Set lacks progression achievements (win conditions found). This might be unavoidable, depending on the game, but progression achievements should be added when possible.",
+	NO_PROGRESSION: { type: 'typing', severity: FeedbackSeverity.INFO, 
+		desc: "Set lacks progression achievements (win conditions found). This might be unavoidable, depending on the game, but progression achievements should be added when possible.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/progression-and-win-condition-guidelines.html#progression-conditions",], },
-	NO_TYPING: { severity: FeedbackSeverity.WARN, desc: "Set lacks progression and win condition typing.",
+	NO_TYPING: { type: 'typing', severity: FeedbackSeverity.WARN, 
+		desc: "Set lacks progression and win condition typing.",
 		ref: [
 			"https://docs.retroachievements.org/guidelines/content/progression-and-win-condition-guidelines.html#progression-conditions",
 			"https://docs.retroachievements.org/guidelines/content/progression-and-win-condition-guidelines.html#win-conditions",
 		], },
-	ACHIEVEMENT_DIFFICULTY: { severity: FeedbackSeverity.INFO, desc: "A good spread of achievement difficulties is important.",
+	ACHIEVEMENT_DIFFICULTY: { type: 'setdesign', severity: FeedbackSeverity.INFO, 
+		desc: "A good spread of achievement difficulties is important.",
 		ref: ["https://docs.retroachievements.org/developer-docs/difficulty-scale-and-balance.html",], },
-	PROGRESSION_ONLY: { severity: FeedbackSeverity.FAIL, desc: "Progression-only sets should be avoided. Consider adding custom challenge achievements to improve it.",
+	PROGRESSION_ONLY: { type: 'typing', severity: FeedbackSeverity.FAIL, 
+		desc: "Progression-only sets should be avoided. Consider adding custom challenge achievements to improve it.",
 		ref: ["https://retroachievements.org/game/5442",], },
-	DUPLICATE_TITLES: { severity: FeedbackSeverity.FAIL, desc: "Assets should all have unique titles to distinguish them from one another.",
+	DUPLICATE_TITLES: { type: 'writing', severity: FeedbackSeverity.FAIL, 
+		desc: "Assets should all have unique titles to distinguish them from one another.",
 		ref: [], },
-	DUPLICATE_DESCRIPTIONS: { severity: FeedbackSeverity.FAIL, desc: "Assets should have unique descriptions. Duplicate descriptions likely indicate redundant assets.",
+	DUPLICATE_DESCRIPTIONS: { type: 'writing', severity: FeedbackSeverity.FAIL, 
+		desc: "Assets should have unique descriptions. Duplicate descriptions likely indicate redundant assets.",
 		ref: [], },
 
 	// code notes
-	NOTE_EMPTY: { severity: FeedbackSeverity.INFO, desc: "Empty code note.",
+	NOTE_EMPTY: { type: 'codenotes', severity: FeedbackSeverity.INFO, 
+		desc: "Empty code note.",
 		ref: [], },
-	NOTE_NO_SIZE: { severity: FeedbackSeverity.FAIL, desc: "Code notes must have size information.",
+	NOTE_NO_SIZE: { type: 'codenotes', severity: FeedbackSeverity.FAIL, 
+		desc: "Code notes must have size information.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html#specifying-memory-addresses-size",], },
-	NOTE_ENUM_HEX: { severity: FeedbackSeverity.FAIL, desc: "Enumerated hex values in code notes should be prefixed with \"0x\" to avoid being misinterpreted as decimal values.",
+	NOTE_ENUM_HEX: { type: 'codenotes', severity: FeedbackSeverity.FAIL, 
+		desc: "Enumerated hex values in code notes should be prefixed with \"0x\" to avoid being misinterpreted as decimal values.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html#adding-values-and-labels",], },
-	NOTE_ENUM_TOO_LARGE: { severity: FeedbackSeverity.FAIL, desc: "Enumerated values too large for code note size information.",
+	NOTE_ENUM_TOO_LARGE: { type: 'codenotes', severity: FeedbackSeverity.FAIL, 
+		desc: "Enumerated values too large for code note size information.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html#adding-values-and-labels",], },
-	BAD_REGION_NOTE: { severity: FeedbackSeverity.INFO, desc: "Some memory regions are unsafe, redundant, or should otherwise be avoided.",
+	BAD_REGION_NOTE: { type: 'codenotes', severity: FeedbackSeverity.INFO, 
+		desc: "Some memory regions are unsafe, redundant, or should otherwise be avoided.",
 		ref: ['https://docs.retroachievements.org/developer-docs/console-specific-tips.html',], },
-	UNALIGNED_NOTE: { severity: FeedbackSeverity.INFO, desc: "16- and 32-bit data is often word-aligned.",
+	UNALIGNED_NOTE: { type: 'codenotes', severity: FeedbackSeverity.INFO, 
+		desc: "16- and 32-bit data is often word-aligned.",
 		ref: [], },
 
 	// rich presence
-	NO_DYNAMIC_RP: { severity: FeedbackSeverity.FAIL, desc: "Dynamic rich presence is required for all sets.",
+	NO_DYNAMIC_RP: { type: 'rp', severity: FeedbackSeverity.FAIL, 
+		desc: "Dynamic rich presence is required for all sets.",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#introduction',], },
-	NO_CONDITIONAL_DISPLAY: { severity: FeedbackSeverity.WARN, desc: "The use of conditional displays can improve the quality of rich presence by showing specific information based on the game mode.",
+	NO_CONDITIONAL_DISPLAY: { type: 'rp', severity: FeedbackSeverity.WARN, 
+		desc: "The use of conditional displays can improve the quality of rich presence by showing specific information based on the game mode.",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
-	NO_DEFAULT_RP: { severity: FeedbackSeverity.ERROR, desc: "Rich presence requires a default display (without a condition).",
+	NO_DEFAULT_RP: { type: 'rp', severity: FeedbackSeverity.ERROR, 
+		desc: "Rich presence requires a default display (without a condition).",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
-	MULTIPLE_DEFAULT_RP: { severity: FeedbackSeverity.ERROR, desc: "There should only be one default rich presence display (without a condition).",
+	MULTIPLE_DEFAULT_RP: { type: 'rp', severity: FeedbackSeverity.ERROR, 
+		desc: "There should only be one default rich presence display (without a condition).",
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings',], },
-	DYNAMIC_DEFAULT_RP: { severity: FeedbackSeverity.WARN, desc: "The default display for rich presence should be static.",
+	DYNAMIC_DEFAULT_RP: { type: 'rp', severity: FeedbackSeverity.INFO, 
+		desc: "The default display for rich presence should be static.",
 		ref: [], },
-	MISSING_NOTE_RP: { severity: FeedbackSeverity.FAIL, desc: "All addresses used in rich presence require a code note.",
+	MISSING_NOTE_RP: { type: 'rp', severity: FeedbackSeverity.FAIL, 
+		desc: "All addresses used in rich presence require a code note.",
 		ref: [], },
 
 	// NEW RP RULES (Ported from RARP Editor)
-	RP_MACRO_NAME_INVALID: { severity: FeedbackSeverity.ERROR, desc: "Macro name should not be empty or contain spaces.", 
+	RP_MACRO_NAME_INVALID: {type: 'rp',  severity: FeedbackSeverity.ERROR, 
+		desc: "Macro name should not be empty or contain spaces.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#lookups'] },
-	RP_MACRO_BUILTIN_SHADOW: { severity: FeedbackSeverity.WARN, desc: "Macro name shadows a built-in macro.", 
+	RP_MACRO_BUILTIN_SHADOW: { type: 'rp', severity: FeedbackSeverity.WARN, 
+		desc: "Macro name shadows a built-in macro.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#built-in-macros'] },
-	RP_MACRO_CASE_COLLISION: { severity: FeedbackSeverity.WARN, desc: "Macro names should be unique. Macros with the same name but different cases hurts readability.", 
+	RP_MACRO_CASE_COLLISION: { type: 'rp', severity: FeedbackSeverity.WARN, 
+		desc: "Macro names should be unique. Macros with the same name but different cases hurts readability.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#lookups'] },
-	RP_LOOKUP_OVERLAP: { severity: FeedbackSeverity.WARN, desc: "Lookup keys overlap.", 
+	RP_LOOKUP_OVERLAP: { type: 'rp', severity: FeedbackSeverity.WARN, 
+		desc: "Lookup keys overlap.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#lookups'] },
-	RP_FORMATTER_DUPLICATE: { severity: FeedbackSeverity.INFO, desc: "Format type is already used by another formatter.", 
+	RP_FORMATTER_DUPLICATE: { type: 'rp', severity: FeedbackSeverity.INFO, 
+		desc: "Format type is already used by another formatter.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#tips-and-tricks'] },
-	RP_LOOKUP_EMPTY: { severity: FeedbackSeverity.ERROR, desc: "A Lookup must have at least one entry or a non-empty default value.", 
+	RP_LOOKUP_EMPTY: { type: 'rp', severity: FeedbackSeverity.ERROR, 
+		desc: "A Lookup must have at least one entry or a non-empty default value.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#lookups'] },
-	RP_MACRO_UNUSED: { severity: FeedbackSeverity.INFO, desc: "Unused lookups or formatters should be removed.", 
+	RP_MACRO_UNUSED: { type: 'rp', severity: FeedbackSeverity.INFO, 
+		desc: "Unused lookups or formatters should be removed.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#lookups'] },
-	RP_CONDITION_MISSING_OPERATOR: { severity: FeedbackSeverity.ERROR, desc: "Condition line must have a comparison operator.", 
+	RP_CONDITION_MISSING_OPERATOR: { type: 'rp', severity: FeedbackSeverity.ERROR, 
+		desc: "Condition line must have a comparison operator.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings'] },
-	RP_CONDITION_UNNECESSARY_FLAG: { severity: FeedbackSeverity.WARN, desc: "Certain flags have no effect on display conditions and are unnecessary.", 
+	RP_CONDITION_UNNECESSARY_FLAG: { type: 'rp', severity: FeedbackSeverity.WARN, 
+		desc: "Certain flags have no effect on display conditions and are unnecessary.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#conditional-display-strings'] },
-	RP_MACRO_INVALID_REFERENCE: { severity: FeedbackSeverity.ERROR, desc: "Macros must match with a built-in or user-defined lookup or formatter.", 
+	RP_MACRO_INVALID_REFERENCE: { type: 'rp', severity: FeedbackSeverity.ERROR, 
+		desc: "Macros must match with a built-in or user-defined lookup or formatter.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#parse-errors'] },
-	RP_MACRO_EMPTY: { severity: FeedbackSeverity.ERROR, desc: "Macro has no logic defined.", 
+	RP_MACRO_EMPTY: { type: 'rp', severity: FeedbackSeverity.ERROR, 
+		desc: "Macro has no logic defined.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#macros'] },
-	RP_MACRO_SYNTAX_ERROR: { severity: FeedbackSeverity.ERROR, desc: "Invalid macro logic syntax.", 
+	RP_MACRO_SYNTAX_ERROR: { type: 'rp', severity: FeedbackSeverity.ERROR, 
+		desc: "Invalid macro logic syntax.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#macros'] },
-	RP_MACRO_SYNTAX_WARN: { severity: FeedbackSeverity.WARN, desc: "Macro logic warning.", 
+	RP_MACRO_SYNTAX_WARN: { type: 'rp', severity: FeedbackSeverity.WARN, 
+		desc: "Macro logic warning.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#macros'] },
-	RP_LIMIT_EXCEEDED: { severity: FeedbackSeverity.WARN, desc: "Comparison value exceeds the maximum value for the memory size.", 
+	RP_LIMIT_EXCEEDED: { type: 'rp', severity: FeedbackSeverity.WARN, 
+		desc: "Comparison value exceeds the maximum value for the memory size.", 
 		ref: ['https://docs.retroachievements.org/developer-docs/rich-presence.html#condition-syntax'] },
 		
 	// code errors
-	BAD_CHAIN: { severity: FeedbackSeverity.ERROR, desc: "The last requirement of a group cannot have a chaining flag.",
+	BAD_CHAIN: { type: 'logic', severity: FeedbackSeverity.ERROR, 
+		desc: "The last requirement of a group cannot have a chaining flag.",
 		ref: [], },
-	MISSING_NOTE: { severity: FeedbackSeverity.FAIL, desc: "All addresses used in asset logic require a code note.",
+	MISSING_NOTE: { type: 'codenotes', severity: FeedbackSeverity.FAIL, 
+		desc: "All addresses used in asset logic require a code note.",
 		ref: ["https://docs.retroachievements.org/guidelines/content/code-notes.html",], },
-	ONE_CONDITION: { severity: FeedbackSeverity.FAIL, desc: "One-condition achievements are dangerous and should be avoided.",
+	ONE_CONDITION: { type: 'logic', severity: FeedbackSeverity.FAIL, 
+		desc: "One-condition achievements are dangerous and should be avoided.",
 		ref: ["https://docs.retroachievements.org/developer-docs/tips-and-tricks.html#achievement-creation-tips",], },
-	MISSING_DELTA: { severity: FeedbackSeverity.FAIL, desc: "Logic must contain a Delta to isolate the specific moment that an asset should trigger.",
+	MISSING_DELTA: { type: 'logic', severity: FeedbackSeverity.FAIL, 
+		desc: "Logic must contain a Delta to isolate the specific moment that an asset should trigger.",
 		ref: ['https://docs.retroachievements.org/developer-docs/delta-values.html',], },
-	IMPROPER_DELTA: { severity: FeedbackSeverity.WARN, desc: "Proper use of Delta can help identify the precise moment that an asset should trigger.",
+	IMPROPER_DELTA: { type: 'logic', severity: FeedbackSeverity.WARN, 
+		desc: "Proper use of Delta can help identify the precise moment that an asset should trigger.",
 		ref: ['https://docs.retroachievements.org/developer-docs/delta-values.html',], },
-	BAD_PRIOR: { severity: FeedbackSeverity.FAIL, desc: "Questionable use of Prior. See below for more information.",
+	BAD_PRIOR: { type: 'logic', severity: FeedbackSeverity.FAIL, 
+		desc: "Questionable use of Prior. See below for more information.",
 		ref: ['https://docs.retroachievements.org/developer-docs/prior-values.html',], },
-	COMMON_ALT: { severity: FeedbackSeverity.WARN, desc: "If every alt group contains the same bit of logic in common, it can be refactored back into the Core group.",
+	COMMON_ALT: { type: 'logic', severity: FeedbackSeverity.WARN, 
+		desc: "If every alt group contains the same bit of logic in common, it can be refactored back into the Core group.",
 		ref: [], },
-	STALE_ADDADDRESS: { severity: FeedbackSeverity.INFO, desc: "Stale references with AddAddress can be dangerous. Use caution when reading a pointer from the previous frame (AddAddress + Delta).",
+	STALE_ADDADDRESS: { type: 'logic', severity: FeedbackSeverity.INFO, 
+		desc: "Stale references with AddAddress can be dangerous. Use caution when reading a pointer from the previous frame (AddAddress + Delta).",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/addaddress.html#using-delta-with-chained-pointers',], },
-	NEGATIVE_OFFSET: { severity: FeedbackSeverity.WARN, desc: "Negative pointer offsets are wrong in the vast majority of cases.",
+	NEGATIVE_OFFSET: { type: 'logic', severity: FeedbackSeverity.WARN, 
+		desc: "Negative pointer offsets are wrong in the vast majority of cases.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/addaddress.html#calculating-your-offset'], },
-	BAD_REGION_LOGIC: { severity: FeedbackSeverity.ERROR, desc: "Some memory regions are unsafe, redundant, or should not otherwise be used for achievement logic.",
+	BAD_REGION_LOGIC: { type: 'logic', severity: FeedbackSeverity.ERROR, 
+		desc: "Some memory regions are unsafe, redundant, or should not otherwise be used for achievement logic.",
 		ref: ['https://docs.retroachievements.org/developer-docs/console-specific-tips.html'], },
-	TYPE_MISMATCH: { severity: FeedbackSeverity.INFO, desc: "Memory accessor doesn't match size listed in code note.",
+	TYPE_MISMATCH: { type: 'logic', severity: FeedbackSeverity.INFO, 
+		desc: "Memory accessor doesn't match size listed in code note.",
 		ref: [
 			'https://docs.retroachievements.org/developer-docs/memory-inspector.html',
 			'https://docs.retroachievements.org/guidelines/content/code-notes.html',
 		], },
-	POINTER_COMPARISON: { severity: FeedbackSeverity.INFO, desc: "Comparison between pointer and non-zero value is usually incorrect, unless pointing to data in ROM.",
+	POINTER_COMPARISON: { type: 'logic', severity: FeedbackSeverity.INFO, 
+		desc: "Comparison between pointer and non-zero value is usually incorrect, unless pointing to data in ROM.",
 		ref: [], },
-	MISSING_ENUMERATION: { severity: FeedbackSeverity.FAIL, desc: "A value was used that doesn't match any of the enumerated values in the code note.",
+	MISSING_ENUMERATION: { type: 'logic', severity: FeedbackSeverity.FAIL, 
+		desc: "A value was used that doesn't match any of the enumerated values in the code note.",
 		ref: ['https://docs.retroachievements.org/guidelines/content/code-notes.html#adding-values-and-labels',], },
-	SOURCE_MOD_MEASURED: { severity: FeedbackSeverity.ERROR, desc: "Placing a source modification on a Measured requirement can cause faulty values in older versions of RetroArch (pre-1.10.1).",
+	SOURCE_MOD_MEASURED: { type: 'logic', severity: FeedbackSeverity.ERROR, 
+		desc: "Placing a source modification on a Measured requirement can cause faulty values in older versions of RetroArch (pre-1.10.1).",
 		ref: ['https://discord.com/channels/310192285306454017/386068797921951755/1247501391908307027',], },
-	PAUSELOCK_NO_RESET: { severity: FeedbackSeverity.FAIL, desc: "PauseLocks require a reset, either via ResetNextIf, or a ResetIf in another group.",
+	PAUSELOCK_NO_RESET: { type: 'logic', severity: FeedbackSeverity.FAIL, 
+		desc: "PauseLocks require a reset, either via ResetNextIf, or a ResetIf in another group.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/pauseif.html#pauseif-with-hit-counts',], },
-	HIT_NO_RESET: { severity: FeedbackSeverity.FAIL, desc: "Hit counts require a reset, either via ResetIf or ResetNextIf.",
+	HIT_NO_RESET: { type: 'logic', severity: FeedbackSeverity.FAIL, 
+		desc: "Hit counts require a reset, either via ResetIf or ResetNextIf.",
 		ref: ['https://docs.retroachievements.org/developer-docs/hit-counts.html',], },
-	USELESS_ANDNEXT: { severity: FeedbackSeverity.WARN, desc: "Combining requirements with AND is the default behavior. Useless AndNext flags should be removed.",
+	USELESS_ANDNEXT: { type: 'logic', severity: FeedbackSeverity.WARN, 
+		desc: "Combining requirements with AND is the default behavior. Useless AndNext flags should be removed.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/andnext-ornext.html',], },
-	USELESS_ALT: { severity: FeedbackSeverity.ERROR, desc: "A Reset-only Alt group is considered satisfied, making all other Alt groups useless.",
+	USELESS_ALT: { type: 'logic', severity: FeedbackSeverity.ERROR, 
+		desc: "A Reset-only Alt group is considered satisfied, making all other Alt groups useless.",
 		ref: [], },
-	UUO_RESET: { severity: FeedbackSeverity.FAIL, desc: "ResetIf should only be used with requirements containing hit targets.",
+	UUO_RESET: { type: 'logic', severity: FeedbackSeverity.FAIL, 
+		desc: "ResetIf should only be used with requirements containing hit targets.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/resetif.html',], },
-	UUO_RNI: { severity: FeedbackSeverity.FAIL, desc: "ResetNextIf should only be used with requirements containing hit targets, and must be placed immediately before the requirement with the hit target.",
+	UUO_RNI: { type: 'logic', severity: FeedbackSeverity.FAIL, 
+		desc: "ResetNextIf should only be used with requirements containing hit targets, and must be placed immediately before the requirement with the hit target.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/resetnextif.html',], },
-	UUO_PAUSE: { severity: FeedbackSeverity.FAIL, desc: "PauseIf should only be used with requirements containing hit targets.",
+	UUO_PAUSE: { type: 'logic', severity: FeedbackSeverity.FAIL, 
+		desc: "PauseIf should only be used with requirements containing hit targets.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/pauseif.html',], },
-	ADDHITS_WITHOUT_TARGET: { severity: FeedbackSeverity.ERROR, desc: "AddHits in a chain should end in a hit target. Without a hit target, AddHits does nothing.",
+	UUO_TRIGGER: { type: 'logic', severity: FeedbackSeverity.WARN, 
+		desc: "Trigger is used to show a challenge indicator whenever all non-Trigger conditions are satisfied.",
+		ref: ['https://docs.retroachievements.org/developer-docs/flags/trigger.html',], },
+	ADDHITS_WITHOUT_TARGET: { type: 'logic', severity: FeedbackSeverity.ERROR, 
+		desc: "AddHits in a chain should end in a hit target. Without a hit target, AddHits does nothing.",
 		ref: [], },
-	PAUSING_MEASURED: { severity: FeedbackSeverity.PASS, desc: "PauseIf should only be used with requirements containing hit targets, unless being used to freeze updates to a Measured requirement.",
+	PAUSING_MEASURED: { type: 'logic', severity: FeedbackSeverity.PASS, 
+		desc: "PauseIf should only be used with requirements containing hit targets, unless being used to freeze updates to a Measured requirement.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/measured.html#measured',], },
-	RESET_HITCOUNT_1: { severity: FeedbackSeverity.WARN, desc: "A ResetIf or ResetNextIf with a hitcount of 1 does not require a hitcount. The hitcount can be safely removed.",
+	RESET_HITCOUNT_1: { type: 'logic', severity: FeedbackSeverity.WARN, 
+		desc: "A ResetIf or ResetNextIf with a hitcount of 1 does not require a hitcount. The hitcount can be safely removed.",
 		ref: ['https://docs.retroachievements.org/developer-docs/flags/resetif.html',], },
-	USELESS_ADDSUB: { severity: FeedbackSeverity.FAIL, desc: "Using AddSource and SubSource is better supported in old emulators, and should be preferred where possible.",
+	USELESS_ADDSUB: { type: 'logic', severity: FeedbackSeverity.FAIL, 
+		desc: "Using AddSource and SubSource is better supported in old emulators, and should be preferred where possible.",
 		ref: [
 			'https://docs.retroachievements.org/developer-docs/flags/addsource.html',
 			'https://docs.retroachievements.org/developer-docs/flags/subsource.html',
 		], },
-	UNSATISFIABLE: { severity: FeedbackSeverity.ERROR, desc: "Requirement can never be satisfied (always-false).",
+	UNSATISFIABLE: { type: 'logic', severity: FeedbackSeverity.ERROR, 
+		desc: "Requirement can never be satisfied (always-false).",
 		ref: [], },
-	UNNECESSARY: { severity: FeedbackSeverity.INFO, desc: "Requirement will always be satisfied (always-true).",
+	UNNECESSARY: { type: 'logic', severity: FeedbackSeverity.INFO, 
+		desc: "Requirement will always be satisfied (always-true).",
 		ref: [], },
 });
 
@@ -414,6 +487,10 @@ function generate_logic_stats(logic)
 		ch.some(req => req.flag == ReqFlag.ADDHITS) && ch[ch.length-1].hits == 1
 	)).length;
 
+	// does this use start-reset-trigger structure?
+	stats.start_reset_trigger = stats.unique_flags.has(ReqFlag.TRIGGER) && flat.hit_targets > 0 && 
+		(stats.unique_flags.has(ReqFlag.RESETIF) || stats.unique_flags.has(ReqFlag.RESETNEXTIF));
+
 	return stats;
 }
 
@@ -546,6 +623,10 @@ function generate_set_stats(set)
 	for (const ach of achievements)
 		for (const flag of ach.feedback.stats.unique_flags)
 			stats.using_flag.get(flag).add(ach);
+	for (const lb of leaderboards)
+		for (const block of ['STA', 'CAN', 'SUB', 'VAL'])
+			for (const flag of lb.feedback.stats[block].unique_flags)
+				stats.using_flag.get(flag).add(lb);
 
 	// count leaderboard types
 	let lbtype = stats.leaderboard_type = new Map();
@@ -628,8 +709,8 @@ function* check_deltas(logic)
 			_prefix += req.lhs.toString() + (!req.rhs ? '' : (req.op + req.rhs.toString())) + ':';
 		else
 		{
-			if (req.lhs && req.lhs.type == ReqType.MEM) corememset.add(_prefix + req.lhs.toString());
-			if (req.rhs && req.rhs.type == ReqType.MEM) corememset.add(_prefix + req.rhs.toString());
+			if (req.lhs && req.lhs.type.addr == ReqAddrType.CURRENT) corememset.add(_prefix + req.lhs.toString());
+			if (req.rhs && req.rhs.type.addr == ReqAddrType.CURRENT) corememset.add(_prefix + req.rhs.toString());
 			_prefix = '';
 		}
 	}
@@ -651,8 +732,8 @@ function* check_deltas(logic)
 				_prefix += req.lhs.toString() + (!req.rhs ? '' : (req.op + req.rhs.toString())) + ':';
 			else
 			{
-				if (req.lhs && req.lhs.type == ReqType.MEM) memset.add(_prefix + req.lhs.toString());
-				if (req.rhs && req.rhs.type == ReqType.MEM) memset.add(_prefix + req.rhs.toString());
+				if (req.lhs && req.lhs.type.addr == ReqAddrType.CURRENT) memset.add(_prefix + req.lhs.toString());
+				if (req.rhs && req.rhs.type.addr == ReqAddrType.CURRENT) memset.add(_prefix + req.rhs.toString());
 				_prefix = '';
 			}
 		}
@@ -847,7 +928,7 @@ function* check_priors(logic)
 			if (ReqOperand.sameValue(a.lhs, a.rhs) && a.op == '!=')
 			{
 				const _a = a.canonicalize();
-				if (_a.lhs.type == ReqType.MEM && _a.rhs.type == ReqType.PRIOR)
+				if (_a.lhs.type.addr == ReqAddrType.CURRENT && _a.rhs.type == ReqType.PRIOR)
 					yield new Issue(Feedback.BAD_PRIOR, a,
 						<ul>
 							<li>A memory value will always be not-equal to its prior, unless the value has never changed.</li>
@@ -862,7 +943,7 @@ function* check_priors(logic)
 				for (const [bi, b] of g.entries()) if (ai != bi)
 				{
 					const _b = b.canonicalize();
-					if (_b.op == '=' && _b.lhs.type == ReqType.MEM && !_b.rhs.type.addr)
+					if (_b.op == '=' && _b.lhs.type.addr == ReqAddrType.CURRENT && !_b.rhs.type.addr)
 					{
 						if (ReqOperand.equals(_a.rhs, _b.rhs) && ReqOperand.sameValue(_a.lhs, _b.lhs))
 							yield new Issue(Feedback.BAD_PRIOR, a,
@@ -936,6 +1017,9 @@ function* check_pauselocks(logic)
 
 function* check_uncleared_hits(logic)
 {
+	// value groups don't require resets
+	if (logic.value) return;
+
 	let has_resetif = false;
 	resetifloop: for (const [gi, g] of logic.groups.entries())
 		for (const [ri, req] of g.entries())

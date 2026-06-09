@@ -1,13 +1,15 @@
+const ReqAddrType = Object.freeze({ VALUE: 0, CURRENT: 1, PAST: 2, });
+
 const ReqType = Object.freeze({
-	MEM:    { name: "Mem",    prefix: "",         addr: true,  cprio: 10, },
-	DELTA:  { name: "Delta",  prefix: "d",        addr: true,  cprio: 11, },
-	PRIOR:  { name: "Prior",  prefix: "p",        addr: true,  cprio: 11, },
-	BCD:    { name: "BCD",    prefix: "b",        addr: true,  cprio: 12, },
-	INVERT: { name: "Invert", prefix: "~",        addr: true,  cprio: 12, },
+	MEM:    { name: "Mem",    prefix: "",         addr: ReqAddrType.CURRENT, cprio: 10, },
+	DELTA:  { name: "Delta",  prefix: "d",        addr: ReqAddrType.PAST,    cprio: 11, },
+	PRIOR:  { name: "Prior",  prefix: "p",        addr: ReqAddrType.PAST,    cprio: 11, },
+	BCD:    { name: "BCD",    prefix: "b",        addr: ReqAddrType.CURRENT, cprio: 12, },
+	INVERT: { name: "Invert", prefix: "~",        addr: ReqAddrType.CURRENT, cprio: 12, },
 	
-	RECALL: { name: "Recall", prefix: "{recall}", addr: false, cprio: 20, },
-	VALUE:  { name: "Value",  prefix: "v",        addr: false, cprio: 21, },
-	FLOAT:  { name: "Float",  prefix: "f",        addr: false, cprio: 21, },
+	RECALL: { name: "Recall", prefix: "{recall}", addr: ReqAddrType.VALUE,   cprio: 20, },
+	VALUE:  { name: "Value",  prefix: "v",        addr: ReqAddrType.VALUE,   cprio: 21, },
+	FLOAT:  { name: "Float",  prefix: "f",        addr: ReqAddrType.VALUE,   cprio: 21, },
 });
 
 /*
