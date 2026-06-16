@@ -1170,7 +1170,7 @@ function CodeReviewOverview()
 		!stats.using_hitcounts.length ? '-' : has_issue(all_assets, [Feedback.HIT_NO_RESET, Feedback.RESET_HITCOUNT_1, ]) ? 0 : 1, 
 		achievements.some(ach => ach.feedback.stats.start_reset_trigger) ? '-' : 1, 
 		!stats.using_pauselock.length ? '-' : has_issue(all_assets, [Feedback.PAUSELOCK_NO_RESET, ]) ? 0 : 1, 
-		(current.rp.display.length == 1 ? 0 : 0.5) + (current.rp.lookups.size == 0 ? 0 : 0.5), 
+		(current.rp?.display.length == 1 ? 0 : 0.5) + (current.rp?.lookups.size == 0 ? 0 : 0.5), 
 		!leaderboards.length ? '-' : 1, 
 		pOCA ? (-pOCA).toFixed(1) : '', 
 		'', 
