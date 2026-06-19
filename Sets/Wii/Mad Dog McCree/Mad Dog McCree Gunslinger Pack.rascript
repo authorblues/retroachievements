@@ -165,7 +165,7 @@ function lives(x) => word_be(0x3AE8A0 + x*2)
 DIFFICULTY = {
 	1: "Deputy",
 	2: "Sheriff",
-	3: "US Marshall",
+	3: "US Marshal",
 }
 
 GAME_MD1 = 0
@@ -218,8 +218,6 @@ TRAILER_FILENAMES = [
 	"Common/LBHTrailer.bik",
 ]
 
-//   - (0x....) \((\d+) = win\)
-// \t{"scene": $1, "f": $2, },
 MD1_SHOWDOWNS = [
 	{"scene": 0x00ff, "f": 147, },
 	{"scene": 0x010e, "f": 153, },
@@ -232,7 +230,7 @@ MD1_BONUS_TARGETS = [
 	{"scene": 0x05c2, "flag": 0x3398D0, }, // Skull
 	{"scene": 0x0355, "flag": 0x3398D4, }, // Skull
 	{"scene": 0x064f, "flag": 0x3398E0, }, // Skull
-	{"scene": 0x0495, "flag": 0x3398E4, }, // Spitoon
+	{"scene": 0x0495, "flag": 0x3398E4, }, // spitoon
 	{"scene": 0x03b7, "flag": 0x3398E8, }, // Spitoon
 ]
 
@@ -263,11 +261,12 @@ LBH_BONUS_TARGETS = [
 	{"scene": 0x025d, "flag": 0x3398D8, }, // Skull
 	{"scene": 0x06af, "flag": 0x3398DC, }, // Skull
 	{"scene": 0x06af, "flag": 0x3398E0, }, // Skull
-	{"scene": 0x0557, "flag": 0x3398E4, }, // Skull
+	{"scene": 0x0557, "flag": 0x3398E4, }, // skull
 	{"scene": 0x0f60, "flag": 0x3398EC, }, // Skull
+	{"scene": 0x0f60, "flag": 0x3398F0, }, // Skull
 	{"scene": 0x11ff, "flag": 0x3398F8, }, // Skull
 	{"scene": 0x11ff, "flag": 0x3398FC, }, // Skull
-	{"scene": 0x11ff, "flag": 0x339904, }, // Lantern
+	{"scene": 0x11ff, "flag": 0x339904, }, // left lantern
 	{"scene": 0x11ff, "flag": 0x339908, }, // Lantern
 	{"scene": 0x11ff, "flag": 0x33990C, }, // Lantern
 	{"scene": 0x11ff, "flag": 0x339910, }, // Wagon Wheel
@@ -287,6 +286,8 @@ LBH_BONUS_TARGETS = [
 	{"scene": 0x0557, "flag": 0x33994C, }, // Jug
 	{"scene": 0x0f60, "flag": 0x339950, }, // Jug
 	{"scene": 0x0f60, "flag": 0x339954, }, // Wagon Wheel
+	{"scene": 0x0f60, "flag": 0x339958, }, // Wagon Wheel
+	{"scene": 0x0f60, "flag": 0x33995C, }, // Lantern
 	{"scene": 0x032a, "flag": 0x339960, }, // Wagon Wheel
 	{"scene": 0x032a, "flag": 0x339964, }, // Lantern
 	{"scene": 0x032a, "flag": 0x339968, }, // Skull
@@ -294,6 +295,7 @@ LBH_BONUS_TARGETS = [
 	{"scene": 0x11ff, "flag": 0x339970, }, // Jug
 	{"scene": 0x0a10, "flag": 0x339974, }, // Lantern
 	{"scene": 0x06af, "flag": 0x339978, }, // Jug
+	{"scene": 0x025d, "flag": 0x33997C, }, // Lantern
 	{"scene": 0x0557, "flag": 0x33997C, }, // Lantern
 	{"scene": 0x025d, "flag": 0x339980, }, // Jug
 	{"scene": 0x025d, "flag": 0x339984, }, // Skull
@@ -301,8 +303,8 @@ LBH_BONUS_TARGETS = [
 	{"scene": 0x0a10, "flag": 0x33998C, }, // Lantern
 	{"scene": 0x0a10, "flag": 0x339990, }, // Wagon Wheel
 	{"scene": 0x07ed, "flag": 0x339994, }, // Jug
-	{"scene": 0x11ff, "flag": 0x339998, }, // Right Lantern
-	{"scene": 0x11ff, "flag": 0x33999C, }, // Circle on Wall? Top Floor
+	{"scene": 0x11ff, "flag": 0x339998, }, // right lantern
+	{"scene": 0x11ff, "flag": 0x33999C, }, // circle on top floor
 ]
 
 LBH_OUTLAWS = [
@@ -370,13 +372,13 @@ function playing_lbh() => (
 
 function bounty_collected(x) => (
 	game_loaded() == GAME_LBH && 
-	prev(x) > 2 && x <= 2 && x > 0
+	prev(x) != 1 && prev(x) != 2 && x <= 2 && x > 0
 )
 
 function player_count() => sum_of(range(0,3), i => wiimote_connected(i))
 
 function md1_win() => scene_frame(GAME_MD1, 0x07aa, 1755)
-function md2_win() => scene_frame(GAME_MD2, 0x029f, 604)
+function md2_win() => scene_frame(GAME_MD2, 0x029f, 604) || scene_frame(GAME_MD2, 0x058c, 1353)
 function lbh_win() => scene_frame(GAME_LBH, 0x0d98, 3256)
 
 // --- RICH PRESENCE -------------------------------------------------------------------
@@ -526,7 +528,7 @@ achievement(
 )
 
 achievement(
-	title="I'd Rather Be Lucky Then Good",
+	title="I'd Rather Be Lucky Than Good",
 	description="Survive an ambush after failing to rescue the Sheriff",
 	type="missable",
 	points=2,
@@ -581,7 +583,7 @@ achievement(
 
 achievement(
 	title="What We Need's a Gun Slinger",
-	description="Defeat Mad Dog McCree on US Marshall difficulty",
+	description="Defeat Mad Dog McCree on US Marshal difficulty",
 	points=25,
 	trigger=md1_win() && difficulty() == 3
 )
@@ -592,7 +594,7 @@ achievement(
 	points=10,
 	trigger=(
 		playing_md1() &&
-		never(sum_of(range(0,3), i => lives(i)) == 0) &&
+		never(any_of(range(0,3), i => lives(i) == 0)) &&
 		trigger_when(md1_win())
 	)
 )
@@ -690,13 +692,13 @@ achievement(
 achievement(
 	title="Maybe You Should Have Played a Better Game",
 	description="Defeat Mad Dog McCree on any difficulty",
-	points=10,
+	points=5,
 	trigger=scene_frame(GAME_MD2, 0x029c, 668)
 )
 
 achievement(
-	title="You Beat Mad Dog to the Spanish Treasure",
-	description="Defeat Mad Dog McCree and get the good ending",
+	title="Bury Me With My Money",
+	description="Defeat Mad Dog McCree and reach THE END",
 	type="progression",
 	points=25,
 	trigger=md2_win()
@@ -704,9 +706,16 @@ achievement(
 
 achievement(
 	title="The Scourge of Tumbleweed",
-	description="Defeat Mad Dog McCree and get the good ending on US Marshall",
+	description="Defeat Mad Dog McCree and reach THE END on US Marshal",
 	points=10,
 	trigger=md2_win() && difficulty() == 3
+)
+
+achievement(
+	title="You Beat Mad Dog to the Spanish Treasure",
+	description="Defeat Mad Dog McCree without continuing and get the good ending",
+	points=10,
+	trigger=scene_frame(GAME_MD2, 0x029f, 604)
 )
 
 achievement(
@@ -740,7 +749,9 @@ achievement(
 		never(any_of(range(0,3), i => bullets(i) > prev(bullets(i)))) &&
 		trigger_when(scene_frame_exact(0x0256, 595))
 	)
-)/*
+)
+
+/*
 achievement(
 	title="__LBHShowdown",
 	description="Win any quick-draw showdown against a stranger",
@@ -808,7 +819,7 @@ achievement(
 )
 
 achievement(
-	title="Wanted Dead...",
+	title="Send 'Em to Boot Hill",
 	description="Kill all outlaws in a single game",
 	type="missable",
 	points=10,
@@ -821,7 +832,7 @@ achievement(
 )
 
 achievement(
-	title="...Or Alive",
+	title="Filling the Jail Cells",
 	description="Capture all outlaws in a single game",
 	type="missable",
 	points=10,
@@ -834,11 +845,11 @@ achievement(
 )
 
 achievement(
-	title="__LBHBribe",
+	title="Looking the Other Way",
 	description="Accept a bribe",
 	type="missable",
 	points=5,
-	trigger=scene_frame(GAME_LBH, 0x0d98, 2813)
+	trigger=scene_frame(GAME_LBH, 0x0d98, 1926)
 )
 
 achievement(
@@ -850,26 +861,26 @@ achievement(
 )
 
 achievement(
-	title="__LBHWinHard",
-	description="Rid the town of the threat of outlaws on US Marshall",
+	title="Hey Bounty Hunter, You Got a Death Wish?",
+	description="Rid the town of the threat of outlaws on US Marshal",
 	points=25,
 	trigger=lbh_win() && difficulty() == 3
 )
 
 achievement(
-	title="__LBH-1CC",
+	title="The Tequila Always Comes with a Little Trouble",
 	description="Complete the game without continuing",
 	points=10,
 	trigger=(
 		playing_lbh() &&
-		never(sum_of(range(0,3), i => lives(i)) == 0) &&
+		never(any_of(range(0,3), i => lives(i) == 0)) &&
 		trigger_when(lbh_win())
 	)
 )
 
-LBH_TARGET_COUNT = 20
+LBH_TARGET_COUNT = 35
 achievement(
-	title="__LBHBonusTargets",
+	title="Clean-Up Duty",
 	description=format("In one playthrough, shoot {0} unique bonus targets", LBH_TARGET_COUNT),
 	type="missable",
 	points=10,
