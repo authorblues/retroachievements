@@ -203,7 +203,7 @@ rich_presence_display(
 // --- ACHIEVEMENTS -------------------------------------------------------------------
 
 achievement(
-	title="Welcome! This is Dinosaur Land",
+	title="Welcome! This Is Dinosaur Land",
 	description="Successfully identify a level and reach a streak of 1. You're on your way now!",
 	type="progression",
 	points=1,
@@ -235,7 +235,7 @@ achievement(
 )
 
 achievement(
-	title="Even the RetroAchievements Staff is Impressed",
+	title="Even the RetroAchievements Staff Is Impressed",
 	description="Reach a streak of 50",
 	points=10,
 	trigger=reached_streak(50)
