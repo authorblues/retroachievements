@@ -653,7 +653,7 @@ achievement(
 		trigger_when(r.in_room(F_ENDLESS, 0x0303) && prev(r.flag(506)) < 2 && r.flag(506) == 2) &&
 		never(r.is_region() && r.field_id() != F_ENDLESS) && 
 		never(r.is_region() && r.room_id() != 0x03) &&
-		never(r.is_region() && r.flag(506) == 0) &&
+		never(r.is_region() && r.flag(506) == 0 && __ornext(r.xpos() < 150.0 || r.xpos() > 271.0 || r.ypos() < 287.0)) &&
 		never(r.is_region() && r.in_room(F_ENDLESS, 0x0303) && r.xpos() > 450.0 && r.xpos() <= 510.0 && r.ypos() <= 42.0)
 	))
 )
@@ -935,3 +935,265 @@ achievement(
 )
 
 // --- LEADERBOARDS -------------------------------------------------------------------
+
+// --- SUBSET [Glitch Showcase] -------------------------------------------------------------------
+
+S_GLITCH_SHOWCASE = achievement_set("Glitch Showcase", type="EXCLUSIVE", id=38540, game_id=144)
+
+function is_glitch_region() => ascii_string_equals(0x3180, "WLMG")
+function is_warping() => bit6(0x37616d) == 1 && bit7(0x37616d) == 1
+function shop_id() => dword_be(0x3640f8)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Lemezaaaaa Kosugiiiii!",
+	description="Enter the ruins of La-Mulana before speaking with Xelpud for the first time",
+	points=2,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.flag(124) == 0 && 
+		prev(REGION_US.field_id()) == F_SURFACE &&
+		trigger_when(REGION_US.field_id() == F_GUIDANCE)
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="It's Just a Jump to the Left",
+	description="Collect the Flare Gun without solving the puzzle of the Serdab of Light",
+	points=2,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.flag(435) < 3 && 
+		REGION_US.in_room(F_INFERNO, 0x0400) && prev(REGION_US.field_id()) != F_TITLE_SCREEN &&
+		prev(REGION_US.inventory(ITEM_FLARE_GUN)) == 0 && REGION_US.inventory(ITEM_FLARE_GUN) > 0
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="And Then a Step to the Right",
+	description="Purchase the Scriptures without possessing Bombs",
+	points=2,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.inventory(ITEM_BOMB) == 0 &&
+		REGION_US.in_room(F_MOONLIGHT, 0x0700) && prev(REGION_US.field_id()) != F_TITLE_SCREEN &&
+		prev(REGION_US.inventory(ITEM_SCRIPTURES)) == 0 && REGION_US.inventory(ITEM_SCRIPTURES) > 0
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Poison Control",
+	description="Dispel the sadness of the twins without possessing the Twin Statue",
+	points=5,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.inventory(ITEM_TWIN_STATUE) == 0 &&
+		// REGION_US.in_room(F_TWIN_LABS, 0x0000) &&
+		REGION_US.field_id() == F_TWIN_LABS && prev(REGION_US.field_id()) != F_TITLE_SCREEN &&
+		prev(REGION_US.flag(476)) < 2 && REGION_US.flag(476) >= 2
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="I Was Told the Puzzle Was Impossible",
+	description="Purchase the Lamp of Time without possessing the Feather",
+	points=2,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.inventory(ITEM_FEATHER) == 0 &&
+		REGION_US.in_room(F_TWIN_LABS, 0x0601) && prev(REGION_US.field_id()) != F_TITLE_SCREEN &&
+		prev(REGION_US.flag(155)) == 1 && REGION_US.flag(155) == 2
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Batter My Heart",
+	description="Enter the Scales of the Heart while time flows and Samaranta slumbers",
+	points=5,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.flag(139) == 0 &&
+		!REGION_US.lamp_active() &&
+		prev(REGION_US.field_id()) == F_TOWER_GODDESS && prev(REGION_US.screen_id()) != 0x0500 &&
+		REGION_US.in_room(F_TOWER_GODDESS, 0x0500)
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Caught Pazuzu on His Smoke Break",
+	description="Collect the Chain Whip without defeating Pazuzu",
+	points=1,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.flag(431) < 3 &&
+		REGION_US.in_room(F_INFERNO, 0x0300) &&
+		prev(REGION_US.inventory(ITEM_WHIP_CHAIN)) == 0 && REGION_US.inventory(ITEM_WHIP_CHAIN) > 0
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Slippin' and Slidin'",
+	description="In Graveyard of the Giants, bypass the ice wall that separates Path to the Graveyard from Antechamber without using Bombs",
+	points=3,
+	trigger=(
+		disable_when(!is_glitch_region()) &&
+		once(
+			REGION_US.flag(595) == 0 &&
+			prev(REGION_US.in_room(F_GRAVEYARD, 0x0401)) && 
+			REGION_US.in_room(F_GRAVEYARD, 0x0700)
+		) &&
+		// screen is not scrolling, which makes Lemeza screen position meaningless
+		trigger_when(__ornext(dword_be(0x364018) == 0 || dword_be(0x36401C) == 0)) &&
+		trigger_when(__ornext(REGION_US.xpos() >= 111.0 || REGION_US.ypos() >= 368.0 || REGION_US.ypos() <= 72.0)) &&
+		// forget about it if they just bomb the wall
+		never(REGION_US.flag(595) != 0) && 
+		// forget about it if they leave the room
+		never(!REGION_US.in_room(F_GRAVEYARD, 0x0700))
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="The Largest Lemeza",
+	description="Defeat Chi You without proving thou art small",
+	points=2,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.flag(554) < 5 &&
+		REGION_US.in_room(F_ILLUSION, 0x0202) &&
+		prev(REGION_US.flag(567)) == 0 && REGION_US.flag(567) > 0
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Friends in High Places",
+	description="Scan the Shrine of the Mother grail tablet without possessing the Feather before defeating eight Guardians",
+	points=10,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.inventory(ITEM_FEATHER) == 0 &&
+		REGION_US.in_room(F_SHRINE_MOTHER, 0x0700) &&
+		prev(REGION_US.flag(108)) == 0 && REGION_US.flag(108) > 0
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Born to Glitch",
+	description="Scan the Chamber of Birth grail tablet without possessing the Crystal Skull",
+	points=2,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.inventory(ITEM_CRYSTAL_SKULL) == 0 &&
+		REGION_US.in_room(F_BIRTH_GRAIL, 0x0000) &&
+		prev(REGION_US.flag(114)) == 0 && REGION_US.flag(114) > 0
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Just Gonna Scooch Right Past Ya There",
+	description="Empower the Key Sword while having defeated only six Guardians",
+	points=3,
+	trigger=(
+		is_glitch_region() &&
+		// REGION_US.boss_state(BOSS_TIAMAT) < 3 &&
+		REGION_US.flag(258) <= 6 &&
+		REGION_US.in_room(F_ILLUSION, 0x0000) &&
+		prev(REGION_US.flag(292)) < 0x04 && REGION_US.flag(292) == 0x04
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="GeGeGe no Re",
+	description="Scan the True Shrine of the Mother grail tablet without defeating Backbeard and Tai Sui",
+	points=5,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.flag(500) == 0 &&
+		REGION_US.in_room(F_TRUE_SHRINE, 0x0700) &&
+		prev(REGION_US.flag(117)) == 0 && REGION_US.flag(117) > 0
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Breaking Into Jail",
+	description="Escape the ruins without starting the escape timer",
+	points=3,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.flag(1029) == 0 && win_the_game(REGION_US)
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Station to Station",
+	description="The right hatch is Skuld. The left hatch is Verdandi. Open both hatches without leaving the screen.",
+	points=5,
+	trigger=(
+		disable_when(!is_glitch_region()) &&
+		once(
+			REGION_US.flag(404) == 0 && REGION_US.flag(405) == 0 &&
+			prev(REGION_US.field_id()) == F_SPRING && prev(REGION_US.screen_id()) != 0x0201 &&
+			REGION_US.in_room(F_SPRING, 0x0201)
+		) &&
+		// 
+		trigger_when(__ornext(prev(REGION_US.flag(404)) == 0 || prev(REGION_US.flag(405)) == 0)) &&
+		trigger_when(REGION_US.flag(404) == 1 && REGION_US.flag(405) == 1) &&
+		never(!REGION_US.in_room(F_SPRING, 0x0201))
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Like Clark Griswald Stuck in the Magatama Attic",
+	description="Starting from the Magatama Chamber, reach the Mural of Invocation without leaving the Chamber of Extinction or warping",
+	points=5,
+	trigger=(
+		is_glitch_region() &&
+		prev(REGION_US.in_room(F_EXTINCTION, 0x0001)) &&
+		REGION_US.in_room(F_EXTINCTION, 0x0201)
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Taking the Elevator",
+	description="Enter the Tower of the Goddess shop without revealing the ladder below its entrance",
+	points=5,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.flag(630) == 0 &&
+		REGION_US.in_room(F_TOWER_GODDESS, 0x0401) &&
+		prev(REGION_US.boss_shop_gamestate()) == 0x01 && REGION_US.boss_shop_gamestate() == 0x41
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="Break On Through to the Other Side",
+	description="Exiting the ruins via Echidna's Chamber, talk to Xelpud without warping or re-entering the ruins",
+	points=5,
+	trigger=(
+		disable_when(!is_glitch_region()) &&
+		once(
+			// was in Echidna's Chamber (Inferno)
+			prev(REGION_US.in_room(F_INFERNO, 0x0901)) &&
+			// now on the surface, in Sound Canyon
+			REGION_US.field_id() == F_SURFACE && REGION_US.room_id() == 0x04
+		) &&
+		trigger_when(
+			// Xelpud's shop is the only NPC door on this specific y-level
+			REGION_US.in_room(F_SURFACE, 0x0201) && REGION_US.ypos() == 152.0 &&
+			// entering a NPC shop
+			prev(REGION_US.boss_shop_gamestate()) == 0x01 && REGION_US.boss_shop_gamestate() == 0x41
+		) &&
+		never(is_warping()) &&
+		never(REGION_US.field_id() != F_SURFACE)
+	)
+)
+
+achievement(set=S_GLITCH_SHOWCASE,
+	title="I Remember When...",
+	description="Collect the Bounce Shot software after defeating eight Guardians",
+	points=3,
+	trigger=(
+		is_glitch_region() &&
+		REGION_US.flag(258) >= 8 &&
+		REGION_US.in_room(F_SHRINE_MOTHER, 0x0501) &&
+		prev(REGION_US.inventory(SOFTWARE_BOUNCE)) == 0 && REGION_US.inventory(SOFTWARE_BOUNCE) > 0
+	)
+)
