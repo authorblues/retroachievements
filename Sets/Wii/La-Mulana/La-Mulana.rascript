@@ -1035,7 +1035,7 @@ achievement(set=S_GLITCH_SHOWCASE,
 	description="In Graveyard of the Giants, bypass the ice wall that separates Path to the Graveyard from Antechamber without using Bombs",
 	points=3,
 	trigger=(
-		disable_when(!is_glitch_region()) &&
+		unless(is_glitch_region()) &&
 		once(
 			REGION_US.flag(595) == 0 &&
 			prev(REGION_US.in_room(F_GRAVEYARD, 0x0401)) && 
@@ -1127,7 +1127,7 @@ achievement(set=S_GLITCH_SHOWCASE,
 	description="The right hatch is Skuld. The left hatch is Verdandi. Open both hatches without leaving the screen.",
 	points=5,
 	trigger=(
-		disable_when(!is_glitch_region()) &&
+		unless(is_glitch_region()) &&
 		once(
 			REGION_US.flag(404) == 0 && REGION_US.flag(405) == 0 &&
 			prev(REGION_US.field_id()) == F_SPRING && prev(REGION_US.screen_id()) != 0x0201 &&
@@ -1168,7 +1168,7 @@ achievement(set=S_GLITCH_SHOWCASE,
 	description="Exiting the ruins via Echidna's Chamber, talk to Xelpud without warping or re-entering the ruins",
 	points=5,
 	trigger=(
-		disable_when(!is_glitch_region()) &&
+		unless(is_glitch_region()) &&
 		once(
 			// was in Echidna's Chamber (Inferno)
 			prev(REGION_US.in_room(F_INFERNO, 0x0901)) &&
