@@ -1141,7 +1141,7 @@ achievement(set=S_GLITCH_SHOWCASE,
 )
 
 achievement(set=S_GLITCH_SHOWCASE,
-	title="Like Clark Griswald Stuck in the Magatama Attic",
+	title="Like Clark Griswold Stuck in the Magatama Attic",
 	description="Starting from the Magatama Chamber, reach the Mural of Invocation without leaving the Chamber of Extinction or warping",
 	points=5,
 	trigger=(
