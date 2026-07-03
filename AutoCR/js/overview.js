@@ -2461,71 +2461,71 @@ function RichPresenceTab()
 
 function AchievementTabs()
 {
-	let achievements = current.set.getAchievements();
-	// Busca as conquistas arquivadas do novo método criado no achievements.js
-	let archived = current.set.getArchivedAchievements ? current.set.getArchivedAchievements() : [];
-	
-	// Estado do React para controlar se a sanfona está aberta ou fechada
-	const [showArchived, setShowArchived] = React.useState(false);
+    let achievements = current.set.getAchievements();
+    // Fetch archived achievements from the new method created in achievements.js
+    let archived = current.set.getArchivedAchievements ? current.set.getArchivedAchievements() : [];
+    
+    // React state to control whether the accordion is open or closed
+    const [showArchived, setShowArchived] = React.useState(false);
 
-	if (achievements.length == 0 && archived.length == 0) return null;
+    if (achievements.length == 0 && archived.length == 0) return null;
 
-	// preload all images
-	new Image().src = current.set.icon;
-	for (let ach of achievements) new Image().src = ach.badge;
-	for (let ach of archived) new Image().src = ach.badge;
+    // preload all images
+    new Image().src = current.set.icon;
+    for (let ach of achievements) new Image().src = ach.badge;
+    for (let ach of archived) new Image().src = ach.badge;
 
-	achievements = achievements.sort((a, b) => a.state.rank - b.state.rank);
-	archived = archived.sort((a, b) => a.state.rank - b.state.rank);
+    achievements = achievements.sort((a, b) => a.state.rank - b.state.rank);
+    archived = archived.sort((a, b) => a.state.rank - b.state.rank);
 
-	return(<>
-		<tr className="asset-header">
-			<td>Achievements</td>
-		</tr>
-		{achievements.map((ach) => {
-			let warn = SEVERITY_TO_CLASS[ach.feedback.status()];
-			return (
-			<tr 
-				key={`a${ach.id}`} id={ach.toRefString()} className={`asset-row ${warn}`} 
-				data-route={`/achievement/${ach.id}`}
-				onClick={(e) => show_overview(e, <AchievementInfo ach={ach} />)}
-			>
-				<td className="asset-name">
-					🏆 {ach.state.marker}{ach.title} ({ach.points})
-				</td>
-			</tr>);
-		})}
+    return(<>
+        <tr className="asset-header">
+            <td>Achievements</td>
+        </tr>
+        {achievements.map((ach) => {
+            let warn = SEVERITY_TO_CLASS[ach.feedback.status()];
+            return (
+            <tr 
+                key={`a${ach.id}`} id={ach.toRefString()} className={`asset-row ${warn}`} 
+                data-route={`/achievement/${ach.id}`}
+                onClick={(e) => show_overview(e, <AchievementInfo ach={ach} />)}
+            >
+                <td className="asset-name">
+                    🏆 {ach.state.marker}{ach.title} ({ach.points})
+                </td>
+            </tr>);
+        })}
 
-		{/* Bloco da Sanfona para Conquistas Arquivadas */}
-		{archived.length > 0 && (
-			<>
-				<tr 
-					className="asset-header" 
-					onClick={() => setShowArchived(!showArchived)}
-					style={{ cursor: 'pointer', userSelect: 'none' }}
-				>
-					<td>
-						{showArchived ? '▼' : '▶'} Archived ({archived.length})
-					</td>
-				</tr>
-				
-				{showArchived && archived.map((ach) => {
-					let warn = SEVERITY_TO_CLASS[ach.feedback.status()];
-					// Adiciona a classe 'fade' para escurecer as conquistas arquivadas
-					return (
-					<tr 
-						key={`a${ach.id}`} id={ach.toRefString()} className={`asset-row ${warn} fade`} 
-						data-route={`/achievement/${ach.id}`}
-						onClick={(e) => show_overview(e, <AchievementInfo ach={ach} />)}
-					>
-						<td className="asset-name">
-							🏆 {ach.state.marker}{ach.title} ({ach.points})
-						</td>
-					</tr>);
-				})}
-			</>
-		)}
-	</>);
+        {/* Accordion block for Archived Achievements */}
+        {archived.length > 0 && (
+            <>
+                <tr 
+                    className="asset-header" 
+                    onClick={() => setShowArchived(!showArchived)}
+                    style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                    <td>
+                        {showArchived ? '▼' : '▶'} Archived ({archived.length})
+                    </td>
+                </tr>
+                
+                {showArchived && archived.map((ach) => {
+                    let warn = SEVERITY_TO_CLASS[ach.feedback.status()];
+                    // Add 'fade' class to dim archived achievements
+                    return (
+                    <tr 
+                        key={`a${ach.id}`} id={ach.toRefString()} className={`asset-row ${warn} fade`} 
+                        data-route={`/achievement/${ach.id}`}
+                        onClick={(e) => show_overview(e, <AchievementInfo ach={ach} />)}
+                    >
+                        <td className="asset-name">
+                            🏆 {ach.state.marker}{ach.title} ({ach.points})
+                        </td>
+                    </tr>);
+                })}
+            </>
+        )}
+    </>);
 }
 
 function LeaderboardTabs()
@@ -2592,7 +2592,7 @@ function update()
 	// don't assume they have already been processed, as code notes might be new
 	for (let ach of current.set.getAchievements()) assess_achievement(ach);
 	
-	// Garante que as arquivadas também recebam feedback para não quebrar a UI
+	// Ensures that files also receive feedback so as not to break the UI
 	if (current.set.getArchivedAchievements) {
 		for (let ach of current.set.getArchivedAchievements()) assess_achievement(ach);
 	}

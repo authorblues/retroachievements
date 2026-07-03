@@ -349,7 +349,7 @@ class AchievementSet
 			let asset = Achievement.fromJSON(x);
 			if (!asset) continue;
 			
-			asset.index = i;
+			asset.index = i; // to preserve order from json file
 			
 			if (asset.isArchived()) {
 				this.archivedAchievements.set(asset.id || asset.index, asset);
@@ -362,7 +362,7 @@ class AchievementSet
 		{
 			let asset = Leaderboard.fromJSON(x);
 			if (x.Hidden || !asset || !asset.needsFeedback()) continue;
-			asset.index = i;
+			asset.index = i; // to preserve order from json file
 			this.leaderboards.set(asset.id || asset.index, asset);
 		}
 		
@@ -407,20 +407,20 @@ class AchievementSet
 			let asset;
 			switch (row[0][0])
 			{
-				case 'M':
+				case 'M': // local memory region
 					break;
-				case 'N':
+				case 'N': // local code note
 					notes.add(new CodeNote(row[1], row[2], null))
 					break;
-				case 'L':
+				case 'L': // leaderboard
 					asset = Leaderboard.fromLocal(row);
-					asset.index = i + 1000000;
+					asset.index = i + 1000000; // preserve order from file
 					if (!asset || !asset.needsFeedback()) continue;
 					this.leaderboards.set(asset.id || asset.index, asset);
 					break;
-				default:
+				default: // achievement
 					asset = Achievement.fromLocal(row);
-					asset.index = i + 1000000;
+					asset.index = i + 1000000; // preserve order from file
 					if (!asset) continue;
 
 					if (asset.isArchived()) {
