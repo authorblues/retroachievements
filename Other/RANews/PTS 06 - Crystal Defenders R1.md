@@ -1,0 +1,9 @@
+Set: https://retroachievements.org/game/36135
+
+I love tower defense games, though I don't often seek them out. I got really into Bloons TD 6 for a bit a few years ago, and when I saw that the Wii rollout included Bloons, I was excited (and then immediately disappointed when I discovered what Bloons was).
+
+Then I caught my buddy WanderingNewbie playing Crystal Defenders R1, and I instantly saw the vision. This game is a bit simple. By the end of it, you only have eight classes (towers) to work with, but as has been the case with Final Fantasy spinoff games, I assure you dear reader, this one has the juice. The concept is simple, but the way you can combine and synergize a strategy has a little more complexity than you might expect (not that other tower defense games haven't tread this path a hundred times before).
+
+It's a short game. In fact, you can beat this game in a few hours, tops. Mastery too, probably. But what MelodyAsh has done with the set is really impressive. I'm an RA set developer myself, and more than a few times I thought to myself "I would be nervous giving this challenge to the player, because it's really difficult". Now, as a developer, I know how players can get. Some of you read that and thought "I would never play a set that challenges me to do things", and I hear you, but let me tell you, the thrill I felt solving some of these challenges -- you can't get that sort of feeling anywhere else. That is what makes RetroAchievements so special! It transformed a light, strategic tower defense game into a full-blown puzzle experience.
+
+This set stands out in my mind as probably one of my favorites from the Wii rollout. By the time you read this, maybe MelodyAsh will have completed and released the set for Crystal Defenders R2. If so, believe me that it was (or will be) a day one play for me. And it should be for you too.
