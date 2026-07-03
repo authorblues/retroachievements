@@ -773,7 +773,7 @@ function* check_deltas(logic)
 	
 	// At this point, delta_groups[0] could be "wrongfully" tagged as false in the case the core holds a delta that is 
 	//  matched by a Mem in each alt (but not in core)
-	for(const core_unmatched_delta of core_unmatched_delta_set)
+	for (const core_unmatched_delta of core_unmatched_delta_set)
 	{
 		let mem_groups = logic.groups.slice(1).map((g, gi) =>
 		{
@@ -782,7 +782,7 @@ function* check_deltas(logic)
 			if (g.some(req => req.isAlwaysFalse()))
 				return true;
 
-			_prefix = '';
+			let _prefix = '';
 			for (const [ri, req] of g.entries())
 			{
 				if (req.flag == ReqFlag.ADDADDRESS)
