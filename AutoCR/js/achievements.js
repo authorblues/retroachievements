@@ -176,9 +176,15 @@ class Asset
 		this.#ref = crypto.randomUUID();
 	}
 
+	isArchived()
+	{
+		const upperTitle = this.title?.toUpperCase() || "";
+		return upperTitle.includes('[VOID]') || upperTitle.includes('[DEMOTED]');
+	}
+
 	needsFeedback()
 	{
-		if (this.title.toUpperCase().includes('[VOID]')) return false;
+		if (this.isArchived()) return false;
 		if (this.id >= 101000000 && this.id < 111000000) return false; // emulator warnings
 		return true;
 	}
@@ -316,6 +322,7 @@ class AchievementSet
 	icon = null;
 	console = null;
 	achievements = new Map();
+	archivedAchievements = new Map();
 	leaderboards = new Map();
 
 	constructor() {  }
@@ -340,16 +347,22 @@ class AchievementSet
 		for (const [i, x] of achJson.entries())
 		{
 			let asset = Achievement.fromJSON(x);
-			if (!asset || !asset.needsFeedback()) continue;
-			asset.index = i; // to preserve order from json file
-			this.achievements.set(asset.id || asset.index, asset);
+			if (!asset) continue;
+			
+			asset.index = i;
+			
+			if (asset.isArchived()) {
+				this.archivedAchievements.set(asset.id || asset.index, asset);
+			} else if (asset.needsFeedback()) {
+				this.achievements.set(asset.id || asset.index, asset);
+			}
 		}
 
 		for (let [i, x] of ldbJson.entries())
 		{
 			let asset = Leaderboard.fromJSON(x);
 			if (x.Hidden || !asset || !asset.needsFeedback()) continue;
-			asset.index = i; // to preserve order from json file
+			asset.index = i;
 			this.leaderboards.set(asset.id || asset.index, asset);
 		}
 		
@@ -394,22 +407,27 @@ class AchievementSet
 			let asset;
 			switch (row[0][0])
 			{
-				case 'M': // local memory region
+				case 'M':
 					break;
-				case 'N': // local code note
+				case 'N':
 					notes.add(new CodeNote(row[1], row[2], null))
 					break;
-				case 'L': // leaderboard
+				case 'L':
 					asset = Leaderboard.fromLocal(row);
-					asset.index = i + 1000000; // preserve order from file
+					asset.index = i + 1000000;
 					if (!asset || !asset.needsFeedback()) continue;
 					this.leaderboards.set(asset.id || asset.index, asset);
 					break;
-				default: // achievement
+				default:
 					asset = Achievement.fromLocal(row);
-					asset.index = i + 1000000; // preserve order from file
-					if (!asset || !asset.needsFeedback()) continue;
-					this.achievements.set(asset.id || asset.index, asset);
+					asset.index = i + 1000000;
+					if (!asset) continue;
+
+					if (asset.isArchived()) {
+						this.archivedAchievements.set(asset.id || asset.index, asset);
+					} else if (asset.needsFeedback()) {
+						this.achievements.set(asset.id || asset.index, asset);
+					}
 					break;
 			}
 		}
@@ -417,6 +435,7 @@ class AchievementSet
 	}
 
 	getAchievements() { return [...this.achievements.values()]; }
+	getArchivedAchievements() { return [...this.archivedAchievements.values()]; }
 	getLeaderboards() { return [...this.leaderboards.values()]; }
 }
 
