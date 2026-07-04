@@ -484,11 +484,11 @@ achievement(
     title="Strike!",
     description=format("Combo kill {0} or more enemies in one throw", TARGET_COMBO),
     points=5,
-    trigger=(on_land() == 1 && prev(combo()) < TARGET_COMBO && combo() >= TARGET_COMBO)
+    trigger=(in_game() != 0 && on_land() == 1 && prev(combo()) < TARGET_COMBO && combo() >= TARGET_COMBO)
 )
 
 achievement(
-    title="The Missle Knows Where It Is",
+    title="The Missile Knows Where It Is",
     description="Pretty advanced rocket technology for a bunch of smelly pirates",
     points=1,
     trigger=(
@@ -505,7 +505,7 @@ achievement(
     title="Drink Up, Me Hearties!",
     description=format("Earn {0} points", TARGET_POINTS),
     points=10,
-    trigger=(on_land() == 1 && prev(health()) < TARGET_POINTS && health() >= TARGET_POINTS)
+    trigger=(in_game() != 0 && on_land() == 1 && prev(health()) < TARGET_POINTS && health() >= TARGET_POINTS)
 )
 
 achievement(
@@ -532,5 +532,5 @@ achievement(
     title="You Fight Like a Dairy Farmer",
     description="Collect a Pow for 2000 points",
     points=2,
-    trigger=(on_land() == 1 && health() - prev(health()) == 2000)
+    trigger=(in_game() != 0 && on_land() == 1 && health() - prev(health()) == 2000)
 )
