@@ -1,6 +1,16 @@
 // ~Hack~ BAZR
 // #ID = 33246
 
+/*
+Cheat Codes
+On Title Screen, hold L and press 8 buttons in order.
+BABAZABA - Mario Choir Title
+RAZZBAZZ - Unlock All Decks
+BARRAZZA - Green Demon Unnerf
+ZABARABA - Free Stage Rerolls
+BABARZAB - Big Head Mode
+*/
+
 // --- HELPERS -------------------------------------------------------------------
 
 NULL = 0
