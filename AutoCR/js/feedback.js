@@ -689,7 +689,8 @@ function* check_deltas(logic)
 			<li>Appropriate use of Delta includes all of the following conditions:</li>
 			<ul>
 				<li>There should be a <code>Delta</code> that is not part of <code>ResetIf</code>, <code>ResetNextIf</code>, or <code>PauseIf</code>.</li>
-				<li>...on a memory address for which there is a corresponding <code>Mem</code> constraint on the same address.</li>
+				<li>...on a memory address for which there is a corresponding <code>Mem</code> constraint on the same address</li>
+				<li>...and for which the Mem is not checked against the same logical assertion as the Delta.</li>
 				<li>...in the core group or in <strong>all</strong> alt groups. There should be no way for the achievement to be triggered without a <code>Delta</code> being involved in some way.</li>
 			</ul>
 		</ul>
@@ -709,8 +710,18 @@ function* check_deltas(logic)
 			_prefix += req.lhs.toString() + (!req.rhs ? '' : (req.op + req.rhs.toString())) + ':';
 		else
 		{
-			if (req.lhs && req.lhs.type.addr == ReqAddrType.CURRENT) corememset.add(_prefix + req.lhs.toString());
-			if (req.rhs && req.rhs.type.addr == ReqAddrType.CURRENT) corememset.add(_prefix + req.rhs.toString());
+			if (req.lhs && req.lhs.type.addr == ReqAddrType.CURRENT)
+			{
+				let _rightSide = null;
+				if (req.rhs) _rightSide = req.rhs.type == ReqType.VALUE ? req.rhs.toString() : _prefix + req.rhs.toString()
+				corememset.add({ mem: _prefix + req.lhs.toString(), op: req.op, otherSide: _rightSide });
+			}
+			if (req.rhs && req.rhs.type.addr == ReqAddrType.CURRENT)
+			{
+				let _leftSide = null;
+				if (req.lhs) _leftSide = req.lhs.type == ReqType.VALUE ? req.lhs.toString() : _prefix + req.lhs.toString()
+				corememset.add({ mem: _prefix + req.rhs.toString(), op: req.op, otherSide: _leftSide });
+			}
 			_prefix = '';
 		}
 	}
@@ -733,8 +744,18 @@ function* check_deltas(logic)
 				_prefix += req.lhs.toString() + (!req.rhs ? '' : (req.op + req.rhs.toString())) + ':';
 			else
 			{
-				if (req.lhs && req.lhs.type.addr == ReqAddrType.CURRENT) memset.add(_prefix + req.lhs.toString());
-				if (req.rhs && req.rhs.type.addr == ReqAddrType.CURRENT) memset.add(_prefix + req.rhs.toString());
+				if (req.lhs && req.lhs.type.addr == ReqAddrType.CURRENT)
+				{
+					let _rightSide = null;
+					if (req.rhs) _rightSide = req.rhs.type == ReqType.VALUE ? req.rhs.toString() : _prefix + req.rhs.toString()
+					memset.add({ mem: _prefix + req.lhs.toString(), op: req.op, otherSide: _rightSide });
+				}
+				if (req.rhs && req.rhs.type.addr == ReqAddrType.CURRENT)
+				{
+					let _leftSide = null;
+					if (req.lhs) _leftSide = req.lhs.type == ReqType.VALUE ? req.lhs.toString() : _prefix + req.lhs.toString()
+					memset.add({ mem: _prefix + req.rhs.toString(), op: req.op, otherSide: _leftSide });
+				}
 				_prefix = '';
 			}
 		}
@@ -745,16 +766,40 @@ function* check_deltas(logic)
 			if (req.flag == ReqFlag.ADDADDRESS)
 				_prefix += req.lhs.toString() + (!req.rhs ? '' : (req.op + req.rhs.toString())) + ':';
 			else
-			{
+			{			
+				let delta_has_mem = false;
 				// a delta only counts if it has a matching mem value
-				for (let op of [req.lhs, req.rhs])
-					if (op && op.type == ReqType.DELTA) {
-						let delta_has_mem = memset.has(_prefix + op.toString());
-						has_delta ||= delta_has_mem;
 
-						if(!delta_has_mem && gi == 0)
-							core_unmatched_delta_set.add(_prefix + op.toString())
+				// TODO: single delta=mem line!!!
+				for (const memLine of memset)
+				{
+					if (req.lhs && req.lhs.type == ReqType.DELTA)
+					{
+						let _rightSide = null;
+						if (req.rhs) _rightSide = req.rhs.type == ReqType.VALUE ? req.rhs.toString() : _prefix + req.rhs.toString()
+						if (_prefix + req.lhs.toString() == memLine.mem && (req.op != memLine.op || _rightSide != memLine.otherSide || 
+							_rightSide == memLine.otherSide && _rightSide == memLine.mem && memLine.op != "=")) // Case of direct comparison between Mem and Delta
+						{
+							delta_has_mem = true;
+						}
+						has_delta ||= delta_has_mem;
+						if (!delta_has_mem && gi == 0)
+							core_unmatched_delta_set.add({delta: _prefix + req.lhs.toString(), op: req.op, otherSide: _rightSide})
 					}
+					if (req.rhs && req.rhs.type == ReqType.DELTA)
+					{
+						let _leftSide = null;
+						if (req.lhs) _leftSide = req.lhs.type == ReqType.VALUE ? req.lhs.toString() : _prefix + req.lhs.toString()
+						if (_prefix + req.rhs.toString() == memLine.mem && (req.op != memLine.op || _leftSide != memLine.otherSide ||  
+							_leftSide == memLine.otherSide && _leftSide == memLine.mem && memLine.op != "=")) // Case of direct comparison between Mem and Delta
+						{
+							delta_has_mem = true;
+						}
+						has_delta ||= delta_has_mem;
+						if (!delta_has_mem && gi == 0)
+							core_unmatched_delta_set.add({delta: _prefix + req.rhs.toString(), op: req.op, otherSide: _leftSide})
+					}
+				}
 				_prefix = '';
 			}
 			
@@ -770,6 +815,9 @@ function* check_deltas(logic)
 
 	// either the core group must have the valid mem/delta check, or *all* alt groups
 	if (delta_groups[0] || (delta_groups.length > 1 && delta_groups.slice(1).every(x => x))) return;
+	
+	// If there is no Alt, the following checks are not relevant
+	if (delta_groups.length == 1) yield new Issue(Feedback.IMPROPER_DELTA, null, DELTA_FEEDBACK);
 	
 	// At this point, delta_groups[0] could be "wrongfully" tagged as false in the case the core holds a delta that is 
 	//  matched by a Mem in each alt (but not in core)
@@ -789,9 +837,28 @@ function* check_deltas(logic)
 					_prefix += req.lhs.toString() + (!req.rhs ? '' : (req.op + req.rhs.toString())) + ':';
 				else
 				{					
-					for (let op of [req.lhs, req.rhs])
-						if (op && op.type == ReqType.MEM && core_unmatched_delta == _prefix + op.toString())
+					if (req.lhs && req.lhs.type == ReqType.MEM)
+					{
+						let _rightSide = null;
+						if (req.rhs)
+							_rightSide = req.rhs.type == ReqType.VALUE ? req.rhs.toString() : _prefix + req.rhs.toString()
+						if (req.lhs && _prefix + req.lhs.toString() == core_unmatched_delta.delta && (req.op != core_unmatched_delta.op || _leftSide != core_unmatched_delta.otherSide ||  
+							_leftSide == core_unmatched_delta.otherSide && _leftSide == core_unmatched_delta.mem && core_unmatched_delta.op != "="))
+						{
 							return true;
+						}
+					}
+					if (req.rhs && req.rhs.type == ReqType.MEM)
+					{
+						let _leftSide = null;
+						if (req.lhs) 
+							_leftSide = req.lhs.type == ReqType.VALUE ? req.lhs.toString() : _prefix + req.lhs.toString()
+						if (req.rhs && _prefix + req.rhs.toString() == core_unmatched_delta.delta && (req.op != core_unmatched_delta.op || _leftSide != core_unmatched_delta.otherSide ||  
+							_leftSide == core_unmatched_delta.otherSide && _leftSide == core_unmatched_delta.mem && core_unmatched_delta.op != "="))
+						{
+							return true;
+						}
+					}
 					_prefix = '';
 				}				
 			}
