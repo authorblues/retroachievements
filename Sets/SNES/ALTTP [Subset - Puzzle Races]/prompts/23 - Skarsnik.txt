@@ -1,0 +1,18 @@
+The goal is simply to defeat Vitrious
+Bomb outside misery mire aren't allowed
+No exploration glitch.
+ 
+I will not tell you why, but you will probably need a way to be on some part of the darkworld using an Oob
+This one is easy, it's goes to death montain to sanctuary area in Dark World.
+ 
+The location is at the bottom on DM near the old man cave location in Dark World.
+http://sr.nyo.fr/alttp/OoB/dmsanctuarylocation.png
+ 
+First hold you sword, that prevent link from changing direction with the left input
+You will need to clip to the cliff using A + Left input (on the same frame)
+There is two starting position as show on the two pictures
+The arrow show a two pixel gap of light brown pixel with the cliff shadow and link shadow.
+http://sr.nyo.fr/alttp/OoB/dmdsanctuary1.png
+http://sr.nyo.fr/alttp/OoB/dmdsanctuary2.png
+ 
+Just do Left + A until you fell, when you fell, move up a little then down and that it.

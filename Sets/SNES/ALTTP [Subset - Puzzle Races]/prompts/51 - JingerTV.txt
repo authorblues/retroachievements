@@ -1,0 +1,68 @@
+ALttP Puzzle #51 New Curreny "Inventory Rupee Count" short "IRC"
+╔══════╦═══════════════════════════════════════════════════════════════════╗
+║ GOAL ║ Defeat Gan(n)on with the Master Sword and enter the Triforceroom. ║
+╚══════╩═══════════════════════════════════════════════════════════════════╝
+TIP: I recommend to take notes on a notepad file or in a notebook.
+ 
+Your starting "Inventory Rupee Count" maximum is 150.
+ 
+[1.0][==========[ RESTRICTIONS ]==========]
+1.  You may not use swords on Bosses except curtain, tendril, clips, Spinspeed and Ganon.
+2.  For every collected map you can get a Y-Item that can deal damage to an enemy execpt Bottle and Bug Net.
+3.  For every collected compass you can collect 2 heart pieces execpt first one increases the count to 4.
+4.  For every new Heartcontainer your "Inventory Rupee Count" maximum increases by 50.
+5.  You may collect the Heart of Shame as the last Heartcontainer -- Sanctuary Heartcontainer.
+6.  You may collect items early - Beware do not use them early.
+7.  You may only use the Cane of Byrna in 1 Room! Use it with care.
+8.  You may only use Bombs on wallcracks, cracked floors and Stalfos Knights.
+9.  You may only use the Mirror for getting Heartpieces, Potions and to enter the Swamp Palace.
+10. You may use the Power Glove/Titans Mitt in caves freely.
+11. You may not use the Hammer in Light World or vs Bosses.
+12. You may not collect the Boomerang in Hyrule Castle.
+13. You may only collect 2 Bottles.
+14. You may use Dash only for traveling purpose - When enemys drop loot don't pick it up.
+ 
+Bosses are where boss music plays.
+ 
+[2.0][==========[ Collecting a Pendant or Crystal changes Restrictions ]==========]
+Pendant of Power: You need at least 1 Arrow in Inventory.
+Pendant of Courage: Your Cane of Byrna IRC value changes to 0.
+Pendant of Wisdom: You may now use the Fire Rod and Ice Rod with >230 Inventory Rupee count.
+ 
+Crystal #1 [Palace of Dankness]: You may now use the Power Glove/Titans Mitt freely.
+Crystal #2 [Swamp Palace]: You may now collect up to 4 Bottles.
+Crystal #3 [Skull Woods]: You may now use the Bow with >100 IRC.
+Crystal #4 [Thieves' Town]: You may now use the Hammer vs Bosses with >300 IRC. - Bossencounter in LW are not possible.
+Crystal #5 [Ice Palace]: You may now use the Hammer in Lightworld >300 IRC. 
+Crystal #6 [Misery Mire]: You may now use the Mirror freely.
+Crystal #7 [Turtle Rock]: You may now use your Sword with >400 IRC.
+ 
+When you suddendly used the last arrow - Refill as soon as possible and it's still counting as you would have it.
+ 
+[3.0][==========[ INVENTORY RUPEE VALUES ]==========]
+╔═════════════════════╦════════════════════╦═══════════════════╦═══════════════╦═══════════════════╗
+║ Bow              40 ║ Boomerang       10 ║ Hookshot       20 ║ Mushroom   0  ║ Magic Powder   50 ║
+║ Fire Rod         30 ║ Ice Rod         30 ║ Bombos         10 ║ Ether      10 ║ Quake          10 ║
+║ Lamp             0  ║ MC Hammer       50 ║ Flute          50 ║ Shovel     0  ║ Bug Net         0 ║
+║ Cane of Somaria  20 ║ Cane of Byrna   30 ║ Cape           10 ║ Mirror     50 ║ Book of Mudora  0 ║
+║ Pegasus Boots    0  ║ Power Gloves    20 ║ Titans Mitt    50 ║ Moonpearl  50 ║ Flippers        0 ║
+║ Empty Bottle     0  ║                    ║                   ║               ║                   ║
+╠═════════════════╦═══╩═════════════╦══════╩════════════════╦══╩═══════════════╩═════╦═════════════╝
+║ Arrows  2 each  ║	Bomb    5 each  ║ Green Potion  60 each ║ Red Potion   120  each ║
+║ Bee     10 each ║	Fairy   80 each ║ Golden Bee    100     ║ Blue Potion  160 each  ║
+╚═════════════════╩═════════════════════════════════════════╩════════════════════════╝		
+ 
+[4.0][==========[ IRC Restrictions ]==========]
+You only can use Items within a specific range of "Inventory Rupee Count"
+ 
+0  		Sword
+<101	Bow
+<231	Fire Rod/Ice Rod
+>301	Hookshot
+>401	Cane of Somaria
+ 
+You have permission to use the Bow for reducing the Inventory Rupee count - however not on enemys or blocked pathways when you can not use it.
+ 
+[5.0][==========[ BANNED ]==========]
+EG
+1/2 Magic
