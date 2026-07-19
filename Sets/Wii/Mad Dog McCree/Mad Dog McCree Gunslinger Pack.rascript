@@ -493,7 +493,7 @@ achievement(
 	points=5,
 	trigger=(
 		game_loaded() == GAME_MD1 && 
-		prev(current_bonus()) == 550 && current_bonus() == 600
+		prev(current_bonus()) < 600 && current_bonus() >= 600
 	)
 )
 
@@ -584,7 +584,7 @@ achievement(
 achievement(
 	title="What We Need's a Gun Slinger",
 	description="Defeat Mad Dog McCree on US Marshal difficulty",
-	points=25,
+	points=10,
 	trigger=md1_win() && difficulty() == 3
 )
 
@@ -649,7 +649,7 @@ achievement(
 	points=5,
 	trigger=(
 		game_loaded() == GAME_MD2 && 
-		prev(current_bonus()) == 550 && current_bonus() == 600
+		prev(current_bonus()) < 600 && current_bonus() >= 600
 	)
 )
 
@@ -766,7 +766,7 @@ achievement(
 	points=5,
 	trigger=(
 		game_loaded() == GAME_LBH && 
-		prev(current_bonus()) == 550 && current_bonus() == 600
+		prev(current_bonus()) < 600 && current_bonus() >= 600
 	)
 )
 
@@ -863,7 +863,7 @@ achievement(
 achievement(
 	title="Hey Bounty Hunter, You Got a Death Wish?",
 	description="Rid the town of the threat of outlaws on US Marshal",
-	points=25,
+	points=10,
 	trigger=lbh_win() && difficulty() == 3
 )
 
