@@ -1,0 +1,414 @@
+0x1923 	
+Stars [8 bit]
+bit0 | Star (0x03 - Right of table)
+bit1 | Star (0x03 - Left of table)
+bit2 | Star (0x02 - Right of door)
+bit3 | Star (0x02 - Over bed)
+bit4 | Star (0x01 - Right of Dylan's table)
+bit5 | Star (0x01 - Above Dylan's bed)
+bit6 | Star (0x00 - Dizzy's room right)
+bit7 | Star (0x00 - Dizzy's room left)
+		
+0x1924 	
+Stars [8 bit]
+bit0 | Star (0x07 - Denzil's room right)
+bit1 | Star (0x07 - Denzil's room left)
+bit2 | Star (0x06 - Dozy's right ceiling)
+bit3 | Star (0x06 - Dozy's left side table)
+bit4 | Star (0x05 - Table near cauldron)
+bit5 | Star (0x05 - Left of GD's bed)
+bit6 | Star (0x04 - Right of bed)
+bit7 | Star (0x04 - Left of door)
+		
+0x1925 	
+Stars [8 bit]
+bit0 | Star (0x0a - Right of Dylan's hut)
+bit1 | Star (0x0a - Above Dylan's hut, top of elevator)
+bit2 | Star (0x0a - Far left, bottom of useless ramp)
+bit3 | Star (0x09 - Right of hook)
+bit4 | Star (0x09 - Above hook)
+bit5 | Star (0x09 - Right of Dora's hut)
+bit6 | Star (0x08 - Right of Dozy's hut)
+bit7 | Star (0x08 - Far right, raised platform)
+		
+0x1926 	
+Stars [8 bit]
+bit0 | Star (0x0b - End of ramp, by key to Dylan's elevator)
+bit1 | Star (0x0b - Under ramp)
+bit2 | Star (0x0b - Far right of Grand Dizzy's hut)
+bit3 | Star (0x0b - Right of Grand Dizzy's hut)
+bit4 | Star (0x0b - Upper path above Grand Dizzy's hut)
+bit5 | Star (0x0b - Far left above elevator)
+bit6 | Star (0x0a - Far right high ant platform)
+bit7 | Star (0x0a - Far right down ramp)
+		
+0x1927 	
+Stars [8 bit]
+bit0 | Star (0x0d - Left of meeting hall)
+bit1 | Star (0x0d - Upper walkway, above spider)
+bit2 | Star (0x0d - Above Dizzy's hut, left of rope swing)
+bit3 | Star (0x0c - Right of Denzil's elevator)
+bit4 | Star (0x0c - Between Denzil's hut and elevator)
+bit5 | Star (0x0c - On ramp up, right of star plant)
+bit6 | Star (0x0c - Left of dry straw)
+bit7 | Star (0x0c - Far left, between two spiders)
+		
+0x1928 	
+Stars [8 bit]
+bit0 | Star (0x0e - Far right, near spider)
+bit1 | Star (0x0e - Up dead-end ramp)
+bit2 | Star (0x0e - Top of ramp above snappy weed)
+bit3 | Star (0x0e - Right of Dizzy's hut)
+bit4 | Star (0x0e - In front of Dizzy's hut)
+bit5 | Star (0x0e - Left, above key)
+bit6 | Star (0x0d - Right of Daisy's hut)
+bit7 | Star (0x0d - Ramp up near spider)
+		
+0x1929 	
+Stars [8 bit]
+bit0 | Star (0x0f - Right of bridge, near spider)
+bit1 | Star (0x0f - On upper walkway, right of bridge)
+bit2 | Star (0x0f - Right of bridge, near bridge)
+bit3 | Star (0x0f - Above bridge over spikes)
+bit4 | Star (0x0f - On ramp down to elevator)
+bit5 | Star (0x0f - Near ground left of elevator)
+bit6 | Star (0x0f - Right of Prince Clumsy)
+bit7 | Star (0x0f - Far right near hill down)
+		
+0x192a 	
+Stars [8 bit]
+bit0 | Star (0x11 - Far left, on beach)
+bit1 | Star (0x10 - Far right, near hill down)
+bit2 | Star (0x10 - Hill, above wrench)
+bit3 | Star (0x10 - Right of bridge)
+bit4 | Star (0x10 - Under left side of destroyed bridge)
+bit5 | Star (0x10 - Left of volcano)
+bit6 | Star (0x10 - Passage into mines)
+bit7 | Star (0x0f - Far right of bridge)
+		
+0x192b 	
+Stars [8 bit]
+bit0 | Star (0x11 - Above mineshaft door)
+bit1 | Star (0x11 - Left side of right shore)
+bit2 | Star (0x11 - Right of right island, in open water)
+bit3 | Star (0x11 - Right of right island, in water near surface)
+bit4 | Star (0x11 - Right island, inland slightly)
+bit5 | Star (0x11 - Right island, in water)
+bit6 | Star (0x11 - Left island)
+bit7 | Star (0x11 - Left beach near water)
+		
+0x192c 	
+Stars [8 bit]
+bit0 | Star (0x13 - Right side over water)
+bit1 | Star (0x13 - Low platform in center)
+bit2 | Star (0x13 - Left side over water)
+bit3 | Star (0x12 - Coming down hill)
+bit4 | Star (0x12 - In dino's patrol)
+bit5 | Star (0x12 - Right of dino, near spider)
+bit6 | Star (0x12 - Left of gold coins)
+bit7 | Star (0x12 - Far left, near hill)
+		
+0x192d 	
+Stars [8 bit]
+bit0 | Star (0x15 - Far left alcove entrance)
+bit1 | Star (0x15 - Far left alcove in the back)
+bit2 | Star (0x14 - Under right side of right island)
+bit3 | Star (0x14 - Right side hill)
+bit4 | Star (0x14 - Under middle of right island)
+bit5 | Star (0x14 - Under left side of right island)
+bit6 | Star (0x14 - Seaweed right side)
+bit7 | Star (0x14 - Alcove below left island)
+		
+0x192e 	
+Stars [8 bit]
+bit0 | Star (0x16 - Far left, beside tree)
+bit1 | Star (0x15 - Underwater, far right sea cave)
+bit2 | Star (0x15 - Underwater ledge above crowbar rock)
+bit3 | Star (0x15 - Underwater, by crowbar rock)
+bit4 | Star (0x15 - On sunken ship)
+bit5 | Star (0x15 - Left of sunken ship)
+bit6 | Star (0x15 - Paired stars, higher)
+bit7 | Star (0x15 - Paired stars, lower)
+		
+0x192f 	
+Stars [8 bit]
+bit0 | Star (0x17 - Far left near scroll)
+bit1 | Star (0x16 - Above right ledge)
+bit2 | Star (0x16 - Far right bridged platform)
+bit3 | Star (0x16 - Directly right of newly built bridge)
+bit4 | Star (0x16 - Right of brick house)
+bit5 | Star (0x16 - Left of brick house)
+bit6 | Star (0x16 - At highest ledge, left of brick house)
+bit7 | Star (0x16 - Beside ledges, left of brick house)
+		
+0x1930 	
+Stars [8 bit]
+bit0 | Star (0x18 - Middle line, middle mast)
+bit1 | Star (0x18 - Left mast)
+bit2 | Star (0x17 - Entrance to right cave)
+bit3 | Star (0x17 - Inside center dead-end cave)
+bit4 | Star (0x17 - Left of leprechaun)
+bit5 | Star (0x17 - Above right side of broken bridge)
+bit6 | Star (0x17 - Above left side of broken bridge)
+bit7 | Star (0x17 - Further inland from left side)
+		
+0x1931 	
+Stars [8 bit]
+bit0 | Star (0x19 - Above deck, beside middle mast)
+bit1 | Star (0x19 - Directly beneath middle mast)
+bit2 | Star (0x19 - Middle floor, between masts)
+bit3 | Star (0x19 - Bottom, directly beneath left mast)
+bit4 | Star (0x19 - Left of left mast)
+bit5 | Star (0x19 - Bottom left in ship)
+bit6 | Star (0x19 - Ramp up to ship)
+bit7 | Star (0x18 - Right of rope swing)
+		
+0x1932 	
+Stars [8 bit]
+bit0 | Star (0x1c - Far left of Castle St, building window)
+bit1 | Star (0x1c - Far left of Castle St, near water)
+bit2 | Star (0x1b - Bottom floor, far right)
+bit3 | Star (0x1b - Bottom floor, beside barrel)
+bit4 | Star (0x1a - Far right, top near path up)
+bit5 | Star (0x1a - Bottom floor, center beside barre)
+bit6 | Star (0x1a - Left side)
+bit7 | Star (0x19 - Directly above cannon)
+		
+0x1933 	
+Stars [8 bit]
+bit0 | Star (0x1d - Next to tunnel to Dock St)
+bit1 | Star (0x1d - In front of stone wall)
+bit2 | Star (0x1d - Right of tunnel to Castle St)
+bit3 | Star (0x1d - In shaft left side of Castle St)
+bit4 | Star (0x1c - Far right of Castle Street)
+bit5 | Star (0x1c - Near tunnel entrance)
+bit6 | Star (0x1c - Near portcullis)
+bit7 | Star (0x1c - Near tunnel to Dock St)
+		
+0x1934 	
+Stars [8 bit]
+bit0 | Star (0x1e - Next to brick wall)
+bit1 | Star (0x1e - Over Dock St door)
+bit2 | Star (0x1e - Left of Dock St building)
+bit3 | Star (0x1e - Far left of Dock St)
+bit4 | Star (0x1e - Far left of Dock St, near water)
+bit5 | Star (0x1d - Far right near Crystal River)
+bit6 | Star (0x1d - Beside tunnel to Castle St)
+bit7 | Star (0x1d - Left, near bridge)
+		
+0x1935 	
+Stars [8 bit]
+bit0 | Star (0x20 - Lower cloud directly right at start)
+bit1 | Star (0x20 - Middle cloud, left of start)
+bit2 | Star (0x20 - Far left cloud)
+bit3 | Star (0x1f - Middle right cloud)
+bit4 | Star (0x1f - Left from vine)
+bit5 | Star (0x1f - Left of Zak's castle)
+bit6 | Star (0x1e - On bridge next to pirate)
+bit7 | Star (0x1e - Right end of street over door)
+		
+0x1936 	
+Stars [8 bit]
+bit0 | Star (0x22 - On the roof, accessible from left side)
+bit1 | Star (0x22 - Over table)
+bit2 | Star (0x22 - Left wall)
+bit3 | Star (0x21 - Center of fireplace)
+bit4 | Star (0x21 - Lower platform left of fireplace)
+bit5 | Star (0x21 - Left end of long hallway)
+bit6 | Star (0x21 - Leftmost platform)
+bit7 | Star (0x20 - Upper cloud right of vine)
+		
+0x1937 	
+Stars [8 bit]
+bit0 | Star (0x23 - High platform)
+bit1 | Star (0x23 - Under stairs)
+bit2 | Star (0x23 - Immediately at entrance to castle)
+bit3 | Star (0x22 - Low platform far right)
+bit4 | Star (0x22 - Right side, big jump past spiders)
+bit5 | Star (0x22 - Low platform right of fireplace)
+bit6 | Star (0x22 - High rope swing ledge above fireplace)
+bit7 | Star (0x22 - Small platform left of fireplace)
+		
+0x1938 	
+Stars [8 bit]
+bit0 | Star (0x29 - Right tunnel)
+bit1 | Star (0x28 - Center of tunnel)
+bit2 | Star (0x27 - Center of tunnel)
+bit3 | Star (0x26 - Center of tunnel)
+bit4 | Star (0x25 - Center of tunnel)
+bit5 | Star (0x24 - Left tunnel)
+bit6 | Star (0x23 - Far right under arch)
+bit7 | Star (0x23 - Bottom of cutoff stairs)
+		
+0x1939 	
+Stars [8 bit]
+bit0 | Star (0x2c - Left of top pile)
+bit1 | Star (0x2b - Far right underwater alcove, high)
+bit2 | Star (0x2b - Underwater, left of cymbals)
+bit3 | Star (0x2b - Out of water, high ledge above elevator controls)
+bit4 | Star (0x2b - Left of elevator control machine)
+bit5 | Star (0x2b - Bottom of elevator)
+bit6 | Star (0x2b - In elevator)
+bit7 | Star (0x2a - Above knight guard)
+		
+0x193a 	
+Stars [8 bit]
+bit0 | Star (0x2d - Left of lava geyser)
+bit1 | Star (0x2d - Bottom, under Danger sign)
+bit2 | Star (0x2c - Under dragon)
+bit3 | Star (0x2c - Directly in front of dragon)
+bit4 | Star (0x2c - Far right top, near chute)
+bit5 | Star (0x2c - Bottom of elevator, right)
+bit6 | Star (0x2c - Bottom of elevator, left past box)
+bit7 | Star (0x2c - Right of top pile)
+		
+0x193b 	
+Stars [8 bit]
+bit0 | Star (0x2e - Fireplace)
+bit1 | Star (0x2e - Left of spider, left side)
+bit2 | Star (0x2e - Far left)
+bit3 | Star (0x2d - Farthest right alcove, by right elevator)
+bit4 | Star (0x2d - Above left lava geyser bridge)
+bit5 | Star (0x2d - Top, beside plunger)
+bit6 | Star (0x2d - Bottom of elevator)
+bit7 | Star (0x2d - Above right lava geyser bridge)
+		
+0x193c 	
+Stars [8 bit]
+bit0 | Star (0x30 - Left upper alcove)
+bit1 | Star (0x2f - Castle entrance)
+bit2 | Star (0x2f - Bottom of stairs)
+bit3 | Star (0x2f - Top floor, by tables)
+bit4 | Star (0x2f - Far left, upper floor)
+bit5 | Star (0x2f - Far left, bottom floor)
+bit6 | Star (0x2e - Far right, bottom level)
+bit7 | Star (0x2e - Bat hallway)
+		
+0x193d 	
+Stars [8 bit]
+bit6 | Star (0x30 - Far right corner)
+bit7 | Star (0x30 - Bottom left alcove)
+		
+0x1943 	
+Fruit [8 bit]
+bit0 | Apple (0x0d - Ramp up near spider)
+bit1 | Apple (0x0d - Above Dizzy's hut, left of rope swing)
+bit2 | Grapes (0x0c - Behind tree on ramp)
+bit3 | Orange? (0x0b - Top of Grand Dizzy's elevator)
+bit4 | Pear (0x0a - Far left, top of useless ramp)
+bit5 | Mango (0x09 - Left of Dylan's hut)
+bit6 | Pear (0x10 - Right under destroyed bridge)
+bit7 | Pear (0x10 - Behind tree left of volcano)
+		
+0x1944 	
+Fruit [8 bit]
+bit0 | Orange (0x04 - Rafters of Dora's room) (unreachable?)
+bit1 | Strawberry (0x03 - On table)
+bit2 | Pear (0x02 - On shelf)
+bit3 | Orange (0x01 - Above Dylan's bed, ceiling)
+bit4 | Apple (0x00 - Dizzy's room)
+bit5 | Strawberry (0x0f - Behind tree left of elevator)
+bit6 | Mango (0x0e - Above snappy weed)
+bit7 | Mango (0x0e - Left, by spider)
+		
+0x1945 	
+Fruit [8 bit]
+bit0 | Pear (0x18 - Top line, above hook)
+bit1 | Strawberry (0x17 - Under tree right of broken bridge)
+bit2 | Cherry (0x16 - Behind tree)
+bit3 | Cherry (0x16 - Behind canopy, far left)
+bit4 | Mango (0x12 - Below tree, near gold coins)
+bit5 | Grapes (0x11 - Far left, on beach)
+bit6 | Apple (0x06 - Dozy's table)
+bit7 | Pear (0x05 - Cauldron ledge)
+		
+0x1946 	
+Fruit [8 bit]
+bit0 | Melon (0x21 - Right end of long hallway)
+bit1 | Melon (0x21 - Leftmost platform)
+bit2 | Strawberry (0x20 - Upper cloud right of vine)
+bit3 | Strawberry (0x20 - Lower cloud on left)
+bit4 | Mango (0x1d - Far left in tunnel)
+bit5 | Orange (0x1b - Left side)
+bit6 | Mango (0x1a - Center, upper ledge)
+bit7 | Mango (0x19 - Far right, bottom under ledge)
+		
+0x1947 	
+Fruit [8 bit]
+bit0 | Cherry (0x2e - Right side, far left of bat hallway)
+bit1 | Cherry (0x2e - Left of fireplace)
+bit2 | Cherry (0x2e - Far left, in front of mirror)
+bit3 | Melon (0x2f - Left of stairs, bottom)
+bit4 | Melon (0x2f - Bottom, far left)
+bit5 | Apple (0x29 - Near star)
+bit6 | Melon (0x23 - Far right, behind pillar)
+bit7 | Melon (0x23 - Under stairs)
+		
+0x194b 	
+Fruit [8 bit]
+bit0 | Mango (0x0e - Jump off right)
+bit1 | Mango (0x0d - Right of rope swing)
+bit2 | Cherry (0x0c - Near dry straw)
+bit3 | Strawberry (0x0b - Right of Grand Dizzy's hut)
+bit4 | Mango (0x0a - Right of Dylan's hut)
+bit5 | Grapes (0x09 - Right of hook)
+bit6 | Cherry (0x08 - Outside Dozy's hut)
+bit7 | Apple (0x10 - Right of volcano)
+		
+0x194c 	
+Fruit [8 bit]
+bit0 | Cherry (0x04 - Left of bed)
+bit1 | Cherry (0x04 - Left of table)
+bit2 | Grapes (0x03 - Top of left shelf)
+bit3 | Melon (0x01 - Ceiling Dylan's room)
+bit4 | Cherry (0x00 - Dizzy's room)
+bit5 | Apple (0x0f - Right of bridge)
+bit6 | Apple (0x0e - Awkward jump under ramp)
+bit7 | Apple (0x0e - Right of Dizzy's hut)
+		
+0x194d 	
+Fruit [8 bit]
+bit0 | Apple (0x19 - Top left inside ship)
+bit1 | Apple (0x18 - Far left, beside wheel)
+bit2 | Mango (0x16 - On bridged platform)
+bit3 | Mango (0x16 - Far left, hanging from canopy)
+bit4 | Apple (0x12 - Top of tree right of dino)
+bit5 | Mango (0x11 - Right island, by rocks)
+bit6 | Strawberry (0x07 - Denzil's room)
+bit7 | Mango (0x05 - GD's table chair)
+		
+0x194e 	
+Fruit [8 bit]
+bit0 | Mango (0x22 - Between two spiders)
+bit1 | Mango (0x21 - Right of fireplace)
+bit2 | Apple (0x20 - Upper cloud left at start)
+bit3 | Apple (0x20 - Lower cloud directly right at start)
+bit4 | Grapes (0x1d - Next to brick wall)
+bit5 | Watermelon (0x1b - Under stairs)
+bit6 | Strawberry (0x1a - Center, beside "door")
+bit7 | Strawberry (0x1a - Far left)
+		
+0x194f 	
+Fruit [8 bit]
+bit1 | Apple (0x2e - Right side, top level)
+bit2 | Apple (0x2e - Left side, right of spider)
+bit3 | Mango (0x2f - Bottom of stairs)
+bit4 | Mango (0x2f - Top floor, far left)
+bit5 | Cherry (0x2a - Above Bridge St sign)
+bit6 | Cherry (0x28 - In tunnel)
+bit7 | Mango (0x22 - Over table, left side)
+		
+0x1953 	
+Diamonds [8 bit]
+bit0 | Diamond (0x2d - Bottom of elevator)
+bit1 | Diamond (0x2d - Right of right lava geyser bridge)
+bit2 | Diamond (0x2c - Bottom of elevator, left past box)
+bit3 | Diamond (0x2c - Top, right side)
+bit4 | Diamond (0x2c - Bottom of elevator, right)
+bit5 | Diamond (0x2c - Bottom of elevator, far right)
+bit6 | Diamond (0x2b - Bottom of elevator, right alcove)
+bit7 | Diamond (0x2b - Left of elevator)
+		
+0x1954 	
+Diamonds [8 bit]
+bit7 | Diamond (0x2d - Top left of right elevator)
