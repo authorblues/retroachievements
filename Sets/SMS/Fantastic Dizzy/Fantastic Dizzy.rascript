@@ -1130,7 +1130,8 @@ achievement(
 	description="Help Dora with her froggy affliction",
 	type="progression",
 	points=3,
-	trigger=flag_update(prince_kissed_dora(), s=0x0F, fm=0x00, to=0xFF)
+	// trigger=flag_update(prince_kissed_dora(), s=0x0F, fm=0x00, to=0xFF)
+	trigger=game_state() < 4 && screen() == 0x0F && prev(prince_kissed_dora()) != 0xFF && prince_kissed_dora() == 0xFF
 )
 
 achievement(
