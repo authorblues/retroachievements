@@ -810,7 +810,7 @@ achievement(
 // chess960 stats: https://github.com/welyab/chess960-win-by-position-setup
 achievement(
 	title="Chess960 Theocracy",
-	description=LOADED_GAME_PREAMBLE + ">>H00000W>>>43KLYkTkTk#t%t%=kCzV> (Chess960 castling rules do not apply)",
+	description=LOADED_GAME_PREAMBLE + ">>H00000>>>43KLYkTkTk#t%t%=kCzV> (Chess960 castling rules do not apply)",
 	points=10,
 	trigger=loaded_game_achievement(chess960([BR_, BK_, BR_, BB_, BB_, BQ_, BN1, BN2]), 3) // RKRBBQNN: -126
 )
