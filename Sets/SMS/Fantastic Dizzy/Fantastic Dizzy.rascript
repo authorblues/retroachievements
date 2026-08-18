@@ -925,7 +925,7 @@ function all_stars(screengroup) => make_group(screengroup, x => x["type"] == "st
 
 function collect_some(x, c) => (
 	prev(sum_of(x, y => y)) < c &&
-	measured(sum_of(x, y => y) >= c, when=game_state() < 4)
+	measured(sum_of(x, y => y) >= c, when=game_state() <= 5)
 )
 function collect_all(x) => collect_some(x, length(x))
 
