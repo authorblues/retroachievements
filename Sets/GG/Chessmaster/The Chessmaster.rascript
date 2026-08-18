@@ -732,7 +732,7 @@ achievement(
 		valid_game() &&
 		chessmaster_level() >= 3 &&
 		human_seconds() < BULLET_SECONDS*60 &&
-		win() &&
+		trigger_when(win()) &&
 		never(screen_id() == SCREEN_TITLE)
 	)
 )
