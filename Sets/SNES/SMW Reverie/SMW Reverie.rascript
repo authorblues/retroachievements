@@ -256,6 +256,18 @@ function item_box_occupied() => byte(0x01B90D)
 //          bit5 | Sky chest
 function chest_opened(elt) => bit(elt, 0x01B910)
 
+// $01B911: Remains [8 bit]
+//          bit0 | Bow Before Darkness
+//          bit1 | Reveal Swamp
+//          bit2 | Talk Lake
+//          bit3 | Anew in Caldera
+//          bit4 | Do nothing in Precipice
+//          bit5 | Read action scriptures
+//          bit7 | Essence of Death (room 0x21)
+function remains_bow_darkness() => bit0(0x01B911)
+function remains_meaning_of_birth() => bit4(0x01B911)
+function remains_essence_of_death() => bit7(0x01B911)
+
 // $01B912: Chest Unlocked [8 bit]
 //          bit0 | Earth chest
 //          bit1 | Void chest
@@ -451,6 +463,7 @@ MAP_D3_GENESIS_CENTER = 0x002f
 MAP_D3_CENOTE_DANCEHALL = 0x0057
 MAP_D3_SWAMP_TREEHOUSE = 0x0058
 MAP_D3_WELKIN_CLOUDS = 0x0059
+MAP_D3_TOMB = 0x0070
 
 MAP_D4_ORIGIN = 0x0030
 MAP_D4_TREETOPS = 0x0031
@@ -596,6 +609,7 @@ Locations = {
 	MAP_D3_CENOTE_DANCEHALL: "Cenote",
 	MAP_D3_SWAMP_TREEHOUSE: "Swamp",
 	MAP_D3_WELKIN_CLOUDS: "Welkin",
+	MAP_D3_TOMB: "Tomb",
 
 	MAP_D4_ORIGIN: "Origin",
 	MAP_D4_TREETOPS: "Treetops",
@@ -1037,6 +1051,35 @@ achievement(
 		// reset on the title screen
 		never(!in_game())
 	)
+)
+
+// --- [ POSTGAME DLC ]
+achievement(
+	title="The Search for the Ancestral Remnants",
+	description="Begin following the clues of the ancestral remnants",
+	points=2,
+	trigger=check_location(DREAM_3, MAP_D3_RUINS, 0x10) && is_set(remains_bow_darkness())
+)
+
+achievement(
+	title="What It Means to Be Birthed",
+	description="Discover the ancestral remnants of Her Sacredness",
+	points=5,
+	trigger=check_location(DREAM_3, MAP_D2_PRECIPICE, 0x00) && is_set(remains_meaning_of_birth())
+)
+
+achievement(
+	title="Does That Make This a La-Mulana?",
+	description="Enter the Tomb",
+	points=10,
+	trigger=in_game() && world_status() == DREAM_3 && prev(current_map()) == MAP_D3_CENOTE_DANCEHALL && current_map() == MAP_D3_TOMB
+)
+
+achievement(
+	title="Mine Own Essence",
+	description="Awaken the true essence of death",
+	points=25,
+	trigger=check_location(DREAM_3, MAP_D3_TOMB, 0x21) && is_set(remains_essence_of_death())
 )
 
 // --- [ DREAM_COLLAPSED ]
