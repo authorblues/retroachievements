@@ -1187,7 +1187,7 @@ for d in range(0,1)
         title=format("{0} - {1} Specialist", cname, dname),
         description=format("Clear {0} {1} as quickly as possible in any conditions", cdesc, dname),
 
-        start=(map() == c && map_dir() == d && complete_race()),
+        start=(map() == c && map_dir() == d && complete_race() && finishing_time() > 0),
         cancel=always_false(),
         submit=always_true(),
 
