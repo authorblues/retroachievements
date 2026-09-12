@@ -23,6 +23,24 @@ function rich_presence_condition_table(lookupname, list)
 //        bit5 | title screen
 function in_game() => bit5(0x0027) == 0
 
+// $0029: Mario Y [8 bit]
+function mario_y() => byte(0x0029)
+
+// $002A: Enemy Y Positions [6 bytes]
+ENEMY_Y = 0x002A
+
+// $003B: Mario Map Page [8 bit]
+function _mario_map_page() => byte(0x003B)
+
+// $003C: Enemy Map Pages [6 bytes]
+ENEMY_MAP_PAGES = 0x003C
+
+// $004D: Mario X [8 bit]
+function _mario_x() => byte(0x004D)
+
+// $004E: Enemy X Positions [6 bytes]
+ENEMY_X = 0x004E
+
 // $0070: X Speed in Side View [8 bit] [signed]
 function xspeed() => byte(0x0070)
 
@@ -61,11 +79,23 @@ ENEMY_IDS = 0x00A1
 // $00C7: Enemy #1 Health [8 bit]
 ENEMY_HEALTH = 0x00C2
 
+// $0158: Twister Target Town [8 bit]
+// $0159: Twister Pending Transition [8 bit]
+//        0x2d when changing continents ($0706 changes at the same time)
+function twister_target() => byte(0x0158)
+function twister_pending() => byte(0x0159)
+
 // $015B: Is Grounded [8 bit]
 //        0 = grounded
 //        1 = jumping
 //        2 = not on ground for other reason (fall off ledge, hit by enemy)
 function is_grounded() => byte(0x015B)
+
+// $018B: Square 2 Sound Buffer [8 bit]
+function sfx2() => byte(0x018B)
+
+// $0197: Statue Timer [8 bit]
+function statue_timer() => byte(0x0197)
 
 // $0518: Invincibility Frames [8 bit]
 //        when hit, set to 4, counts down to 0
@@ -122,6 +152,9 @@ function room_id() => byte(0x0561)
 //        6 = new Kasuto
 //        7 = old Kasuto
 function town_id() => byte(0x056B)
+
+// $05E7: Door Collision [8 bit]
+function door_collision() => byte(0x05E7)
 
 // $0700: Lives [8 bit]
 function lives() => byte(0x0700)
@@ -256,9 +289,9 @@ function keys() => byte(0x0793)
 function gems() => byte(0x0794)
 
 // $0796: Combat Abilities [8 bit]
-//        bit2 | hammer on small mario 0x06,0x2d
+//        bit2 | big POW upstab 0x06,0x2d
 //        bit4 | pierce shield 0x06,0x2c
-function small_hammer() => bit2(0x0796)
+function pow_upstab() => bit2(0x0796)
 function shield_pierce() => bit4(0x0796)
 
 // $0799: Have Mirror [8 bit] (0/1)
@@ -387,14 +420,27 @@ function journey_time_great_palace() => tbyte(0x779B)
 
 // --- MAIN DATA -------------------------------------------------------------------
 
+LOC_TITLE = 0x00
+LOC_OVERWORLD_CAVES_1 = 0x02
+LOC_OVERWORLD_CAVES_2 = 0x04
+LOC_TOWN = 0x06
+LOC_PALACE_1 = 0x08
+LOC_PALACE_2 = 0x0a
+LOC_GREAT_PALACE = 0x0c
+LOC_ENDING = 0x0e
+LOC_PALACE_3 = 0x12
+LOC_PALACE_4 = 0x14
+LOC_PALACE_5 = 0x16
+LOC_PALACE_6 = 0x18
+
 PALACE_LOOKUP = {
-	0x08: "Parapa Palace",
-	0x0a: "Midoro Palace",
-	0x12: "Island Palace",
-	0x14: "Maze Island Palace",
-	0x16: "the Palace on the Sea",
-	0x18: "Three-Eye Rock Palace",
-	0x0c: "the Great Palace",
+	LOC_PALACE_1: "Parapa Palace",
+	LOC_PALACE_2: "Midoro Palace",
+	LOC_PALACE_3: "Island Palace",
+	LOC_PALACE_4: "Maze Island Palace",
+	LOC_PALACE_5: "the Palace on the Sea",
+	LOC_PALACE_6: "Three-Eye Rock Palace",
+	LOC_GREAT_PALACE: "the Great Palace",
 }
 
 TOWN_LOOKUP = {
@@ -434,6 +480,18 @@ PALETTES = [
 
 function enemy_id(i) => byte(ENEMY_IDS + i)
 function enemy_hp(i) => byte(ENEMY_HEALTH + i)
+function enemy_y(i) => byte(ENEMY_Y + i)
+function enemy_x(i) => byte(ENEMY_MAP_PAGES + i)*0x100 + byte(ENEMY_X + i)
+
+function enemy_damaged(i) => prev(enemy_id(i)) == enemy_id(i) && prev(enemy_hp(i)) != enemy_hp(i)
+
+function enemy_defeated(i) => (
+	prev(enemy_id(i)) == enemy_id(i) && 
+	prev(enemy_hp(i)) > 0 && prev(enemy_hp(i) < 0x80) &&
+	__ornext(enemy_hp(i) == 0 || enemy_hp(i) > 0x80)
+)
+
+function mario_x() => _mario_map_page()*0x100 + _mario_x()
 
 function start_boss(area, room) => (
 	area_id() == area && room_id() == room &&
@@ -463,6 +521,12 @@ function player_name(p1, p2) => dword_be(0x0FA1) == p1 && dword_be(0x0FA5) == p2
 function start_the_game() => prev(area_id()) == 0x00 && area_id() == 0x02 && game_timer() == 0
 
 function collect_any_1up() => any_of(_1UPS, x => unset(x))
+
+function win_the_game() => (
+	area_id() == LOC_ENDING &&
+	prev(room_id()) != 0x3d &&
+	room_id() == 0x3d
+)
 
 // --- RICH PRESENCE -------------------------------------------------------------------
 
@@ -503,7 +567,7 @@ rich_presence_conditional_display(area_id() == 0x06,
 
 rich_presence_conditional_display(area_id() == 0x0e,
 	"Mario has saved Princess Zelda! · 🗡️{4} ✨{5} 🛡️{6}",
-	rp_powerup, "",
+	"", "",
 	"", "",
 	rp_atk_lvl, rp_mag_lvl, rp_lif_lvl
 )
@@ -522,7 +586,7 @@ achievement(
 	description="Place the gem in Parapa Palace",
 	type="progression",
 	points=5,
-	trigger=area_id() == 0x08 && room_id() == 0x01 && unset(bit0(0x0680))
+	trigger=area_id() == LOC_PALACE_1 && room_id() == 0x01 && unset(bit0(0x0680))
 )
 
 achievement(
@@ -530,7 +594,7 @@ achievement(
 	description="Place the gem in Midoro Palace",
 	type="progression",
 	points=10,
-	trigger=area_id() == 0x0a && room_id() == 0x0f && unset(bit0(0x0687))
+	trigger=area_id() == LOC_PALACE_2 && room_id() == 0x0f && unset(bit0(0x0687))
 )
 
 achievement(
@@ -538,15 +602,15 @@ achievement(
 	description="Place the gem in Island Palace",
 	type="progression",
 	points=10,
-	trigger=area_id() == 0x12 && room_id() == 0x01 && unset(bit0(0x06a0))
+	trigger=area_id() == LOC_PALACE_3 && room_id() == 0x01 && unset(bit0(0x06a0))
 )
 
 achievement(
-	title="A-Maze-ing Razing",
+	title="Welcome to Warp Zone!",
 	description="Place the gem in Maze Island Palace",
 	type="progression",
 	points=10,
-	trigger=area_id() == 0x14 && room_id() == 0x10 && unset(bit4(0x06a8))
+	trigger=area_id() == LOC_PALACE_4 && room_id() == 0x10 && unset(bit4(0x06a8))
 )
 
 achievement(
@@ -554,7 +618,7 @@ achievement(
 	description="Place the gem in the Palace on the Sea",
 	type="progression",
 	points=10,
-	trigger=area_id() == 0x16 && room_id() == 0x24 && unset(bit4(0x0692))
+	trigger=area_id() == LOC_PALACE_5 && room_id() == 0x24 && unset(bit4(0x0692))
 )
 
 achievement(
@@ -562,7 +626,7 @@ achievement(
 	description="Place the gem in Three-Eye Rock Palace",
 	type="progression",
 	points=10,
-	trigger=area_id() == 0x18 && room_id() == 0x25 && unset(bit0(0x06b2))
+	trigger=area_id() == LOC_PALACE_6 && room_id() == 0x25 && unset(bit0(0x06b2))
 )
 
 achievement(
@@ -570,11 +634,13 @@ achievement(
 	description="Awaken Princess Zelda and become a real hero... unlike Link",
 	type="win_condition",
 	points=25,
-	trigger=(
+	trigger=win_the_game()
+
+/*	// This didn't work for somebody on the RA MiSTer core
 		area_id() == 0x0c && room_id() == 0x01 &&
 		number_of_journey_rows() > prev(number_of_journey_rows()) &&
 		byte(JOURNEY_TABLE + number_of_journey_rows() - 1) == 0x0e
-	)
+*/
 )
 
 achievement(
@@ -582,7 +648,7 @@ achievement(
 	description="Defeat Horsehead with Attack level 1",
 	type="missable",
 	points=5,
-	trigger=attack_level() == 1 && defeat_boss(0x08, 0x01, 0x20)
+	trigger=attack_level() == 1 && defeat_boss(LOC_PALACE_1, 0x01, 0x20)
 )
 
 achievement(
@@ -591,7 +657,7 @@ achievement(
 	type="missable",
 	points=5,
 	trigger=(
-		defeat_boss(0x0a, 0x0f, 0x21) && 
+		defeat_boss(LOC_PALACE_2, 0x0f, 0x21) && 
 		never(any_of(range(0,5), i => enemy_id(i) == 0x22))
 	)
 )
@@ -601,7 +667,7 @@ achievement(
 	description="Defeat Rebonack in Island Palace without the shield-piercing combat ability",
 	type="missable",
 	points=10,
-	trigger=shield_pierce() == 0 && defeat_boss(0x12, 0x01, 0x0a)
+	trigger=shield_pierce() == 0 && defeat_boss(LOC_PALACE_3, 0x01, 0x0a)
 )
 
 achievement(
@@ -609,7 +675,7 @@ achievement(
 	description="Defeat Carock without taking damage",
 	type="missable",
 	points=10,
-	trigger=defeat_boss(0x14, 0x10, 0x22) && never(health() < prev(health()))
+	trigger=defeat_boss(LOC_PALACE_4, 0x10, 0x22) && never(health() < prev(health()))
 )
 
 achievement(
@@ -617,15 +683,22 @@ achievement(
 	description="Defeat Gooma without throwing hammers",
 	type="missable",
 	points=5,
-	trigger=defeat_boss(0x16, 0x24, 0x21) && never(hammer_count() > prev(hammer_count()))
+	trigger=defeat_boss(LOC_PALACE_5, 0x24, 0x21) && never(hammer_count() > prev(hammer_count()))
 )
 
 achievement(
-	title="Water Beats Fire",
-	description="Defeat Barba with the fairy spell active. You must activate the fairy spell before starting the fight",
+	title="Between a Rock and a Hot Place",
+	description="Defeat Barba while frozen as a Tanooki statue",
 	type="missable",
-	points=1,
-	trigger=defeat_boss(0x18, 0x25, 0x21, start=fairy_active() == 1)
+	points=3,
+	trigger=(
+		// barba room
+		area_id() == LOC_PALACE_6 && room_id() == 0x25 && screen_locked() == 1 &&
+		// statue active
+		statue_timer() > 0 &&
+		// barba dead, and mario is above him
+		any_of(range(0,5), i => enemy_id(i) == 0x21 && enemy_defeated(i))
+	)
 )
 
 achievement(
@@ -634,7 +707,7 @@ achievement(
 	type="missable",
 	points=5,
 	trigger=(
-		once(start_boss(0x0c, 0x01)) &&
+		once(start_boss(LOC_GREAT_PALACE, 0x01)) &&
 		never(area_id() == 0) &&
 		never(health() == 0) && never(lives() < prev(lives())) &&
 		never(magic() < prev(magic())) &&
@@ -688,70 +761,99 @@ achievement(
 	title="Jumpman's Classic Outfit",
 	description="Learn the Shield spell in Rauru town",
 	points=2,
-	trigger=area_id() == 0x06 && room_id() == 0x30 && is_set(learned_shield_spell())
+	trigger=area_id() == LOC_TOWN && room_id() == 0x30 && is_set(learned_shield_spell())
 )
 
 achievement(
 	title="Thank You, Kind Raccoon. Please Tell Me Your Name",
 	description="Learn the Tanooki spell in Ruto town",
 	points=3,
-	trigger=area_id() == 0x06 && room_id() == 0x31 && is_set(learned_tanooki_spell())
+	trigger=area_id() == LOC_TOWN && room_id() == 0x31 && is_set(learned_tanooki_spell())
 )
 
 achievement(
 	title="Dr. Mario",
 	description="Learn the Life spell in Saria town",
 	points=5,
-	trigger=area_id() == 0x06 && room_id() == 0x32 && is_set(learned_life_spell())
+	trigger=area_id() == LOC_TOWN && room_id() == 0x32 && is_set(learned_life_spell())
 )
 
 achievement(
 	title="Here Comes the Rain Again",
 	description="Learn the Fairy spell in Mido town",
 	points=5,
-	trigger=area_id() == 0x06 && room_id() == 0x33 && is_set(learned_fairy_spell())
+	trigger=area_id() == LOC_TOWN && room_id() == 0x33 && is_set(learned_fairy_spell())
 )
 
 achievement(
 	title="Fire Flower Power",
 	description="Learn the Fire spell in Nabooru town",
 	points=5,
-	trigger=area_id() == 0x06 && room_id() == 0x34 && is_set(learned_fire_spell())
+	trigger=area_id() == LOC_TOWN && room_id() == 0x34 && is_set(learned_fire_spell())
 )
 
 achievement(
 	title="Mirror, Mirror",
 	description="Learn the Reflect spell in Darunia town",
 	points=5,
-	trigger=area_id() == 0x06 && room_id() == 0x35 && is_set(learned_reflect_spell())
+	trigger=area_id() == LOC_TOWN && room_id() == 0x35 && is_set(learned_reflect_spell())
 )
 
 achievement(
 	title="Mario's Early Years! Learn to Spell",
 	description="Learn the Spell spell in new Kasuto town",
 	points=5,
-	trigger=area_id() == 0x06 && room_id() == 0x2a && is_set(learned_spell_spell())
+	trigger=area_id() == LOC_TOWN && room_id() == 0x2a && is_set(learned_spell_spell())
 )
 
 achievement(
 	title="Thunderhand",
 	description="Learn the Thunder spell in old Kasuto town",
 	points=5,
-	trigger=area_id() == 0x06 && room_id() == 0x37 && is_set(learned_thunder_spell())
+	trigger=area_id() == LOC_TOWN && room_id() == 0x37 && is_set(learned_thunder_spell())
 )
 
 achievement(
 	title="Ultra Boots",
 	description="Learn the ability to pierce shields in Mido town",
 	points=2,
-	trigger=area_id() == 0x06 && room_id() == 0x2c && is_set(shield_pierce())
+	trigger=area_id() == LOC_TOWN && room_id() == 0x2c && is_set(shield_pierce())
 )
 
 achievement(
-	title="The Strongest Little Plumber in Hyrule",
-	description="Learn the ability to throw hammers as small Mario in Darunia town",
+	title="A Headache Waiting to Happen",
+	description="Learn the ability to send POW shockwaves as Super Mario in Darunia town",
 	points=2,
-	trigger=area_id() == 0x06 && room_id() == 0x2d && is_set(small_hammer())
+	trigger=area_id() == LOC_TOWN && room_id() == 0x2d && is_set(pow_upstab())
+)
+
+achievement(
+	title="That Door Can't Stop Me Because I Can Swim!",
+	description="Use the Fairy spell to pass through any locked door",
+	points=1,
+	trigger=(
+		// door on this screen
+		enemy_id(1) == 0x02 && enemy_hp(1) == 0xff &&
+		// fairy spell through a door
+		fairy_active() == 1 && is_set(door_collision()) &&
+		// within the bounding box of the door
+		mario_x() > enemy_x(1) - 0x10 &&
+		mario_x() < enemy_x(1)
+	)
+)
+
+achievement(
+	title="One Toot on This Whistle...",
+	description="Travel between continents without using the raft",
+	points=2,
+	trigger=(
+		// outdoors (mostly)
+		area_id() < 0x06 &&
+		// twister picked up Mario
+		prev(twister_pending()) == 0x00 && twister_pending() == 0x2d &&
+		// overworld map id is changing
+		prev(overworld_map_id()) / 2 != overworld_map_id() / 2
+	)
 )
 
 achievement(
@@ -759,7 +861,7 @@ achievement(
 	description="Enter Death Mountain without talking to Bagu",
 	type="missable",
 	points=1,
-	trigger=talked_to_bagu() == 0 && prev(area_id()) == 0 && area_id() == 1
+	trigger=talked_to_bagu() == 0 && prev(overworld_map_id()) == 0 && overworld_map_id() == 1
 )
 
 achievement(
@@ -776,14 +878,41 @@ achievement(
 	type="missable",
 	points=10,
 	trigger=(
-		area_id() == 0x18 && room_id() == 0x25 && 
+		area_id() == LOC_PALACE_6 && room_id() == 0x25 && 
 		have_magical_key() == 0 && unset(bit0(0x06b2))
+	)
+)
+
+achievement(
+	title="Finally, a Reason to Play Second Quest",
+	description="Complete the game (on either quest) without placing any palace gems",
+	type="missable",
+	points=10,
+	trigger=gems() == 6 && win_the_game()
+)
+
+achievement(
+	title="Seismic Shockwave",
+	description="Damage three or more enemies at once with a POW shockwave",
+	points=3,
+	trigger=(
+		// big, with pow upstab unlocked
+		health() >= 64 && pow_upstab() == 1 &&
+		// heard the POW sound effect
+		prev(sfx2()) != 8 && sfx2() == 8 &&
+		// three enemies took damage on the same frame
+		any_of(range(0,3),
+			x1 => enemy_damaged(x1) && any_of(range(x1+1,4),
+				x2 => enemy_damaged(x2) && any_of(range(x2+1,5),
+					x3 => enemy_damaged(x3)))
+		)
 	)
 )
 
 achievement(
 	title="Gotta Collect Them All",
 	description="In one session, collect three differently colored Mario 1-UP dolls",
+	type="missable",
 	points=5,
 	trigger=(
 		measured(tally_of(PALETTES, length(PALETTES), 
