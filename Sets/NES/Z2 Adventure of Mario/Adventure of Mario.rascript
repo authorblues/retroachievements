@@ -761,70 +761,70 @@ achievement(
 	title="Jumpman's Classic Outfit",
 	description="Learn the Shield spell in Rauru town",
 	points=2,
-	trigger=area_id() == LOC_TOWN && room_id() == 0x30 && is_set(learned_shield_spell())
+	trigger=area_id() == LOC_TOWN && is_set(learned_shield_spell())
 )
 
 achievement(
 	title="Thank You, Kind Raccoon. Please Tell Me Your Name",
 	description="Learn the Tanooki spell in Ruto town",
 	points=3,
-	trigger=area_id() == LOC_TOWN && room_id() == 0x31 && is_set(learned_tanooki_spell())
+	trigger=area_id() == LOC_TOWN && is_set(learned_tanooki_spell())
 )
 
 achievement(
 	title="Dr. Mario",
 	description="Learn the Life spell in Saria town",
 	points=5,
-	trigger=area_id() == LOC_TOWN && room_id() == 0x32 && is_set(learned_life_spell())
+	trigger=area_id() == LOC_TOWN && is_set(learned_life_spell())
 )
 
 achievement(
 	title="Here Comes the Rain Again",
 	description="Learn the Fairy spell in Mido town",
 	points=5,
-	trigger=area_id() == LOC_TOWN && room_id() == 0x33 && is_set(learned_fairy_spell())
+	trigger=area_id() == LOC_TOWN && is_set(learned_fairy_spell())
 )
 
 achievement(
 	title="Fire Flower Power",
 	description="Learn the Fire spell in Nabooru town",
 	points=5,
-	trigger=area_id() == LOC_TOWN && room_id() == 0x34 && is_set(learned_fire_spell())
+	trigger=area_id() == LOC_TOWN && is_set(learned_fire_spell())
 )
 
 achievement(
 	title="Mirror, Mirror",
 	description="Learn the Reflect spell in Darunia town",
 	points=5,
-	trigger=area_id() == LOC_TOWN && room_id() == 0x35 && is_set(learned_reflect_spell())
+	trigger=area_id() == LOC_TOWN && is_set(learned_reflect_spell())
 )
 
 achievement(
 	title="Mario's Early Years! Learn to Spell",
 	description="Learn the Spell spell in new Kasuto town",
 	points=5,
-	trigger=area_id() == LOC_TOWN && room_id() == 0x2a && is_set(learned_spell_spell())
+	trigger=area_id() == LOC_TOWN && is_set(learned_spell_spell())
 )
 
 achievement(
 	title="Thunderhand",
 	description="Learn the Thunder spell in old Kasuto town",
 	points=5,
-	trigger=area_id() == LOC_TOWN && room_id() == 0x37 && is_set(learned_thunder_spell())
+	trigger=area_id() == LOC_TOWN && is_set(learned_thunder_spell())
 )
 
 achievement(
 	title="Ultra Boots",
 	description="Learn the ability to pierce shields in Mido town",
 	points=2,
-	trigger=area_id() == LOC_TOWN && room_id() == 0x2c && is_set(shield_pierce())
+	trigger=area_id() == LOC_TOWN && is_set(shield_pierce())
 )
 
 achievement(
 	title="A Headache Waiting to Happen",
 	description="Learn the ability to send POW shockwaves as Super Mario in Darunia town",
 	points=2,
-	trigger=area_id() == LOC_TOWN && room_id() == 0x2d && is_set(pow_upstab())
+	trigger=area_id() == LOC_TOWN && is_set(pow_upstab())
 )
 
 achievement(
@@ -850,7 +850,7 @@ achievement(
 		// outdoors (mostly)
 		area_id() < 0x06 &&
 		// twister picked up Mario
-		prev(twister_pending()) == 0x00 && twister_pending() == 0x2d &&
+		prev(twister_pending()) == 0 && twister_pending() != 0 &&
 		// overworld map id is changing
 		prev(overworld_map_id()) / 2 != overworld_map_id() / 2
 	)
