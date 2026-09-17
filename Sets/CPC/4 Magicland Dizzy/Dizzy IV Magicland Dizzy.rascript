@@ -555,7 +555,7 @@ achievement(
 )
 
 achievement(
-	title="Feeding Her is Egg-actly How We Got in This Situation",
+	title="Feeding Her is Eggsactly How We Got in This Situation",
 	description="Feed the wrong thing to Daisy to have a bad time",
 	type="missable",
 	points=2,
