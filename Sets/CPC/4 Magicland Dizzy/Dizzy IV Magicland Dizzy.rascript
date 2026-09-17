@@ -605,6 +605,7 @@ achievement(
 		"Each diamond collected earns five points, and each jump costs one point. " +
 		"(Refer to the leaderboard for your current available points)"
 	),
+	type="missable",
 	points=25,
 	trigger=(
 		once(new_game()) &&
