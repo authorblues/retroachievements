@@ -457,10 +457,12 @@ rich_presence_conditional_display(inventory(0) == 0,
 )
 
 rich_presence_display(
-	"Dizzy is {0} carrying {5}{6}{7}{8}{9} · {1} · {2} {3}, 💎 {4}",
+	"Dizzy is {0} carrying {5}{6}{7}{8}{9}{10}{11} · {1} · {2} {3}, 💎 {4}",
 	rp_room_desc, rp_room_name,
 	rp_lives, rp_lifeword, rp_diamonds,
-	rp_item(0), rp_comma(0), rp_item(1), rp_comma(1), rp_item(2)
+	rp_item(0), rp_comma(0), rich_presence_flag("and ", when=inventory(1) != 0 && inventory(2) == 0, lookupname="ANDWORD"),
+	rp_item(1), rp_comma(1), rich_presence_flag("and ", when=inventory(2) != 0, lookupname="ANDWORD"), 
+	rp_item(2)
 )
 
 // --- ACHIEVEMENTS -------------------------------------------------------------------
