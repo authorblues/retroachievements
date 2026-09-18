@@ -257,7 +257,7 @@ OBJ_GOAT_ROPE = 19
 OBJ_BRIDGE_TROLL = 20
 OBJ_CHESS_QUEEN = 40
 OBJ_DORA_CASTLE = 42
-OBJ_DOZY = 54
+OBJ_DOZY = 53
 OBJ_DENZIL = 54
 OBJ_DYLAN = 55
 OBJ_DAISY = 56
@@ -430,10 +430,11 @@ function win_the_game() => diamond_count() == 30 && devil_state() == 1 && prev(r
 function one_diamond() => diamond_count() > prev(diamond_count())
 function jump() => prev(grounded()) == 1 && grounded() == 0 && jump_input() == 1 && dizzy_y_velocity() >= 0x80
 
+function inventory_count() => sum_of(range(0,2), i => inventory(i)/inventory(i))
+
 // --- RICH PRESENCE -------------------------------------------------------------------
 
 function rp_item(i) => rich_presence_lookup("ITEM", inventory(i), ITEM_DESC, fallback="")
-function rp_comma(i) => rich_presence_flag(", ", when=inventory(i) != 0 && inventory(i+1) != 0, lookupname="COMMA")
 
 rp_room_name = rich_presence_lookup("ROOMNAME", room(), ROOM_NAME, fallback="Sky")
 rp_room_desc = rich_presence_lookup("ROOMDESC", room(), ROOM_DESC, fallback="in the sky")
@@ -457,11 +458,11 @@ rich_presence_conditional_display(inventory(0) == 0,
 )
 
 rich_presence_display(
-	"Dizzy is {0} carrying {5}{6}{7}{8}{9}{10}{11} · {1} · {2} {3}, 💎 {4}",
+	"Dizzy is {0} carrying {5}{6}{7}{8}{9} · {1} · {2} {3}, 💎 {4}",
 	rp_room_desc, rp_room_name,
 	rp_lives, rp_lifeword, rp_diamonds,
-	rp_item(0), rp_comma(0), rich_presence_flag("and ", when=inventory(1) != 0 && inventory(2) == 0, lookupname="ANDWORD"),
-	rp_item(1), rp_comma(1), rich_presence_flag("and ", when=inventory(2) != 0, lookupname="ANDWORD"), 
+	rp_item(0), rich_presence_lookup("DIV1", inventory_count(), {2: " and ", 3: ", "}),
+	rp_item(1), rich_presence_lookup("DIV2", inventory_count(), {3: ", and "}), 
 	rp_item(2)
 )
 
@@ -509,7 +510,7 @@ achievement(
 
 achievement(
 	title="Happily Eggver After",
-	description="Help Dora kiss her trouble goodbye",
+	description="Help Dora kiss her troubles goodbye",
 	type="progression",
 	points=3,
 	trigger=room() == 0x4d && obj_exit(OBJ_PRINCE)
@@ -557,7 +558,7 @@ achievement(
 )
 
 achievement(
-	title="Feeding Her is Eggsactly How We Got in This Situation",
+	title="Feeding Her Is Eggsactly How We Got in This Situation",
 	description="Feed the wrong thing to Daisy to have a bad time",
 	type="missable",
 	points=2,
