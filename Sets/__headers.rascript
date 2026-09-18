@@ -1,3 +1,5 @@
+// #MinimumVersion = 1.3
+
 // --- HELPERS -------------------------------------------------------------------
 
 function is_set(acc) => acc > prev(acc)
