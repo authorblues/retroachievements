@@ -384,19 +384,18 @@ rich_presence_display("Getting Rich Quick! 🪙")
 
 // --- ACHIEVEMENTS -------------------------------------------------------------------
 
-for w in range(0, 3) // worlds
+function world_achievement(w, points)
 {
 	achievement(
 		title=WORLD_NAME[w],
 		description=format("Complete the world goal for World {0} in Normal Mode to unlock {0}-S and {0}-GP", w+1),
 		type="progression",
-		points=10,
+		points=points,
 		trigger=current_mode() == MODE_NORMAL && game_state() > STATE_LOADING && world_completed(w) && !world_completed(w, prev)
 	)
 }
 
-for w in range(0, 3) // worlds
-for s in range(0, 7) // stages
+function any__medal(w, s, points)
 {
 	stage_name = STAGE_NAME[w * 8 + s]
 	if (s == 7) stage_name = format("World {0} Grand Prix", w+1)
@@ -405,17 +404,129 @@ for s in range(0, 7) // stages
 		title=format("{0} - Any Medal", stage_name),
 		description=format("Earn any medal on {0} in Normal Mode", level_name(w, s)),
 		type="progression",
-		points=if_else(s == 7, 5, 2),
+		points=points,
 		trigger=current_mode() == MODE_NORMAL && in_level(w+1, s+1) && complete_stage() && stage_timer() <= BRONZE_TARGETS[w * 8 + s]
 	)
+}
+
+function plat_medal(w, s, points)
+{
+	stage_name = STAGE_NAME[w * 8 + s]
+	if (s == 7) stage_name = format("World {0} Grand Prix", w+1)
 
 	achievement(
 		title=format("{0} - Platinum Medal", stage_name),
 		description=format("Earn a platinum medal on {0} in Normal Mode", level_name(w, s)),
-		points=if_else(s == 7, 10, 5),
+		points=points,
 		trigger=current_mode() == MODE_NORMAL && in_level(w+1, s+1) && complete_stage() && stage_timer() <= PLATINUM_TARGETS[w * 8 + s]
 	)
 }
+
+// WORLD GOAL PROGRESSION ACHIEVEMENTS
+world_achievement(0, points=10)
+world_achievement(1, points=10)
+world_achievement(2, points=10)
+world_achievement(3, points=25)
+
+// ------------ WORLD 1
+any__medal(0, 0, points=2)
+plat_medal(0, 0, points=5)
+
+any__medal(0, 1, points=2)
+plat_medal(0, 1, points=5)
+
+any__medal(0, 2, points=2)
+plat_medal(0, 2, points=5)
+
+any__medal(0, 3, points=2)
+plat_medal(0, 3, points=5)
+
+any__medal(0, 4, points=2)
+plat_medal(0, 4, points=5)
+
+any__medal(0, 5, points=2)
+plat_medal(0, 5, points=5)
+
+any__medal(0, 6, points=2)
+plat_medal(0, 6, points=5)
+
+any__medal(0, 7, points=10)
+plat_medal(0, 7, points=25)
+
+// ------------ WORLD 2
+any__medal(1, 0, points=2)
+plat_medal(1, 0, points=5)
+
+any__medal(1, 1, points=2)
+plat_medal(1, 1, points=5)
+
+any__medal(1, 2, points=2)
+plat_medal(1, 2, points=5)
+
+any__medal(1, 3, points=2)
+plat_medal(1, 3, points=5)
+
+any__medal(1, 4, points=2)
+plat_medal(1, 4, points=5)
+
+any__medal(1, 5, points=2)
+plat_medal(1, 5, points=5)
+
+any__medal(1, 6, points=2)
+plat_medal(1, 6, points=5)
+
+any__medal(1, 7, points=10)
+plat_medal(1, 7, points=25)
+
+// ------------ WORLD 3
+any__medal(2, 0, points=2)
+plat_medal(2, 0, points=5)
+
+any__medal(2, 1, points=2)
+plat_medal(2, 1, points=5)
+
+any__medal(2, 2, points=2)
+plat_medal(2, 2, points=5)
+
+any__medal(2, 3, points=2)
+plat_medal(2, 3, points=5)
+
+any__medal(2, 4, points=2)
+plat_medal(2, 4, points=5)
+
+any__medal(2, 5, points=2)
+plat_medal(2, 5, points=5)
+
+any__medal(2, 6, points=2)
+plat_medal(2, 6, points=5)
+
+any__medal(2, 7, points=10)
+plat_medal(2, 7, points=25)
+
+// ------------ WORLD 4
+any__medal(3, 0, points=5)
+plat_medal(3, 0, points=10)
+
+any__medal(3, 1, points=5)
+plat_medal(3, 1, points=10)
+
+any__medal(3, 2, points=5)
+plat_medal(3, 2, points=10)
+
+any__medal(3, 3, points=5)
+plat_medal(3, 3, points=10)
+
+any__medal(3, 4, points=5)
+plat_medal(3, 4, points=10)
+
+any__medal(3, 5, points=5)
+plat_medal(3, 5, points=10)
+
+any__medal(3, 6, points=5)
+plat_medal(3, 6, points=10)
+
+any__medal(3, 7, points=25)
+plat_medal(3, 7, points=100)
 
 achievement(
 	title="Challenger Approaching",
