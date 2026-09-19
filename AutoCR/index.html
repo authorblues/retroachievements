@@ -3,129 +3,24 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>[AutoCR]</title>
-		<link rel="stylesheet" href="css/overview.css">
-
-		<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-		<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-		<script src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
+		<title>[AutoCR] Redirecting...</title>
 	</head>
 	<body>
-		<div id="theme-switcher">
-			<label class="switch">
-				<input type="checkbox" id="theme-toggle-checkbox">
-				<span class="slider"></span>
-			</label>
-		</div>
+		<h1>AutoCR has relocated</h1>
 
-		<div id="container">
-			<div id="asset-list">
-				<table>
-					<thead id="list-head">
-						<tr>
-							<td>Asset</td>
-						</tr>
-					</thead>
-					<tbody id="list-body"></tbody>
-					<tfoot id="list-foot">
-						<tr>
-							<td>
-								<button id="unload-set">Unload Set</button>
-							</td>
-						</tr>
-					</tfoot>
-				</table>
-			</div>
-			<div id="asset-info">
-				<div id="info-container">
-					<label>
-						<h1 id="ui-instructions">(Drag files here to load feedback or click to browse files)</h1>
-						<input type="file" id="file-picker" accept=".json,.txt,application/json,text/plain" style="display: none;" multiple>
-					</label>
-					<div id="load-by-game-id">
-						<label for="game-id">Load by Game ID</label>
-						<input type="text" id="game-id" size="8" maxlength="8">
-						<button id="load-game-id">Load</button>
-					</div>
-					<div class="instructions">
-						<ol>
-							<li>Load the game into RALibRetro (or equivalent)</li>
-							<li>Check the <code>RACache/Data/</code> folder for the following files</li>
-							<ul>
-								<li><code>[gameid].json</code></li>
-								<ul>
-									<li>contains achievement set logic</li>
-								</ul>
-								<li><code>[gameid]-Notes.json</code></li>
-								<ul>
-									<li>code notes database</li>
-								</ul>
-								<li><code>[gameid]-User.txt</code></li>
-								<ul>
-									<li>local, unpublished achievements, leaderboards, and code notes</li>
-								</ul>
-								<li><code>[gameid]-Rich.txt</code></li>
-								<ul>
-									<li>local or cached copy of rich presence script</li>
-								</ul>
-							</ul>
-							<li>Drag any/all files to this window</li>
-						</ol>
-						<p><strong>Important note #1:</strong> This tool is not a validator. If you submit a broken set, it might not parse correctly.</p>
-						<p><strong>Important note #2:</strong> All feedback is automated, and therefore imperfect. It is <em>not</em> advised to blindly make every change recommended, but rather to consider the nature of the feedback and determine for yourself whether a change might be appropriate.</p>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div id="loading-overlay">
-			<div class="spinner"></div>
-		</div>
-
-		<script src="js/logic.js"></script>
-		<script src="js/achievements.js"></script>
-		<script src="js/explainer.js"></script>
-		<script src="js/feedback.js" type="text/babel"></script>
-		<script src="js/overview.js" type="text/babel"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3ZSTk7kajkaj4D292NLuduDCO1c/NT8Id+jE58KYLKT7hXnbtryGmMg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		<p>AutoCR has relocated to the RetroAchievements' team GitHub account. Please update your bookmarks.</p>
+		<p>You are being automatically redirected to <code id="newurl"></code> in 10 seconds...</p>
 
 		<script>
-			(function() {
-				const themeToggle = document.getElementById('theme-toggle-checkbox');
-				const body = document.body;
+			let urlparts = document.URL.split('#', 2)
+			let params = urlparts.length == 1 ? '' : ('#' + urlparts[1]);
 
-				function setTheme(themeName) {
-					localStorage.setItem('theme', themeName);
-					if (themeName === 'dark') {
-						body.classList.add('dark-theme');
-						themeToggle.checked = true;
-					} else {
-						body.classList.remove('dark-theme');
-						themeToggle.checked = false;
-					}
-				}
-
-				function toggleTheme() {
-					if (body.classList.contains('dark-theme')) {
-						setTheme('light');
-					} else {
-						setTheme('dark');
-					}
-				}
-
-				themeToggle.addEventListener('change', toggleTheme);
-
-				// Set initial theme on page load
-				const savedTheme = localStorage.getItem('theme');
-				const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-				if (savedTheme) {
-					setTheme(savedTheme);
-				} else if (prefersDark) {
-					setTheme('dark');
-				} else {
-					setTheme('light');
-				}
-			})();
+			let newurl = "http://retroachievements.github.io/AutoCR/" + params;
+			document.getElementById('newurl').innerText = newurl;
+			
+			setTimeout(function(){
+				window.location.href = newurl;
+			}, 10000);
 		</script>
 	</body>
 </html>
