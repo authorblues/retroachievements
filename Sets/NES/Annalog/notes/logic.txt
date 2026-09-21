@@ -1,0 +1,15 @@
+LOGIC TRICKS
+
+`if a || b` is
+```
+IF !a
+IF b
+THEN x
+```
+
+`if a && b` is
+```
+IF a
+IF !b
+IF false
+```
