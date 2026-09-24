@@ -448,6 +448,10 @@ rich_presence_conditional_display(watching_sample_quest(),
 	"Watching the sample quest..."
 )
 
+rich_presence_conditional_display(!stable(),
+	"Traveling Green-Sky"
+)
+
 rich_presence_display(
 	"{0} · {1} Day {2} · {3} [✨ Spirit: {4}/{5}] [🏃 Stamina: {6}/{7}] [🥗 Food: {8}/{9}]",
 	rich_presence_lookup("CHAR", character(), CHARNAME, fallback="????"),
