@@ -413,7 +413,7 @@ ANIMALS = [
 
 function is_scripted() => script_indicator() + prev(script_indicator()) != 0
 
-function on_title() => any_of(TITLE_SCREENS, x => screen() == x)
+function on_title() => any_of(TITLE_SCREENS, x => screen() == x || prev(screen()) == x) || day() == 0
 function watching_sample_quest() => is_scripted() && !on_title()
 
 function item_is(x, g) => x >= g[0] && x <= g[length(g)-1]
@@ -538,7 +538,7 @@ achievement(
 
 achievement(
 	title="Kindar and Erdlings Unite!",
-	description="Rescue Raamo and earn the rank of Master Quester",
+	description="Rescue Raamo within 14 days and earn the rank of Master Quester",
 	type="missable",
 	points=10,
 	trigger=win_the_game() && day() <= 14
