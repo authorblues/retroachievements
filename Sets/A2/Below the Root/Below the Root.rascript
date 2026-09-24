@@ -413,7 +413,7 @@ ANIMALS = [
 
 function is_scripted() => script_indicator() + prev(script_indicator()) != 0
 
-function on_title() => any_of(TITLE_SCREENS, x => screen() == x || prev(screen()) == x) || day() == 0
+function on_title() => any_of(TITLE_SCREENS, x => screen() == x || prev(screen()) == x)
 function watching_sample_quest() => is_scripted() && !on_title()
 
 function item_is(x, g) => x >= g[0] && x <= g[length(g)-1]
@@ -449,7 +449,7 @@ rich_presence_conditional_display(watching_sample_quest(),
 )
 
 rich_presence_conditional_display(!stable(),
-	"Traveling Green-Sky"
+	"Playing Below the Root"
 )
 
 rich_presence_display(
