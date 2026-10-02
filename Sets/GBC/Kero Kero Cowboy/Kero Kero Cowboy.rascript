@@ -290,12 +290,18 @@ class LevelData
 	scenes = []
 	coins = []
 	allcoins = -1
+	cutscenes = []
 
 	function in_level() => any_of(this.scenes, s => current_scene() == s)
-	function cleared() => prev(word(this.clear)) == 0 && word(this.clear) == 1
-	function all_coins() => sum_of(this.coins, addr => word(addr))
+	function cleared() => is_set(word(this.clear)) // prev(word(this.clear)) == 0 && word(this.clear) == 1
+	function has_coins() => length(this.coins) == 3
+	function coin_count() => sum_of(this.coins, addr => word(addr))
+	function all_coins() => prev(this.coin_count()) < 3 && this.coin_count() == 3
 	function all_coins_award() => word(this.allcoins)
 }
+
+STAR = 5
+BOSS = 6
 
 LEVELS = [
 	[ // WORLD 1 - Dusty Desert
@@ -311,11 +317,11 @@ LEVELS = [
 		LevelData(world=1, stage=4, clear=0xCBE7, 
 			scenes=[0x619392, 0x636B92, 0x63A692, 0x6B0692, 0x633092], 
 			coins=[0xCBE1, 0xCBE3, 0xCBE5], allcoins=0xCBEF),
-		LevelData(world=1, stage=5, clear=0xCBF7, 
+		LevelData(world=1, stage=STAR, clear=0xCBF7, 
 			scenes=[0x61CE92, 0x62BA92, 0x62F592], 
 			coins=[0xCBF1, 0xCBF3, 0xCBF5]),
-		LevelData(world=1, stage=6, clear=0xCBDF, 
-			scenes=[0x5CF792, 0x5A6E92]),
+		LevelData(world=1, stage=BOSS, clear=0xCBDF, 
+			scenes=[0x5CF792, 0x5A6E92], cutscenes=[0x5E5992,]),
 	],
 
 	[ // WORLD 2 - Mole Mines
@@ -331,11 +337,11 @@ LEVELS = [
 		LevelData(world=2, stage=4, clear=0xCC53, 
 			scenes=[0x687D92, 0x68B892, 0x68F392, 0x692E92], 
 			coins=[0xCC4D, 0xCC4F, 0xCC51], allcoins=0xCC5D),
-		LevelData(world=2, stage=5, clear=0xCC65, 
+		LevelData(world=2, stage=STAR, clear=0xCC65, 
 			scenes=[0x69DF92, 0x6A1A92, 0x6A5592], 
 			coins=[0xCC5F, 0xCC61, 0xCC63]),
-		LevelData(world=2, stage=6, clear=0xCC67, 
-			scenes=[0x6A9092, 0x6ACB92]),
+		LevelData(world=2, stage=BOSS, clear=0xCC67, 
+			scenes=[0x6A9092, 0x6ACB92], cutscenes=[0x5E9492,]),
 	],
 
 	[ // WORLD 3 - Choo Choo Railway
@@ -351,11 +357,11 @@ LEVELS = [
 		LevelData(world=3, stage=4, clear=0xCCB7, 
 			scenes=[0x6EB692, 0x6EF192, 0x6F2C92, 0x6F6792], 
 			coins=[0xCCB1, 0xCCB3, 0xCCB5], allcoins=0xCCC1),
-		LevelData(world=3, stage=5, clear=0xCCC9, 
+		LevelData(world=3, stage=STAR, clear=0xCCC9, 
 			scenes=[0x6FA292, 0x6FDD92, 0x701892], 
 			coins=[0xCCC3, 0xCCC5, 0xCCC7]),
-		LevelData(world=3, stage=6, clear=0xCCCB, 
-			scenes=[0x705392, 0x708E92]),
+		LevelData(world=3, stage=BOSS, clear=0xCCCB, 
+			scenes=[0x705392, 0x708E92], cutscenes=[0x5ECF92,]),
 	],
 
 	[ // WORLD 4 - Musty Mountain
@@ -371,11 +377,11 @@ LEVELS = [
 		LevelData(world=4, stage=4, clear=0xCD09, 
 			scenes=[0x4C9A92, 0x4CD592, 0x4D1092, 0x4D4B92], 
 			coins=[0xCD03, 0xCD05, 0xCD07], allcoins=0xCD11),
-		LevelData(world=4, stage=5, clear=0xCD19, 
+		LevelData(world=4, stage=STAR, clear=0xCD19, 
 			scenes=[0x4DFC92, 0x4E3792, 0x4E7292], 
 			coins=[0xCD13, 0xCD15, 0xCD17]),
-		LevelData(world=4, stage=6, clear=0xCD01, 
-			scenes=[0x4EAD92, 0x4EE892, 0x4F2392, 0x4F5E92]),
+		LevelData(world=4, stage=BOSS, clear=0xCD01, 
+			scenes=[0x4EAD92, 0x4EE892, 0x4F2392, 0x4F5E92], cutscenes=[0x5F0A92,]),
 	],
 
 	[ // WORLD 5 - Ghost Town
@@ -391,11 +397,11 @@ LEVELS = [
 		LevelData(world=5, stage=4, clear=0xCD43, 
 			scenes=[0x559792, 0x573492, 0x576F92, 0x57E592], 
 			coins=[0xCD3D, 0xCD3F, 0xCD41], allcoins=0xCD4B),
-		LevelData(world=5, stage=5, clear=0xCD53, 
+		LevelData(world=5, stage=STAR, clear=0xCD53, 
 			scenes=[0x56F992, 0x582092, 0x585B92, 0x589692, 0x58D192, 0x590C92, 0x594792, 0x598292, 0x59BD92, 0x59F892, 0x5A3392, 0x5AA992, 0x5AE492, 0x5B1F92, 0x5B5A92, 0x5B9592, 0x5BD092, 0x5C0B92, 0x5C4692, 0x5C8192, 0x5CBC92, 0x5D3292, 0x5D6D92], 
 			coins=[0xCD4D, 0xCD4F, 0xCD51]),
-		LevelData(world=5, stage=6, clear=0xCD3B, 
-			scenes=[0x504A92, 0x508592, 0x50C092]),
+		LevelData(world=5, stage=BOSS, clear=0xCD3B, 
+			scenes=[0x504A92, 0x508592, 0x50C092], cutscenes=[0x5F4592, 0x5FF692]),
 	],
 ]
 
@@ -424,9 +430,92 @@ SCENE_CREDITS = 0x5fbb92
 // --- AUX FUNCTIONS  -------------------------------------------------------------------
 
 function Level(w, s) => LEVELS[w-1][s-1]
+for w in range(1,5) for s in range(1,6) assert(Level(w, s).world == w && Level(w, s).stage == s)
+
+function boss_defeated(w)
+{
+	level = Level(w, BOSS)
+	return current_scene() == level.cutscenes[length(level.cutscenes)-1] && level.cleared()
+}
+
+function all_world_coins(w) => (
+	__ornext(any_of(range(1,5), s => Level(w,s).in_level())) &&
+	sum_of(range(1,5), s => Level(w,s).coin_count()) == 14 &&
+	measured(sum_of(range(1,5), s => Level(w,s).coin_count()) == 15)
+)
+
+function boss_challenge(w) => (
+	once(Level(w, BOSS).in_level() && is_set(boss_cutscene_viewed())) &&
+	trigger_when(boss_health() == 0 && always_false()) && // TODO:
+	never(!Level(w, BOSS).in_level())
+)
 
 // --- RICH PRESENCE -------------------------------------------------------------------
 
 // --- ACHIEVEMENTS -------------------------------------------------------------------
+
+// A  Defeat Rollin' Rick
+achievement(
+	title="Watch for Rollin' Ricks",
+	description="Defeat Rollin' Rick",
+	type="progression",
+	points=5,
+	trigger=boss_defeated(1)
+)
+
+// L  Defeat Pickaxe Pete
+// A  Defeat Lead Slingin' Lou
+achievement(
+	title="My Dinner With Lou",
+	description="Defeat Lead Slingin' Lou",
+	type="progression",
+	points=5,
+	trigger=boss_defeated(3)
+)
+
+// L  Defeat Marv, the Mountain Menace
+// A  Defeat The Tenacious Talon Tex
+achievement(
+	title="Carrion My Wayward Son",
+	description="Defeat The Tenacious Talon Tex",
+	type="win_condition",
+	points=25,
+	trigger=boss_defeated(5)
+)
+
+// A  Collect every big coin in World 1
+achievement(
+	title="The Treasure of Dusty Desert",
+	description="Collect every big coin in World 1",
+	points=10,
+	trigger=all_world_coins(1)
+)
+
+// L  Collect every big coin in World 2
+// A  Collect every big coin in World 3
+achievement(
+	title="The Treasure of Choo Choo Railway",
+	description="Collect every big coin in World 3",
+	points=10,
+	trigger=all_world_coins(3)
+)
+
+// L  Collect every big coin in World 4
+// A  Collect every big coin in World 5
+achievement(
+	title="The Treasure of Ghost Town",
+	description="Collect every big coin in World 5",
+	points=10,
+	trigger=all_world_coins(5)
+)
+
+// A  Defeat Rollin' Rick without him attacking more than 5 times and without using your gun
+// L  Defeat Pickaxe Pete without leaving the ground or using your gun
+// A  [lou gun only/damagless]
+// L  Climb the mountain and defeat Marv within [time]
+// A  Defeat The Tenacious Talon Tex without taking damage
+// L  In 1-1, carry the first tumbleweed to the end of the level
+// L  Complete Level 5-Star without taking damage
+// L  Complete Level 5-Star within [time]
 
 // --- LEADERBOARDS -------------------------------------------------------------------
