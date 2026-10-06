@@ -1,69 +1,70 @@
-0	BadBat
-1	BadBeetleHorz
-2	BadBeetleVert
-3	BadBird
-4	BadCrab
-5	BadFirefly
-6	BadFish
-7	BadFlower
-8	BadFlydrop
-9	BadGhostMermaid
-10	BadGhostOrc
-11	BadGooGreen
-12	BadGooRed
-13	BadGronta
-14	BadGrub
-15	BadGrubFire
-16	BadGrubRoll
-17	BadHotheadHorz
-18	BadHotheadVert
-19	BadJelly
-20	BadLavaball
-21	BadOrc
-22	BadRhino
-23	BadRodent
-24	BadSlime
-25	BadSolifuge
-26	BadSpider
-27	BadToad
-28	BadVinebug
-29	BadWasp
-30	NpcAdult
-31	NpcBlinky
-32	NpcChild
-33	NpcDuck
-34	NpcOrc
-35	NpcOrcSleeping
-36	NpcQueen
-37	NpcSquare
-38	NpcToddler
-39	ProjAcid
-40	ProjAxeBoomer
-41	ProjAxeSmash
-42	ProjBreakball
-43	ProjBreakbomb
-44	ProjBreakfire
-45	ProjBullet
-46	ProjEgg
-47	ProjEmber
-48	ProjFireball
-49	ProjFireblast
-50	ProjFlamestrike
-51	ProjFood
-52	ProjGrenade
-53	ProjRocket
-54	ProjSpike
-55	ProjSpine
-56	ProjSteamRight
-57	ProjSteamUp
-58	SmokeAxe
-59	SmokeBeam
-60	SmokeBlood
-61	SmokeDirt
-62	SmokeExplosion
-63	SmokeFragment
-64	SmokeParticle
-65	SmokeRaindrop
-66	SmokeSteamRight
-67	SmokeSteamUp
-68	SmokeWaterfall
+00	0x00	None	
+01	0x01	BadBat           ; flies up and down or back and forth	
+02	0x02	BadBeetleHorz    ; crawls around a platform	
+03	0x03	BadBeetleVert    ; crawls around a platform	
+04	0x04	BadBird          ; flies horizontally when it can hit the player avatar	
+05	0x05	BadCrab          ; moves left/right randomly on a floor	
+06	0x06	BadFirefly       ; flies up and down, and shoots horizontally	
+07	0x07	BadFish          ; swims back and forth in water	
+08	0x08	BadFlower        ; grows and shoots fireballs	
+09	0x09	BadFlydrop       ; flies left/right randomly, and drops acid	
+10	0x0A	BadGhostMermaid  ; part of the shadow boss	
+11	0x0B	BadGhostOrc      ; part of the shadow boss	
+12	0x0C	BadGooGreen      ; squishes in place	
+13	0x0D	BadGooRed        ; squishes back and forth	
+14	0x0E	BadGronta        ; the final boss	
+15	0x0F	BadGrub          ; crawls left/right on a floor	
+16	0x10	BadGrubFire      ; like grub, but can also shoot at you	
+17	0x11	BadGrubRoll      ; falls to the floor, then unrolls into a grub	
+18	0x12	BadHotheadHorz   ; crawls around a platform, and can drop fire	
+19	0x13	BadHotheadVert   ; crawls around a platform, and can drop fire	
+20	0x14	BadJelly         ; moves in a straight line, turning when it hits a wall	
+21	0x15	BadLavaball      ; jumps out of lava	
+22	0x16	BadOrc           ; chases after player avatar	
+23	0x17	BadRhino         ; walks back and forth, and charges at the player avatar	
+24	0x18	BadRodent        ; runs in/out of mouseholes and along walls	
+25	0x19	BadSlime         ; crawls back and forth on ceiling, and drops spikes	
+26	0x1A	BadSolifuge      ; chases avatar on floor and by jumping	
+27	0x1B	BadSpider        ; crawls randomly on ceiling, and drops down on a thread	
+28	0x1C	BadToad          ; jumps in place	
+29	0x1D	BadVinebug       ; moves vertically on a vine	
+30	0x1E	BadWasp          ; flies in a circle	
+31	0x1F	NpcAdult         ; used for human adults and for most mermaids	
+32	0x20	NpcBlinky        ; a blinkenlight in the Core area	
+33	0x21	NpcChild         ; used for human children	
+34	0x22	NpcDuck          ; used for the ducks in SewerPool	
+35	0x23	NpcOrc           ; used for orcs, and Queen Eirene when she's standing	
+36	0x24	NpcOrcSleeping   ; used for an orc that's unconscious on the ground	
+37	0x25	NpcQueen         ; used for Queen Eirene when she's seated	
+38	0x26	NpcSquare        ; used for hiding part of another actor	
+39	0x27	NpcToddler       ; used for baby Nina	
+40	0x28	ProjAcid         ; acid dropped by a flydrop baddie	
+41	0x29	ProjAxeBoomer    ; a boomerang axe thrown by Gronta	
+42	0x2A	ProjAxeSmash     ; a machine-smashing axe thrown by Gronta	
+43	0x2B	ProjBreakball    ; a bouncing ball shot by the temple boss	
+44	0x2C	ProjBreakbomb    ; a falling bomb shot by the city boss	
+45	0x2D	ProjBreakfire    ; sweeps out horizontally from an exploding breakball	
+46	0x2E	ProjBullet       ; shot by minigun machines	
+47	0x2F	ProjEgg          ; dropped by the lava boss; hatches into a BadSolifuge	
+48	0x30	ProjEmber        ; fire dropped by a hothead baddie	
+49	0x31	ProjFireball     ; shot by various bosses	
+50	0x32	ProjFireblast    ; shot by firefly baddies and blaster machines	
+51	0x33	ProjFlamestrike  ; shot by lava boss; comes down, then sweeps sideways	
+52	0x34	ProjFood         ; food for the ducks	
+53	0x35	ProjGrenade      ; shot by cannon machines	
+54	0x36	ProjRocket       ; shot by launcher machines	
+55	0x37	ProjSpike        ; a falling spike dropped by the garden boss	
+56	0x38	ProjSpine        ; a spine shot by the city boss	
+57	0x39	ProjSteamRight   ; emitted horizontally from boiler machine pipes	
+58	0x3A	ProjSteamUp      ; emitted vertically from boiler machine pipes	
+59	0x3B	SmokeAxe         ; an axe thrown by Gronta in a cutscene	
+60	0x3C	SmokeBeam        ; a core beam in one of the finale cutscenes	
+61	0x3D	SmokeBlood       ; a glob of blood from the temple boss	
+62	0x3E	SmokeDirt        ; a clump of dirt from the mine boss	
+63	0x3F	SmokeExplosion   ; a puff of smoke for when something explodes	
+64	0x40	SmokeFragment    ; a fragment that falls under gravity	
+65	0x41	SmokeParticle    ; a single particle of smoke	
+66	0x42	SmokeRaindrop    ; a falling drop of water	
+67	0x43	SmokeSteamRight  ; like ProjSteamRight, but without physics interactions	
+68	0x44	SmokeSteamUp     ; like ProjSteamUp, but without physics interactions	
+68	0x44	SmokeWaterfall   ; pours out of a water pipe	
