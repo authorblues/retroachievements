@@ -11,6 +11,13 @@ function if_else(p, t, f) { if (p) { return t } else return f }
 
 // --- MEMORY -------------------------------------------------------------------
 
+function _actor_base(i) => 0x00c0b9 + 0x34*i
+function actor_flagset(i) => byte(_actor_base(i) + 0x00)
+function actor_flags(i, b) => bit(b, _actor_base(i) + 0x00)
+function actor_x(i) => word(_actor_base(i) + 0x01)
+function actor_y(i) => word(_actor_base(i) + 0x03)
+function actor_frame(i) => byte(_actor_base(i) + 0x0b)
+
 // $C0BB: [8-bit] Player Tile X
 function player_tile_x() => byte(0xC0BB)
 
@@ -24,6 +31,24 @@ function player_direction() => byte(0xC0BE)
 //        _current_scene is (in the engine) a struct defined as far_ptr_t which the first byte is the bank and the 2 next bytes is the pointer
 //        When loading a scene the bank and pointer of the scene in ROM is stored in that.
 function current_scene() => tbyte(0xC526)
+
+// $C53C: [8-bit] _scene_type
+//        0x00 = SCENE_TYPE_TOPDOWN
+//        0x01 = SCENE_TYPE_PLATFORM
+//        0x02 = SCENE_TYPE_ADVENTURE
+//        0x03 = SCENE_TYPE_POINTNCLICK
+//        0x04 = SCENE_TYPE_LOGO
+function scene_type() => byte(0xC53C)
+
+// $C91F: [8-bit] _win_dest_pos_y
+//        common values:
+//        0x68 = end of level display
+//        0x70 = paused in stage
+//        0x80 = HUD in stage
+function win_dest_pos_y() => byte(0xC91F)
+
+// $C92B: [56 bytes ASCII] Window Contents
+function win_contents() => dword_be(0xC92B)
 
 // $CB99: [16-bit] VAR_GUN_IS_EQUIPPED
 function gun_equipped() => word(0xCB99)
@@ -282,6 +307,12 @@ function enemy_projectile_behavior() => word(0xCD7F)
 
 // --- MAIN DATA -------------------------------------------------------------------
 
+TYPE_TOPDOWN = 0x00
+TYPE_PLATFORM = 0x01
+TYPE_ADVENTURE = 0x02
+TYPE_POINTNCLICK = 0x03
+TYPE_LOGO = 0x04
+
 class LevelData
 {
 	world = -1
@@ -292,12 +323,14 @@ class LevelData
 	allcoins = -1
 	cutscenes = []
 
-	function in_level() => any_of(this.scenes, s => current_scene() == s)
+	function in_level() => any_of(this.scenes, s => current_scene() == s) && scene_type() == TYPE_PLATFORM
 	function cleared() => is_set(word(this.clear)) // prev(word(this.clear)) == 0 && word(this.clear) == 1
 	function has_coins() => length(this.coins) == 3
 	function coin_count() => sum_of(this.coins, addr => word(addr))
 	function all_coins() => prev(this.coin_count()) < 3 && this.coin_count() == 3
 	function all_coins_award() => word(this.allcoins)
+	function transition_to_room(x) => prev(current_scene()) == this.scenes[x-1] && current_scene() == this.scenes[x]
+	function in_rooms(rs) => any_of(rs, r => current_scene() == this.scenes[r])
 }
 
 STAR = 5
@@ -370,7 +403,7 @@ LEVELS = [
 			coins=[0xCCE7, 0xCCE9, 0xCCEB], allcoins=0xCD0B),
 		LevelData(world=4, stage=2, clear=0xCCF5, 
 			scenes=[0x735292, 0x4A4C92, 0x4A8792, 0x4AC292], 
-			coins=[0xCCEF, 0xCCEF1, 0xCCF3], allcoins=0xCD0D),
+			coins=[0xCCEF, 0xCCF1, 0xCCF3], allcoins=0xCD0D),
 		LevelData(world=4, stage=3, clear=0xCCFD, 
 			scenes=[0x4B3892, 0x4BAE92, 0x4BE992, 0x4C2492], 
 			coins=[0xCCF7, 0xCCF9, 0xCCFB], allcoins=0xCD0F),
@@ -427,6 +460,10 @@ SCENE_FILE_SELECT = 0x606c92
 SCENE_MUSIC_PLAYER = 0x603192
 SCENE_CREDITS = 0x5fbb92
 
+BOSS1_DEATH = [0x17, 0x2c] // 1
+BOSS3_DEATH = [0x4e, 0x65, 0x39] // 1
+BOSS5_DEATH = [0x08] // 2
+
 // --- AUX FUNCTIONS  -------------------------------------------------------------------
 
 function Level(w, s) => LEVELS[w-1][s-1]
@@ -439,22 +476,80 @@ function boss_defeated(w)
 }
 
 function all_world_coins(w) => (
-	__ornext(any_of(range(1,5), s => Level(w,s).in_level())) &&
-	sum_of(range(1,5), s => Level(w,s).coin_count()) == 14 &&
+	any_of(range(1,5), s => Level(w,s).in_level()) &&
+	prev(sum_of(range(1,5), s => Level(w,s).coin_count())) == 14 &&
 	measured(sum_of(range(1,5), s => Level(w,s).coin_count()) == 15)
 )
 
-function boss_challenge(w) => (
-	once(Level(w, BOSS).in_level() && is_set(boss_cutscene_viewed())) &&
-	trigger_when(boss_health() == 0 && always_false()) && // TODO:
-	never(!Level(w, BOSS).in_level())
+function trigger_boss_dead(i, fs) => (
+	trigger_when(boss_health() == 0) && 
+	any_of(fs, f => trigger_when(prev(actor_frame(i)) != f && actor_frame(i) == f))
 )
 
 // --- RICH PRESENCE -------------------------------------------------------------------
 
+_WORLDNAMES = {
+	1: "Dusty Desert",
+	2: "Mole Mines",
+	3: "Choo Choo Railway",
+	4: "Musty Mountain",
+	5: "Ghost Town",
+}
+
+_SUBTYPES = {
+	1: "1", 
+	2: "2", 
+	3: "3", 
+	4: "4", 
+	STAR: "☆", 
+	BOSS: "BOSS",
+}
+
+STAGE_NAME = {}
+WORLD_NAME = {}
+for wstages in LEVELS for stage in wstages
+{
+	name = format("{0}-{1}", stage.world, _SUBTYPES[stage.stage])
+	for scene in stage.scenes STAGE_NAME[scene] = name
+	for scene in stage.scenes WORLD_NAME[scene] = _WORLDNAMES[stage.world]
+}
+
+OTHER_DESC = {
+	SCENE_TITLE: "Title Screen",
+	SCENE_FILE_SELECT: "File Select",
+	SCENE_MUSIC_PLAYER: "🎵 Music Player",
+	SCENE_CREDITS: "Credits",
+}
+
+for scene in SCENE_REGION_SELECT
+	OTHER_DESC[scene] = "🗺️ Region Select"
+for w in range(0,4)
+	for scene in SCENE_LEVEL_SELECT[w]
+		OTHER_DESC[scene] = format("🗺️ Level Select (World {0}: {1})", w+1, _WORLDNAMES[w+1])
+for wstages in LEVELS for stage in wstages
+{
+	name = format("🎥 Watching a Cutscene ({0}-{1})", stage.world, _SUBTYPES[stage.stage])
+	for scene in stage.cutscenes OTHER_DESC[scene] = name
+}
+
+rich_presence_conditional_display(scene_type() == TYPE_PLATFORM,
+	"🌵 {0}, Stage {1} · {2} health, {3} {4} · 🔫 {5} · 💲 {6}",
+	rich_presence_lookup("WORLD", current_scene(), WORLD_NAME, fallback="???"),
+	rich_presence_lookup("STAGE", current_scene(), STAGE_NAME, fallback="?-?"),
+	rich_presence_number(health()),
+	rich_presence_number(lives()),
+	rich_presence_lookup("LIFEWORD", lives(), {1: "life"}, fallback="lives"),
+	rich_presence_number(ammo()),
+	rich_presence_number(coins())
+)
+
+rich_presence_display(
+	"{0}",
+	rich_presence_lookup("SCREEN", current_scene(), OTHER_DESC, fallback="Playing Kero Kero Cowboy")
+)
+
 // --- ACHIEVEMENTS -------------------------------------------------------------------
 
-// A  Defeat Rollin' Rick
 achievement(
 	title="Watch for Rollin' Ricks",
 	description="Defeat Rollin' Rick",
@@ -463,8 +558,6 @@ achievement(
 	trigger=boss_defeated(1)
 )
 
-// L  Defeat Pickaxe Pete
-// A  Defeat Lead Slingin' Lou
 achievement(
 	title="My Dinner With Lou",
 	description="Defeat Lead Slingin' Lou",
@@ -473,8 +566,6 @@ achievement(
 	trigger=boss_defeated(3)
 )
 
-// L  Defeat Marv, the Mountain Menace
-// A  Defeat The Tenacious Talon Tex
 achievement(
 	title="Carrion My Wayward Son",
 	description="Defeat The Tenacious Talon Tex",
@@ -483,7 +574,6 @@ achievement(
 	trigger=boss_defeated(5)
 )
 
-// A  Collect every big coin in World 1
 achievement(
 	title="The Treasure of Dusty Desert",
 	description="Collect every big coin in World 1",
@@ -491,8 +581,6 @@ achievement(
 	trigger=all_world_coins(1)
 )
 
-// L  Collect every big coin in World 2
-// A  Collect every big coin in World 3
 achievement(
 	title="The Treasure of Choo Choo Railway",
 	description="Collect every big coin in World 3",
@@ -500,8 +588,6 @@ achievement(
 	trigger=all_world_coins(3)
 )
 
-// L  Collect every big coin in World 4
-// A  Collect every big coin in World 5
 achievement(
 	title="The Treasure of Ghost Town",
 	description="Collect every big coin in World 5",
@@ -509,13 +595,44 @@ achievement(
 	trigger=all_world_coins(5)
 )
 
-// A  Defeat Rollin' Rick without him attacking more than 5 times and without using your gun
-// L  Defeat Pickaxe Pete without leaving the ground or using your gun
-// A  [lou gun only/damagless]
-// L  Climb the mountain and defeat Marv within [time]
-// A  Defeat The Tenacious Talon Tex without taking damage
-// L  In 1-1, carry the first tumbleweed to the end of the level
-// L  Complete Level 5-Star without taking damage
-// L  Complete Level 5-Star within [time]
+achievement(
+	title="Quick Rick",
+	description="Defeat Rollin' Rick without him attacking more than 5 times and without using your gun",
+	points=5,
+	trigger=(
+		once(Level(1, BOSS).transition_to_room(1)) &&
+		trigger_when(Level(1, BOSS).in_rooms([1, ])) &&
+		trigger_boss_dead(1, BOSS1_DEATH) &&
+		never(!Level(1, BOSS).in_rooms([1, ])) &&
+		never(ammo() < prev(ammo())) &&
+		never(tally(6, prev(actor_flagset(2)) != 0x21 && actor_flagset(2) == 0x21))
+	)
+)
+
+achievement(
+	title="Lead Dead Revolver",
+	description="Defeat Lead Slingin' Lou without taking damage",
+	points=5,
+	trigger=(
+		once(Level(3, BOSS).transition_to_room(1)) &&
+		trigger_when(Level(3, BOSS).in_rooms([1, ])) &&
+		trigger_boss_dead(1, BOSS3_DEATH) &&
+		never(!Level(3, BOSS).in_rooms([1, ])) &&
+		never(health() < prev(health()))
+	)
+)
+
+achievement(
+	title="Feather Dusted",
+	description="Defeat The Tenacious Talon Tex without taking damage",
+	points=10,
+	trigger=(
+		once(Level(5, BOSS).transition_to_room(1)) &&
+		trigger_when(Level(5, BOSS).in_rooms([2, ])) &&
+		trigger_boss_dead(2, BOSS5_DEATH) &&
+		never(!Level(5, BOSS).in_rooms([1, 2])) &&
+		never(health() < prev(health()))
+	)
+)
 
 // --- LEADERBOARDS -------------------------------------------------------------------
