@@ -461,7 +461,7 @@ SCENE_MUSIC_PLAYER = 0x603192
 SCENE_CREDITS = 0x5fbb92
 
 BOSS1_DEATH = [0x17, 0x2c] // 1
-BOSS3_DEATH = [0x4e, 0x65, 0x39] // 1
+BOSS3_DEATH = [0x24, 0x4e, 0x64, 0x39] // 1
 BOSS5_DEATH = [0x08] // 2
 
 // --- AUX FUNCTIONS  -------------------------------------------------------------------
