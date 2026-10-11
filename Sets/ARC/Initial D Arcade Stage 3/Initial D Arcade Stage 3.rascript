@@ -582,13 +582,13 @@ TARGET_TIMES = [
 // --- AUX FUNCTIONS  -------------------------------------------------------------------
 
 // returns true when the race is being setup
-function race_setup() => prev(is_racing()) == 0 && is_racing() != 0
+function race_setup() => prev(is_racing()) == 0 && is_racing() == 1
 
 // returns true when the player crosses the finish line
-function complete_race() => is_racing() != 0 && prev(is_race_complete()) == 0 && is_race_complete() != 0 && !timer_exceeded()
+function complete_race() => is_racing() == 1 && prev(is_race_complete()) == 0 && is_race_complete() == 1 && !timer_exceeded()
 
 // returns true when the player wins a race
-function win_race() => is_racing() != 0 && is_race_complete() != 0 && race_outcome() == OUTCOME_WIN
+function win_race() => is_racing() == 1 && is_race_complete() == 1 && race_outcome() == OUTCOME_WIN
 
 // returns true when the paper cup display spills water in either direction
 function water_spills() => (
@@ -597,8 +597,8 @@ function water_spills() => (
 )
 
 // returns true when overtaken
-function rival_overtaken() => is_racing() != 0 && prev(advantage()) <= 0 && advantage() > 0
-function player_overtaken() => is_racing() != 0 && prev(advantage()) >= 0 && advantage() < 0
+function rival_overtaken() => is_racing() == 1 && prev(advantage()) <= 0 && advantage() > 0
+function player_overtaken() => is_racing() == 1 && prev(advantage()) >= 0 && advantage() < 0
 
 // returns true if a ditch has been used recently
 function used_ditch_recently(n) => once(is_using_ditch() == 1 && never(repeated(n, is_using_ditch() == 0 && never(is_using_ditch() == 1))))
@@ -861,7 +861,7 @@ rp_analysis_time = rich_presence_value("_Centiseconds", analysis_time() * 100, "
 rp_bunta_stars = rich_presence_value("_Number", bunta_level(map()), "VALUE")
 rp_bunta_total = rich_presence_value("_Number", bunta_total(), "VALUE")
 
-rich_presence_conditional_display(is_racing() != 0 && mode() == MODE_STORY,
+rich_presence_conditional_display(is_racing() == 1 && mode() == MODE_STORY,
     "📖 Chapter {8}: vs {9}{10} ({6}{7}m) | 🚩 {0} {1}{2}{3} | 🚗 {4} ({5})",
     rp_course, rp_dir, rp_weather, rp_time,
     rp_player_car, rp_player_short,
@@ -869,28 +869,28 @@ rich_presence_conditional_display(is_racing() != 0 && mode() == MODE_STORY,
     rp_chapter, rp_rival, rp_racer_level
 )
 
-rich_presence_conditional_display(is_racing() != 0 && mode() == MODE_TIME && is_race_complete() != 0,
+rich_presence_conditional_display(is_racing() == 1 && mode() == MODE_TIME && is_race_complete() == 1,
     "⏱️ Time Trial ({6}) | 🚩 {0} {1}{2}{3} | 🚗 {4} ({5})",
     rp_course, rp_dir, rp_weather, rp_time,
     rp_player_car, rp_player_short,
     rp_race_complete_time
 )
 
-rich_presence_conditional_display(is_racing() != 0 && mode() == MODE_TIME,
+rich_presence_conditional_display(is_racing() == 1 && mode() == MODE_TIME,
     "⏱️ Time Trial ({6}) | 🚩 {0} {1}{2}{3} | 🚗 {4} ({5})",
     rp_course, rp_dir, rp_weather, rp_time,
     rp_player_car, rp_player_short,
     rp_race_time
 )
 
-rich_presence_conditional_display(analysis_screen() != 0 && mode() == MODE_TIME,
+rich_presence_conditional_display(analysis_screen() == 1 && mode() == MODE_TIME,
     "⏱️ Training Analysis ({6}) | 🚩 {0} {1}{2}{3} | 🚗 {4} ({5})",
     rp_course, rp_dir, rp_weather, rp_time,
     rp_player_car, rp_player_short,
     rp_analysis_time
 )
 
-rich_presence_conditional_display(is_racing() != 0 && mode() == MODE_BUNTA,
+rich_presence_conditional_display(is_racing() == 1 && mode() == MODE_BUNTA,
     "⚔️🏆 Challenging Bunta ({8}) ({9}⭐) ({6}{7}m) | 🚩 {0} {1}{2}{3} | 🚗 {4} ({5})",
     rp_course, rp_dir, rp_weather, rp_time,
     rp_player_car, rp_player_short,
@@ -898,7 +898,7 @@ rich_presence_conditional_display(is_racing() != 0 && mode() == MODE_BUNTA,
     rp_rival_short, rp_bunta_stars
 )
 
-rich_presence_conditional_display(license_name_length() != 0,
+rich_presence_conditional_display(license_name_length() == 1,
     "Setting up | 🚗 {0} ({1}) | {2} pts | Story 🏆{3}/31{4} | Bunta ✨{5}",
     rp_player_car, rp_player_short,
     rp_license_pts,
@@ -926,7 +926,7 @@ for r in RIVAL_ACHIEVEMENTS
         type=if_else(r["id"] == 0x1e, "", "progression"),
         trigger=(
             // racing in the correct mode
-            mode() == MODE_STORY && is_racing() != 0 &&
+            mode() == MODE_STORY && is_racing() == 1 &&
             
             // win in the correct chapter
             chapter() == r["id"] && win_race()
@@ -1014,7 +1014,7 @@ achievement(
     title="Mr. X Defeated",
     description="Defeat Bunta on any course in Bunta's Challenge",
     points=5,
-    trigger=(is_racing() != 0 && bunta_level(map()) - prev(bunta_level(map())) == 1)
+    trigger=(is_racing() == 1 && bunta_level(map()) - prev(bunta_level(map())) == 1)
 )
 
 BUNTA_THRESHOLD = 5
@@ -1026,7 +1026,7 @@ for c in range(0,7)
         points=10,
         trigger=(
             // racing on the correct map
-            is_racing() != 0 && map() == c && 
+            is_racing() == 1 && map() == c && 
         
             // reach the correct Bunta level for the course
             prev(bunta_level(c)) == BUNTA_THRESHOLD - 1 && bunta_level(c) == BUNTA_THRESHOLD
@@ -1047,7 +1047,7 @@ achievement(
     points=10,
     trigger=(
         // showing the correct screen
-        is_racing() == 0 && race_results_screen() != 0 &&
+        is_racing() == 0 && race_results_screen() == 1 &&
 
         // tuning display is showing "Customization Complete" screen
         prev(tuning_display()) == 7 && tuning_display() == 8
@@ -1058,7 +1058,7 @@ achievement(
     title="Stay Hydrated",
     description="Replace the in-game navigation display with a paper cup",
     points=1,
-    trigger=(is_racing() != 0 && navigation_display() == NAV_CUP)
+    trigger=(is_racing() == 1 && navigation_display() == NAV_CUP)
 )
 
 achievement(
@@ -1092,7 +1092,7 @@ achievement(
     points=2,
     trigger=(
         // racing against a rival on a night course
-        is_racing() != 0 && mode() != MODE_TIME && map_time() == TIME_NIGHT &&
+        is_racing() == 1 && mode() != MODE_TIME && map_time() == TIME_NIGHT &&
 
         // check if lights are disabled
         once(advantage() <= ONE_CAR_LENGTH && headlights_disabled() == 1) &&
@@ -1112,7 +1112,7 @@ achievement(
     points=5,
     trigger=(
         // racing against a rival on any course other than Myogi
-        is_racing() != 0 && mode() != MODE_TIME && map() != COURSE_MYOGI &&
+        is_racing() == 1 && mode() != MODE_TIME && map() != COURSE_MYOGI &&
 
         // if you win with a large enough lead
         advantage() >= LARGE_LEAD && trigger_when(complete_race())
@@ -1125,7 +1125,7 @@ achievement(
     points=4,
     trigger=(
         // racing against a rival
-        is_racing() != 0 && mode() != MODE_TIME &&
+        is_racing() == 1 && mode() != MODE_TIME &&
 
         // if a rival is overtaken while using a ditch
         used_ditch_recently(60) && rival_overtaken()
@@ -1146,7 +1146,7 @@ achievement(
     points=1,
     trigger=(
         // racing against a rival
-        is_racing() != 0 && mode() != MODE_TIME &&
+        is_racing() == 1 && mode() != MODE_TIME &&
 
         // if you can see your rear view mirror
         view_mode() == VIEW_FIRST &&
