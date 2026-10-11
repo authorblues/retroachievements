@@ -70,6 +70,8 @@ function overworldX() => byte(0x0074)
 //        0x22 = carrock P4
 //        could detect boss dying by the boss object turning into 0x01
 ENEMY_IDS = 0x00A1
+ENEMY_PARAM = 0x00AF
+ENEMY_EXIST = 0x00B6
 
 // $00C2: Enemy #6 Health [8 bit]
 // $00C3: Enemy #5 Health [8 bit]
@@ -482,6 +484,8 @@ function enemy_id(i) => byte(ENEMY_IDS + i)
 function enemy_hp(i) => byte(ENEMY_HEALTH + i)
 function enemy_y(i) => byte(ENEMY_Y + i)
 function enemy_x(i) => byte(ENEMY_MAP_PAGES + i)*0x100 + byte(ENEMY_X + i)
+function enemy_exist(i) => byte(ENEMY_EXIST + i)
+function enemy_param(i) => byte(ENEMY_PARAM + i)
 
 function enemy_damaged(i) => prev(enemy_id(i)) == enemy_id(i) && prev(enemy_hp(i)) != enemy_hp(i)
 
@@ -664,7 +668,7 @@ achievement(
 
 achievement(
 	title="Beating Rebonack Fair and Squire",
-	description="Defeat Rebonack in Island Palace without the shield-piercing combat ability",
+	description="Defeat Rebonack in Island Palace without learning the shield-piercing combat ability",
 	type="missable",
 	points=10,
 	trigger=shield_pierce() == 0 && defeat_boss(LOC_PALACE_3, 0x01, 0x0a)
@@ -703,7 +707,7 @@ achievement(
 
 achievement(
 	title="No Items, Mario Only, Final Destination",
-	description="Defeat the final boss in the Great Palace without shield and without using magic",
+	description="Defeat the final boss in the Great Palace without shield active and without using magic",
 	type="missable",
 	points=5,
 	trigger=(
@@ -836,9 +840,11 @@ achievement(
 		enemy_id(1) == 0x02 && enemy_hp(1) == 0xff &&
 		// fairy spell through a door
 		fairy_active() == 1 && is_set(door_collision()) &&
+		// door still locked and present
+		enemy_param(1) == 0 && enemy_exist(1) == 1 &&
 		// within the bounding box of the door
-		mario_x() > enemy_x(1) - 0x10 &&
-		mario_x() < enemy_x(1)
+		mario_x() > enemy_x(1) - 16 &&
+		mario_x() < enemy_x(1) - 8
 	)
 )
 
@@ -874,12 +880,16 @@ achievement(
 
 achievement(
 	title="Taking the Secret Exit",
-	description="Place the gem in Three-Eye Rock Palace without obtaining the Magical Key",
+	description="Defeat Barba in Three-Eye Rock Palace without obtaining the Magical Key",
 	type="missable",
 	points=10,
 	trigger=(
-		area_id() == LOC_PALACE_6 && room_id() == 0x25 && 
-		have_magical_key() == 0 && unset(bit0(0x06b2))
+		// barba room
+		area_id() == LOC_PALACE_6 && room_id() == 0x25 && screen_locked() == 1 &&
+		// don't have magical key
+		have_magical_key() == 0 &&
+		// barba dead, and mario is above him
+		any_of(range(0,5), i => enemy_id(i) == 0x21 && enemy_defeated(i))
 	)
 )
 
