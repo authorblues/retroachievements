@@ -11,6 +11,13 @@ function if_else(p, t, f) { if (p) { return t } else return f }
 
 // --- MEMORY -------------------------------------------------------------------
 
+// $0008: Audio Flags [8 bit]
+//        https://github.com/mdsteele/annalog/blob/dc2b5c9a650e1f4c9a1a247c657e5f3bbcb6306f/src/audio.inc#L93
+//        bit6 | Reduce Volume
+//        bit7 | Enabled
+function audio_enabled() => bit7(0x0008)
+function audio_reduced() => bit6(0x0008)
+
 // $0020: Current Music [8 bit]
 //        0x00 = Silence
 //        0x01 = Attack
@@ -162,6 +169,11 @@ function ending_state() => byte(0x0076)
 //        https://github.com/mdsteele/annalog/blob/dc2b5c9a650e1f4c9a1a247c657e5f3bbcb6306f/src/irq.inc#L33
 //        0xF794 = Title Screen
 function current_irq_pointer() => word(0x0080)
+
+// $009B: Chr04Bank_u8 [8 bit]
+//        https://github.com/mdsteele/annalog/blob/dc2b5c9a650e1f4c9a1a247c657e5f3bbcb6306f/src/nmi.asm#L48
+//        0x1f in pause menu
+function chr04bank_u8() => byte(0x009B)
 
 // $00B4: Room ID [8 bit]
 //        0x00 = BossCity
@@ -509,6 +521,14 @@ function boss_garden_healthR() => byte(0x00D5)
 //        0x1b = Salt Mines flower
 function has_flower() => high4(0x00EF)
 function held_flower_id() => byte(0x00EF)
+
+// $00F4: Sub-Window Top [8 bit]
+//        https://github.com/mdsteele/annalog/blob/dc2b5c9a650e1f4c9a1a247c657e5f3bbcb6306f/src/window.asm#L55
+//        
+//        On pause screen:
+//        0x24 = pages view
+//        0xFF = map view
+function subwindow_top() => byte(0x00F4)
 
 // $0300: Actor IDs [16 bytes]
 //        0x00 = None
@@ -1132,6 +1152,7 @@ function sloc_count(programs)
 function sloc_count_hits(programs) => tally_of(programs, 0, p => tally_of(range(0,15), 0, i => once(prg_op(p,i) != OPCODE_EMPTY)))
 
 function map_progress() => sum_of(range(0,47), i => bitcount(MINIMAP_DATA_RAM + i))
+function check_map_progress(x) => prev(map_progress()) < x*MAX_MAP_PROGRESS/100 && map_progress() >= x*MAX_MAP_PROGRESS/100
 
 function deaths() => (
 	_deaths_x00() * 100 +
@@ -1169,7 +1190,14 @@ function completion_percent() => (
 
 function on_title() => current_music() == MUSIC_TITLE // && current_irq_pointer() == 0xF794
 function on_epilogue() => current_music() == MUSIC_EPILOGUE
-function in_game() => once(on_title()) && !on_title()
+function in_game() => game_time_nonzero() && !on_title() && !on_epilogue()
+
+function viewing_map() => (
+	chr04bank_u8() == 0x1f &&
+	audio_enabled() == 1 &&
+	audio_reduced() == 1 &&
+	subwindow_top() == 0xff
+)
 
 function epilogue_show_percent() => on_epilogue() && prev(epilogue_screen()) == 19 && epilogue_screen() == 20
 
@@ -1186,7 +1214,7 @@ function machine_is_looping(i) => (
 	machine_pc(i) <= prev(machine_pc(i))
 )
 
-function win_the_game() => prev(!on_epilogue()) && on_epilogue()
+function win_the_game() => game_time_nonzero() && prev(!on_epilogue()) && on_epilogue()
 
 // --- RICH PRESENCE -------------------------------------------------------------------
 
@@ -1422,7 +1450,7 @@ achievement(
 
 achievement(
 	title="Black Dahlia",
-	description="Defeat Doomgaze without any computer errors, and with a flower in hand",
+	description="Defeat Doomgaze without any computer errors while carrying a flower",
 	type="missable",
 	points=10,
 	trigger=(
@@ -1618,7 +1646,7 @@ achievement(
 
 achievement(
 	title="Grey Mermaid",
-	description="Find a deliver a flower to the florist in Mermaid Vale",
+	description="Find and deliver a flower to the florist in Mermaid Vale",
 	points=3,
 	trigger=(
 		room_id() == 0x51 &&
@@ -1657,6 +1685,27 @@ achievement(
 		prev(manual_pages()) == 8 &&
 		manual_pages() == 9
 	)
+)
+
+achievement(
+	title="Anna's Log",
+	description="Reveal 50% of the map",
+	points=5,
+	trigger=game_time_nonzero() && check_map_progress(50)
+)
+
+achievement(
+	title="Annavigating the Complex",
+	description="Reveal 100% of the map",
+	points=10,
+	trigger=game_time_nonzero() && check_map_progress(100)
+)
+
+achievement(
+	title="__DUMMY_MEASURED_TRACKER_DO_NOT_UPLOAD",
+	description="[measured data for 100% map achievement]",
+	points=0,
+	trigger=measured(map_progress() >= MAX_MAP_PROGRESS, when=viewing_map(), format="percent")
 )
 
 achievement(
