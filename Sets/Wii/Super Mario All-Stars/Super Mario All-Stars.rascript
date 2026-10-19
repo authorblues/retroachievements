@@ -170,7 +170,7 @@ function sprite_is_held(r, i) => byte(r.offset() + 0x462050 + i)
 //          bit5 | select?
 //          bit6 | B
 //          bit7 | A
-function controller_input(r) => byte(r.offset() + 0x46209E)
+function input(r, b) => bit(b, r.offset() + 0x46209E)
 
 // $4623AD: (NTSC) (SMB2) World ID [8 bit]
 //          0 = World 1
@@ -372,27 +372,29 @@ REGIONS = [
 
 // --- MAIN DATA -------------------------------------------------------------------
 
+function _level(w, s) => (w-1)*3 + (s-1)
+
 LEVELS = {
-	0x00: "1-1",
-	0x01: "1-2",
-	0x02: "1-3",
-	0x03: "2-1",
-	0x04: "2-2",
-	0x05: "2-3",
-	0x06: "3-1",
-	0x07: "3-2",
-	0x08: "3-3",
-	0x09: "4-1",
-	0x0a: "4-2",
-	0x0b: "4-3",
-	0x0c: "5-1",
-	0x0d: "5-2",
-	0x0e: "5-3",
-	0x0f: "6-1",
-	0x10: "6-2",
-	0x11: "6-3",
-	0x12: "7-1",
-	0x13: "7-2",
+	_level(1, 1): "1-1",
+	_level(1, 2): "1-2",
+	_level(1, 3): "1-3",
+	_level(2, 1): "2-1",
+	_level(2, 2): "2-2",
+	_level(2, 3): "2-3",
+	_level(3, 1): "3-1",
+	_level(3, 2): "3-2",
+	_level(3, 3): "3-3",
+	_level(4, 1): "4-1",
+	_level(4, 2): "4-2",
+	_level(4, 3): "4-3",
+	_level(5, 1): "5-1",
+	_level(5, 2): "5-2",
+	_level(5, 3): "5-3",
+	_level(6, 1): "6-1",
+	_level(6, 2): "6-2",
+	_level(6, 3): "6-3",
+	_level(7, 1): "7-1",
+	_level(7, 2): "7-2",
 }
 
 CHARS = {
@@ -401,6 +403,15 @@ CHARS = {
 	2: "Toad",
 	3: "Luigi",
 }
+
+INPUT_RIGHT = 0
+INPUT_LEFT = 1
+INPUT_DOWN = 2
+INPUT_UP = 3
+INPUT_START = 4
+INPUT_SELECT = 5
+INPUT_B = 6
+INPUT_A = 7
 
 // --- AUX FUNCTIONS  -------------------------------------------------------------------
 
