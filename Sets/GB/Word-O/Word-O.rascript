@@ -227,7 +227,7 @@ achievement(
 	trigger=(
 		in_game() &&
 		game_won() == 1 &&
-		prev(streak()) == 6 && streak() == 7
+		prev(streak()) == 6 && measured(streak() == 7)
 	)
 )
 
