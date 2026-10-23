@@ -15,11 +15,9 @@ https://www.smwcentral.net/?p=memorymap&game=smas&u=0&address=&sizeOperation=%3D
 - [x] 1-ups?
   
 - [x] Kill any Birdo with star power
-- [ ] Complete the second room of 4-2 without letting go of right
-- [ ] ~~Complete the second room of 4-2 always ducking ("The Mighty Ducks")~~
 - [ ] Complete the second room of 6-2 without ever riding a right-moving enemy
   - ("An Albatoss Around My Neck") ("Determined to Go Forward")
 - [ ] Defeat Triclyde 1 in one throw
-
-Need:
-stage x/y coords
+- [ ] Defeat Triclyde 2 without any mushroom blocks falling down the hole
+- [ ] Defeat Wart without ever standing at a lower level than Wart (y > 0x0090)
+  - ("Don't Stoop to His Level") ("The Floor Is Lava")

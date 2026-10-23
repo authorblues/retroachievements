@@ -97,8 +97,8 @@ function player_flags(r) => byte(r.offset() + 0x462002)
 //          bit2 | moving freely
 //          bit5 | player standing on
 //          bit6 | player controlled?
-function sprite_moving_freely(r) => bit2(r.offset() + 0x462003 + i)
-function sprite_stood_on(r) => bit5(r.offset() + 0x462003 + i)
+function sprite_moving_freely(r, i) => bit2(r.offset() + 0x462003 + i)
+function sprite_stood_on(r, i) => bit5(r.offset() + 0x462003 + i)
 
 // $462037: (NTSC) (SMB2) Character [8 bit]
 //          0 = Mario
@@ -372,6 +372,8 @@ REGIONS = [
 
 // --- MAIN DATA -------------------------------------------------------------------
 
+GAME_SMB2 = 0x06
+
 function _level(w, s) => (w-1)*3 + (s-1)
 
 LEVELS = {
@@ -415,29 +417,105 @@ INPUT_A = 7
 
 // --- AUX FUNCTIONS  -------------------------------------------------------------------
 
-function in_game(r) => r.is_region() && demo_screen(r) == 0 && game_id(r) == 0x06
+function in_game(r) => unless(!r.is_region()) && demo_screen(r) == 0 && game_id(r) == GAME_SMB2
 
-function use_warp(r, stage) => (
+function use_warp(stage) => any_of(REGIONS, r => (
+	in_game(r) &&
 	// going down pipe with warp music playing
 	player_state(r) == 0x04 && music_id(r) == 0x13 &&
 	// level changes to a later level during the transition
 	prev(stage_id(r)) == stage && stage_id(r) > stage
-)
+))
 
 function pull_up(r, item) => any_of(range(0,8), i => (
 	sprite_id(r, i) == item && 
-	prev(sprite_is_held(r, i)) == 3 && 
-	sprite_is_held(r, i) == 2
+	// this is one frame before items like stopwatches are consumed, safe for other objects too
+	prev(sprite_is_held(r, i)) == 3 && sprite_is_held(r, i) == 2
 ))
+
+function boss_challenge(r, stage, checkpoint) => (
+	// music updates while stage and checkpoint already set
+	once(
+		stage_id(r) == stage && level_checkpoint(r) == checkpoint && 
+		prev(music_id(r)) != 0x08 && music_id(r) == 0x08
+	) &&
+	// win if the boss music plays
+	trigger_when(prev(music_id(r)) != 0x0b && music_id(r) == 0x0b) &&
+	// reset if the player dies
+	never(alive(r) == 0) &&
+	// reset if we leave the level
+	never(stage_id(r) != stage) &&
+	// reset if we leave the game
+	never(game_id(r) != GAME_SMB2)
+)
 
 function player_x(r) => player_x_position_high_byte(r) * 0x100 + player_x_position_low_byte(r)
 function player_y(r) => player_y_position_high_byte(r) * 0x100 + player_y_position_low_byte(r)
 function sprite_x(r, i) => sprite_x_position_high_byte(r, i) * 0x100 + sprite_x_position_low_byte(r, i)
 function sprite_y(r, i) => sprite_y_position_high_byte(r, i) * 0x100 + sprite_y_position_low_byte(r, i)
 
+function boss_killed(stage) => any_of(REGIONS, r => (
+	// might be worth adding a checkpoint check
+	in_game(r) && stage_id(r) == stage &&
+	prev(music_id(r)) == 0x08 && music_id(r) == 0x0c
+))
+
 // --- RICH PRESENCE -------------------------------------------------------------------
 
 // --- ACHIEVEMENTS -------------------------------------------------------------------
+
+achievement(
+	title="__DefeatMouser1",
+	description="Defeat Mouser at the end of World 1",
+	points=5,
+	trigger=boss_killed(_level(1, 3))
+)
+
+achievement(
+	title="__DefeatTriclyde1",
+	description="Defeat Triclyde at the end of World 2",
+	points=5,
+	trigger=boss_killed(_level(2, 3))
+)
+
+achievement(
+	title="__DefeatMouser2",
+	description="Defeat Mouser at the end of World 3",
+	points=5,
+	trigger=boss_killed(_level(3, 3))
+)
+
+achievement(
+	title="__DefeatFryguy",
+	description="Defeat Fryguy at the end of World 4",
+	points=5,
+	trigger=boss_killed(_level(4, 3))
+)
+
+achievement(
+	title="__DefeatClawglip",
+	description="Defeat Clawglip at the end of World 5",
+	points=5,
+	trigger=boss_killed(_level(5, 3))
+)
+
+achievement(
+	title="__DefeatTriclyde2",
+	description="Defeat Triclyde at the end of World 6",
+	points=5,
+	trigger=boss_killed(_level(6, 3))
+)
+
+achievement(
+	title="__DefeatWart",
+	description="Defeat Wart and save Subcon",
+	type="progression",
+	points=25,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && stage_id(r) == _level(7, 2) &&
+		prev(music_id(r)) == 0x0b && music_id(r) == 0x80
+	))
+)
 
 achievement(
 	title="Subspace Emissary",
@@ -492,6 +570,37 @@ achievement(
 		slot_3_status(r) == 0 && prev(slot_3_status(r)) == 2 &&
 		slot_1_result(r) == slot_2_result(r) &&
 		slot_1_result(r) == slot_3_result(r)
+	))
+)
+
+achievement(
+	title="__Triclyde1OneThrow",
+	description="Defeat Triclyde in 2-3 in one throw",
+	points=5,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && boss_challenge(r, _level(2, 3), 6) &&
+		// for all sprite slots
+		never(tally_of(range(0,8), 2, i => (
+			// the object is no longer held
+			prev(sprite_is_held(r, i)) == 1 && sprite_is_held(r, i) == 0 &&
+			// and not because it changed state
+			sprite_state(r, i) == prev(sprite_state(r, i))
+		))) &&
+		// ensure we don't come in with some hits on our first visit to the boss room
+		never(prev(level_checkpoint(r)) != level_checkpoint(r))
+	))
+)
+
+achievement(
+	title="Waste Not, Want Not",
+	description="Defeat Triclyde in 6-3 without losing any mushroom blocks down the pit",
+	points=5,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && boss_challenge(r, _level(6, 3), 6) &&
+		all_of(range(0,8), i => never(
+			// reset if the sprite is a mushroom block, low enough on screen, and it must exist
+			sprite_id(r, i) == 0x39 && sprite_y(r, i) > 0x00c4 && sprite_state(r, i) != 0
+		))
 	))
 )
 
