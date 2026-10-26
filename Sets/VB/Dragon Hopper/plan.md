@@ -1,0 +1,33 @@
+- [ ] Defeat Elsus and leave Faeron
+- [ ] Defeat Gita and escape the Great Tunnel
+- [ ] Defeat Cutter and complete your journey on Earth
+- [ ] Defeat Cold Eye and climb the Tower of Infinity
+- [ ] Defeat Terror Eyes and complete Cirrus
+- [ ] Find the Star Spirit at the end of Celestial Road
+- [ ] Defeat King Hades, rescue Diana, and save Celestia
+- [ ] Save the Earth Spirit and unlock the Earth form
+- [ ] Save the Water Spirit and unlock the Water form
+- [ ] Save the Fire Spirit and unlock the Fire form
+- [ ] Save the Air Spirit and unlock the Air form
+- [ ] Collect all star medals in Faeron
+- [ ] Collect all star medals in Great Tunnel
+- [ ] Collect all star medals on Earth
+- [ ] Collect all star medals in Tower of Infinity
+- [ ] Collect all star medals in Cirrus
+- [ ] Collect all star medals in Celestial Road
+- [ ] Collect all star medals in Celestia
+- [ ] Complete the game and earn the Silver Dragon ranking
+- [ ] Purchase the Explosion spell
+- [ ] Purchase the Stop spell
+- [ ] Purchase the Speed spell
+- [ ] Purchase the Star Protection spell
+- [ ] Purchase the Invisibility spell
+- [ ] Purchase the Meteor Strike spell
+- [ ] Purchase the Guided Missile spell
+- [ ] Purchase the Frog Prince spell
+- [ ] Purchase the Rabbit spell
+- [ ] Purchase the Small Dorin spell
+- [ ] Purchase the Flashback spell
+- [ ] Earn a perfect score on the Flap Flap minigame
+- [ ] Earn a perfect score on the Jump Jump minigame
+- [ ] Beat the Elf Knight Elsus in one continuous bounce
