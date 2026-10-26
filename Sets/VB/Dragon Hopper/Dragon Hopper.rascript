@@ -9,6 +9,9 @@ function rich_presence_number(x) => rich_presence_value("_N", x, "VALUE")
 function plural(x) => rich_presence_lookup("_Pl", x, {1: ""}, fallback="s")
 function if_else(p, t, f) { if (p) { return t } else return f }
 
+function rich_presence_flag(str, when=always_true(), lookupname="_F") => 
+	rich_presence_lookup(lookupname, max_of(measured(1, when=when), measured(0)), {1: str}, "")
+
 // --- MEMORY -------------------------------------------------------------------
 
 // $0424: Controller Input [8 bit]
@@ -414,7 +417,7 @@ ALL_MEDALS = [
 	{"world": 8, "stage": 4, "addr": 0x00e8b1, "bit": 3, },
 ]
 
-STAGE_MEDALS = [{"world": -1, "stage": -1, "medals": [], "check": always_true()}]
+STAGE_MEDALS = []
 for w in range(0,8) for s in range(1,6)
 {
 	medals = []
@@ -438,7 +441,16 @@ function cheat_menu_lockout() => disable_when(
 	until=on_title_screen() && title_screen_countdown() == 385 && secret_options_cheat_input() == 0
 )
 
-function cheats_blocked() => unless(easy_mode_cheat() == 1) && unless(all_magic_cheat() == 1)
+function visited_cheat_menu() => once(
+	on_title_screen() &&
+	prev(title_screen_countdown()) > 0 &&
+	prev(secret_options_cheat_input()) == 9 &&
+	secret_options_cheat_input() == 10 &&
+	never(on_title_screen() && title_screen_countdown() == 385 && secret_options_cheat_input() == 0)
+)
+
+function is_cheating() => easy_mode_cheat() == 1 || all_magic_cheat() == 1
+function cheats_blocked() => unless(is_cheating())
 
 function in_flap_flap() => zone() == 0x09 && __ornext(any_of([30, 32, 34], x => room() == x))
 function in_jump_jump() => zone() == 0x09 && __ornext(any_of([31, 33, 35], x => room() == x))
@@ -456,16 +468,14 @@ function star_medal_tracking_start(w) => (
 )
 
 function star_medal_failure(w) => all_of(STAGE_MEDALS, data => (
-	if_else(data["world"] != w, always_true(), (
+	if_else(data["world"] == w && length(data["medals"]) >= 0, (
 		never(
 			prev(real_world()) == data["world"] &&
 			prev(real_stage()) == data["stage"] &&
 			advance_stage() &&
-			if_else(length(data["medals"]) == 0, always_false(), 
-				sum_of(data["medals"], m => prev(bit(m["bit"], m["addr"]))) < length(data["medals"])
-			)
+			sum_of(data["medals"], m => prev(bit(m["bit"], m["addr"]))) < length(data["medals"])
 		)
-	))
+	), always_true())
 ))
 
 function all_star_medals(w, s, nextw) => (
@@ -504,7 +514,7 @@ rich_presence_conditional_display(on_title_screen() || demo_playing() == 1 || (r
 
 // Faeron 0-1 · 5❤️ 5💠 [Normal form] [Recovery spell] · 🪙 77/90
 rich_presence_display(
-	"{0} {1}-{2} · {3}❤️ {5}💠 [{7} form] [{8} spell] · 🪙 {9}/90",
+	"{0} {1}-{2}{11} · {3}❤️ {5}💠 [{7} form] [{8} spell] · 🪙 {9}/90{10}",
 	rich_presence_lookup("WNAME", real_world(), WORLD_NAMES, fallback="Faeron"),
 	rich_presence_lookup("WNUM", real_world(), WORLD_NUMBER, fallback="0"),
 	rich_presence_number(real_stage()),
@@ -514,7 +524,9 @@ rich_presence_display(
 	"",
 	rich_presence_lookup("DFORM", current_dragon_form(), FORM_NAMES, fallback="Normal"),
 	rich_presence_lookup("SPELL", active_spell(), SPELL_NAMES, fallback="Recovery"),
-	rich_presence_number(tracked_star_medal_count())
+	rich_presence_number(tracked_star_medal_count()),
+	rich_presence_flag(" ⚠️", when=is_cheating(), lookupname="CHEAT"),
+	rich_presence_flag("*", when=visited_cheat_menu(), lookupname="CHEATMENU")
 )
 
 // --- ACHIEVEMENTS -------------------------------------------------------------------
@@ -741,6 +753,13 @@ achievement(
 
 // --- LEADERBOARDS -------------------------------------------------------------------
 
+TRACKER_VALUES = [measured(0, when=always_true())]
+for data in STAGE_MEDALS
+	array_push(TRACKER_VALUES, measured(
+		length(data["medals"]) - sum_of(data["medals"], m => bit(m["bit"], m["addr"])), 
+		when=data["check"]
+	))
+
 leaderboard(
 	title="Star Medal Tracker",
 	description="Shows remaining star medals in current stage. Hold L for 3 seconds to activate, press L again to deactivate",
@@ -753,12 +772,7 @@ leaderboard(
 	cancel=on_title_screen() || demo_playing() == 1 || is_set(input_Lshoulder()),
 	submit=always_false(),
 
-	value=max_of(array_map(STAGE_MEDALS, data => (
-		measured(
-			length(data["medals"]) - sum_of(data["medals"], m => bit(m["bit"], m["addr"])), 
-			when=data["check"]
-		)
-	))),
+	value=max_of(TRACKER_VALUES),
 	format="VALUE",
 	lower_is_better=false
 )
