@@ -15,6 +15,15 @@ This document serves as a design document, detailing simple readable versions of
     - [#06 ChristosOwen](#06-christosowen)
     - [#07 Acmlm](#07-acmlm)
     - [#08 ChristosOwen](#08-christosowen)
+    - [#09 Lanturn](#09-lanturn)
+    - [#10 Kinghippo](#10-kinghippo)
+    - [#11 Barnowl - Minimal Item Run](#11-barnowl---minimal-item-run)
+    - [#12 ChristosOwen](#12-christosowen)
+    - [#13 Dessyreqt](#13-dessyreqt)
+    - [#14 FFGamer86](#14-ffgamer86)
+    - [#15 Spimmmm](#15-spimmmm)
+    - [#16 FFGamer86](#16-ffgamer86)
+    - [#17 Lanturn](#17-lanturn)
 
 ## Glitches
 ### No Exploration Glitch
@@ -30,8 +39,8 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
   - ancillae are run out of a 10 element buffer at $7E0C53. most items should only ever by indexed into the first 5 positions at that address. bombs should only be indexed into the first two positions.
 
 ### No JP 1.0 Glitches
-- item dashing
 - fake flippers
+- item dashing
 - spinspeed
 
 ## Puzzles
@@ -110,3 +119,154 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
 ### #08 ChristosOwen
 ![prompt](<prompts/08 - ChristosOwen.png>)
 - no EG, no JP 1.0 glitches
+- goal: defeat Aga 1 with sword2
+  - open 11 big chests, 11 compasses, open the mysterious chest
+- no item/weapon on more than one boss
+- no potion shop
+- 1 bottle max
+- conditional restrictions:
+  - no crystals until 2 pendants
+  - no super bomb until 3 pendants
+  - no tempered sword until 2 crystals
+  - no ether medallion until 3 crystals
+  - no pendant2 until 4 crystals
+  - no fire rod until visited fat faerie
+  - no ice rod until 6 crystals
+  - no bug net until 7 crystals
+  - no magic cape until 20 hearts
+  - no sword1 on bosses until 1 crystal
+  - no regular bow on bosses until 3 medallions
+  - no bombs on bosses until 5 crystals
+
+### #09 Lanturn
+![prompt](<prompts/09 - Lanturn.png>)
+- no EG, no JP 1.0 Glitches
+- goal: collect all level-1 Y items without upgrades
+  - bow: kill ball & chain trooper with Zelda following
+  - boom: get all other Y items, no sword/shield
+  - hookshot: kill Trinexx
+  - bomb: 2+ heart pieces
+  - mushroom: sword level == shield level
+  - fire rod: shield2, no mushroom
+  - ice rod: exactly 5 Y items
+  - bombos: kill Blind
+  - ether: kill Helma King swordless
+  - quake: kill Aga 1
+  - lamp: no sword/shield
+  - hammer: fire rod
+  - shovel: kill Vitreous + Arrghus
+  - bug net: 10+ hearts
+  - book: 500+ rupees displayed
+  - bottles: 1 per 2 maps collected
+  - somaria: complete row 2
+  - byrna: exactly 4 hearts
+  - cape: 3+ bottles
+  - mirror: exactly 5 Y items
+- boss item restrictions?
+- something about no flute to mire?
+
+### #10 Kinghippo
+![prompt](<prompts/10 - Kinghippo.png>)
+- no EG, no JP 1.0 Glitches, no DMD
+- goal: open IP big chest with flippers + shield2
+- dungeons required in order with rupee requirements to enter
+  - eastern: 92
+  - desert: 669
+  - hera: 0 + full health
+  - darkness: 231
+  - thief: 0
+  - skull: 301
+  - ice: 623
+- bottles only contain fairies
+- gambling game, archery game, digging games banned
+- only dash in dungeons + library
+- no bomb jump
+- no thiefs
+
+### #11 Barnowl - Minimal Item Run
+![prompt](<prompts/11 - Barnowl.jpeg>)
+- No EG, no JP 1.0 Glitches
+- goal: defeat Ganon using sword2, no shield
+- banned: boomerangs, recovery heart, powder, bug net, bombos, byrna, cape, tempered, big bomb, blue/red mail, fire/mirror shield
+- max 1 bottle
+- boss restrictions:
+    - hammer can be used on 3 bosses
+    - sword2 can be used on 3 bosses
+    - no arrows on bosses
+    - ganon, aga 1/2, and boss refights count
+
+### #12 ChristosOwen
+![prompt](<prompts/12 - ChristosOwen.png>)
+- no EG, no JP 1.0 Glitches
+- goal: obtain sword2, shield2 (but blue), blue mail
+- restrictions:
+    - may not bomb floor above blue mail
+    - flippers requires 3 crystals
+    - pearl requires 9 hearts
+    - all level 2 items require 2 pendants
+        - silver arrows, boom2, powder, flute, glove2
+    - any item used to damage a boss must not be used against next 3 bosses
+    - only upgrade from one great fairy
+    - no 300 rupee chests
+    - banned on LW bosses:
+        - boom1, sword1, sword3, hammer, bow, green potion, fire rod
+    - banned on DW bosses:
+        - byrna, sword1, sword3, hammer, green potion, blue potion
+    - banned in "complete all enemies to advance" rooms:
+        - sword1, bow, bombs, boots
+
+### #13 Dessyreqt
+![prompt](<prompts/13 - Dessyreqt.png>)
+- No EG, no fake flippers
+- goal: open the purple chest and defeat Lanmo, Aga 1, Helma King, Mothula with shield3
+- only 1 bottle, no magic powder (only while mirror shield?)
+- boss restrictions:
+    - no sword, fire rod, hammer, somaria against bosses (except Moldorm)
+
+### #14 FFGamer86
+![prompt](<prompts/14 - FFGamer86.png>)
+- No EG, no JP 1.0 Glitches
+- goal: defeat Aga1 with sword2
+- defeat each LW boss with different equipment set
+    - set #1: sword1, shield1, green mail
+    - set #2: sword3, shield2, blue mail
+    - set #3: sword4, shield3, red mail
+    - Sword Only on LW bosses (does this mean no non-sword on LW bosses, or no sword on DW bosses?)
+- banned: byrna, cape, bug net, powder, boom2, bombos, recovery heart
+- only purple chest bottle, no others. 1 bomb on hand max (probably detect on changing rooms/screens)
+
+### #15 Spimmmm
+![prompt](<prompts/15 - Spimmmm.png>)
+- No EG, no JP 1.0 Glitches
+- goal: get magic cape, after
+    - kill Vitreous, no shield, green mail, bow only on big eye, 5 heart containers
+    - kill Helma King, sword2, blue mail, shield1, 8 heart containers
+    - kill Arrghus, shield2, no sword, 10 hearts
+- banned: recovery heart (heart pieces?), powder, fire rod
+- restrictions:
+    - sanc heart requires 3 crystals
+    - 2 bottles max, 2nd bottle requires 3 pendants
+    - no hammer or swords on DW bosses
+
+### #16 FFGamer86
+![prompt](<prompts/16 - FFGamer86.jpeg>)
+- No EG
+- goal list:
+    1. kill Aga 1
+    2. kill Blind with sword1
+    3. kill Helma King with sword4
+    4. kill Mothula
+    5. kill Trinexx
+    6. kill Arrghus
+    7. kill Aga 2 with sword3
+- banned: bug net, shovel, fire rod (fire rod allowed in turtle rock and opening skull woods)
+- restrictions:
+    - pendants baned until 3 bottles
+    - bottles banned until real flippers
+    - sword1, boom1, silver arrows (?), hammer banned on bosses until 2 pendants
+    - all swords, bombs banned on DW bosses (except Blind) when even crystals
+    - silver arrows(?), hammer banned on DW bosses when odd crystals
+
+### #17 Lanturn
+
+- No EG, no DMD, no JP 1.0 Glitches
