@@ -17,13 +17,16 @@ This document serves as a design document, detailing simple readable versions of
     - [#08 ChristosOwen](#08-christosowen)
     - [#09 Lanturn](#09-lanturn)
     - [#10 Kinghippo](#10-kinghippo)
-    - [#11 Barnowl - Minimal Item Run](#11-barnowl---minimal-item-run)
+    - [#11 Barnowl](#11-barnowl)
     - [#12 ChristosOwen](#12-christosowen)
     - [#13 Dessyreqt](#13-dessyreqt)
     - [#14 FFGamer86](#14-ffgamer86)
     - [#15 Spimmmm](#15-spimmmm)
     - [#16 FFGamer86](#16-ffgamer86)
     - [#17 Lanturn](#17-lanturn)
+    - [#18 SeanCass \& T1](#18-seancass--t1)
+    - [#19 ChristosOwen](#19-christosowen)
+    - [#20 x10power](#20-x10power)
 
 ## Glitches
 ### No Exploration Glitch
@@ -163,7 +166,6 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
   - cape: 3+ bottles
   - mirror: exactly 5 Y items
 - boss item restrictions?
-- something about no flute to mire?
 
 ### #10 Kinghippo
 ![prompt](<prompts/10 - Kinghippo.png>)
@@ -183,10 +185,10 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
 - no bomb jump
 - no thiefs
 
-### #11 Barnowl - Minimal Item Run
+### #11 Barnowl
 ![prompt](<prompts/11 - Barnowl.jpeg>)
 - No EG, no JP 1.0 Glitches
-- goal: defeat Ganon using sword2, no shield
+- goal: minimal item run - defeat Ganon using sword2, no shield
 - banned: boomerangs, recovery heart, powder, bug net, bombos, byrna, cape, tempered, big bomb, blue/red mail, fire/mirror shield
 - max 1 bottle
 - boss restrictions:
@@ -268,5 +270,65 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
     - silver arrows(?), hammer banned on DW bosses when odd crystals
 
 ### #17 Lanturn
-
+![prompt](<prompts/17 - Lanturn.jpeg>)
 - No EG, no DMD, no JP 1.0 Glitches
+- goal: multi-file restrictive playthrough, killing a target boss on each file
+  1. kill Mothula on file 1
+    - LW only: top Y row may only be used for Y items(?)
+    - can only collect row 1 and 2 Y items
+    - no A items besides flippers
+  2. kill Kholdstare on file 2
+    - no row 1 Y items (except bombs)
+    - may only collect row 2 and 3 Y items + bombs
+    - must use only A items on boss fights (may use Y for Kholdstare's ice)
+  3. kill Vitreous on file 3 (at least 1 little eye must be alive?)
+    - can only collect row 4 Y items + ether + bombs
+    - must use only row 4 Y items on boss fights (and sword)
+    - can't lift anything (pots, rocks, grass) (except portal rocks)
+- may copy files to obtain unobtainable items on each file
+- may only recieve a DW item once max between files (except hammer)
+- must have half magic to start picking up DW items (except hammer)
+- copying files banned after collecting DW item (except hammer)
+- banned: fairies on file 3, all potions
+
+### #18 SeanCass & T1
+![prompt](<prompts/18 - SeanCass and T1.png>)
+- (no glitch restrictions)
+- goal: defeat Helma King without using swords, hammer, normal bow
+  - with equipment sword2, shield2, blue mail
+- boss restrictions:
+  - no sword, normal bow vs Armos, Lanmo
+  - no sword, hammer vs Mothula, Vitreous, Kholdstare, Blind
+  - no sword vs Moldorm, Aga 1
+- must collect pendants 1-3, crystals 3-6
+- must not enter witch's hut
+
+### #19 ChristosOwen
+![prompt](<prompts/19 - ChristosOwen.png>)
+- no EG
+- goal: MST - 100% complete Mire, Swamp, Turtle Rock
+  - map, compass, 100% map coverage, crystal, big chest
+- boss restrictions:
+  - LW: no boom, sword1, bow
+  - no sword2 or sword3 vs Vitreous, Arrghus, Trinexx
+- no sword2, bottles, Aga 1 until full clear(?) an MST dungeon
+- any item used against a boss may not be used against another boss
+- may only open 1 chest in Hyrule Castle
+- may not spend rupees until boots
+- may not obtain flippers until Vitreous and Trinexx defeated
+- may not light torches with lamp
+- may not use hammer + hookshot outside dungeons
+
+### #20 x10power
+![prompt](<prompts/20 - x10power.jpeg>)
+- no JP 1.0 Glitches (EG?)
+- goals:
+  - boss dash challenge, defeat bosses with only dash
+    - Lanmo: 4 hearts max, no filled bottles
+    - Arrghus: 7 hearts max, 1 filled bottle max, hookshot allowed
+    - Blind: 8 hearts max, 1 filled bottle max
+    - Kholdstare: 10 hearts max, 1 filled bottle max (fire allowed?)
+  - must DMD to DW
+  - finish with 3 heart pieces, sword3, byrna, cape, blue tunic, boom2
+  - finish with 500+ rupees
+- banned: flute
