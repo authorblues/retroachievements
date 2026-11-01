@@ -619,6 +619,7 @@ achievement(
 achievement(
 	title="Medals in Faeron",
 	description="In one session, collect all star medals in Faeron without returning to the title screen",
+	type="missable",
 	points=5,
 	trigger=all_star_medals(0, 3, nextw=1)
 )
@@ -626,6 +627,7 @@ achievement(
 achievement(
 	title="Medals in the Great Tunnel",
 	description="In one session, collect all star medals in Great Tunnel without returning to the title screen",
+	type="missable",
 	points=10,
 	trigger=all_star_medals(1, 6, nextw=2)
 )
@@ -633,6 +635,7 @@ achievement(
 achievement(
 	title="Medals on Earth",
 	description="In one session, collect all star medals on Earth without returning to the title screen",
+	type="missable",
 	points=10,
 	trigger=all_star_medals(2, 5, nextw=3)
 )
@@ -640,6 +643,7 @@ achievement(
 achievement(
 	title="Medals in the Tower of Infinity",
 	description="In one session, collect all star medals in Tower of Infinity without returning to the title screen",
+	type="missable",
 	points=10,
 	trigger=all_star_medals(3, 6, nextw=4)
 )
@@ -647,6 +651,7 @@ achievement(
 achievement(
 	title="Medals in Cirrus",
 	description="In one session, collect all star medals in Cirrus without returning to the title screen",
+	type="missable",
 	points=10,
 	trigger=all_star_medals(4, 5, nextw=6)
 )
@@ -654,6 +659,7 @@ achievement(
 achievement(
 	title="Medals Along Celestial Road",
 	description="In one session, collect all star medals in Celestial Road without returning to the title screen",
+	type="missable",
 	points=10,
 	trigger=all_star_medals(6, 5, nextw=8)
 )
@@ -661,17 +667,19 @@ achievement(
 achievement(
 	title="Medals in Celestia",
 	description="In one session, collect all star medals in Celestia without returning to the title screen",
+	type="missable",
 	points=10,
 	trigger=(
 		star_medal_tracking_start(8) &&
 		star_medal_failure(8) &&
-		win_the_game()
+		trigger_when(win_the_game())
 	)
 )
 
 achievement(
 	title="You Are Star Dragon",
-	description="Complete the game and earn the Star Dragon ranking",
+	description="Complete the game with a score of 901+ and earn the Star Dragon ranking",
+	type="missable",
 	points=50,
 	trigger=computed_score() && total_score() > 900
 )
@@ -725,8 +733,22 @@ achievement(
 )
 
 achievement(
+	title="Jump Jump, Slide Slide!",
+	description="Earn a perfect score on the Jump Jump minigame",
+	points=5,
+	trigger=(
+		cheats_blocked() &&
+		in_jump_jump() &&
+		star_medals_final_jump_jump() == 10 &&
+		prev(star_medals_post_jump_jump()) == 1 &&
+		star_medals_post_jump_jump() == 0
+	)
+)
+
+achievement(
 	title="Bouncing Baby Boy",
 	description="Defeat the Elf Knight, Elsus, in one continuous bounce",
+	type="missable",
 	points=5,
 	trigger=(
 		cheats_blocked() &&
@@ -756,8 +778,8 @@ achievement(
 TRACKER_VALUES = [measured(0, when=always_true())]
 for data in STAGE_MEDALS
 	array_push(TRACKER_VALUES, measured(
-		length(data["medals"]) - sum_of(data["medals"], m => bit(m["bit"], m["addr"])), 
-		when=data["check"]
+		length(data["medals"]) - sum_of(data["medals"], m => prev(bit(m["bit"], m["addr"]))), 
+		when=prev(data["check"])
 	))
 
 leaderboard(
