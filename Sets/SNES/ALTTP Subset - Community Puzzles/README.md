@@ -49,7 +49,7 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
 ## Puzzles
 ### #00 Dessyreqt
 ![prompt](<prompts/00 - Dessyreqt.png>)
-- no banned glitches?
+- no banned glitches
 - goal: defeat Kholdstare with red mail + IP big key
 - banned items: hookshot, somaria, power glove, boomerangs
 
@@ -221,7 +221,7 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
 ![prompt](<prompts/13 - Dessyreqt.png>)
 - No EG, no fake flippers
 - goal: open the purple chest and defeat Lanmo, Aga 1, Helma King, Mothula with shield3
-- only 1 bottle, no magic powder (only while mirror shield?)
+- only 1 bottle, no magic powder
 - boss restrictions:
     - no sword, fire rod, hammer, somaria against bosses (except Moldorm)
 
@@ -233,7 +233,7 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
     - set #1: sword1, shield1, green mail
     - set #2: sword3, shield2, blue mail
     - set #3: sword4, shield3, red mail
-    - Sword Only on LW bosses (does this mean no non-sword on LW bosses, or no sword on DW bosses?)
+    - must fight LW bosses sword-only
 - banned: byrna, cape, bug net, powder, boom2, bombos, recovery heart
 - only purple chest bottle, no others. 1 bomb on hand max (probably detect on changing rooms/screens)
 
@@ -244,7 +244,7 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
     - kill Vitreous, no shield, green mail, bow only on big eye, 5 heart containers
     - kill Helma King, sword2, blue mail, shield1, 8 heart containers
     - kill Arrghus, shield2, no sword, 10 hearts
-- banned: recovery heart (heart pieces?), powder, fire rod
+- banned: heart pieces, powder, fire rod
 - restrictions:
     - sanc heart requires 3 crystals
     - 2 bottles max, 2nd bottle requires 3 pendants
@@ -265,23 +265,23 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
 - restrictions:
     - pendants baned until 3 bottles
     - bottles banned until real flippers
-    - sword1, boom1, silver arrows (?), hammer banned on bosses until 2 pendants
+    - sword1, boom1, silver arrows, hammer banned on bosses until 2 pendants
     - all swords, bombs banned on DW bosses (except Blind) when even crystals
-    - silver arrows(?), hammer banned on DW bosses when odd crystals
+    - silver arrows, hammer banned on DW bosses when odd crystals
 
 ### #17 Lanturn
 ![prompt](<prompts/17 - Lanturn.jpeg>)
 - No EG, no DMD, no JP 1.0 Glitches
 - goal: multi-file restrictive playthrough, killing a target boss on each file
   1. kill Mothula on file 1
-    - LW only: top Y row may only be used for Y items(?)
+    - LW only: may only use row 1 Y items
     - can only collect row 1 and 2 Y items
     - no A items besides flippers
   2. kill Kholdstare on file 2
     - no row 1 Y items (except bombs)
     - may only collect row 2 and 3 Y items + bombs
     - must use only A items on boss fights (may use Y for Kholdstare's ice)
-  3. kill Vitreous on file 3 (at least 1 little eye must be alive?)
+  3. kill Vitreous on file 3 (at least 1 little eye must be alive)
     - can only collect row 4 Y items + ether + bombs
     - must use only row 4 Y items on boss fights (and sword)
     - can't lift anything (pots, rocks, grass) (except portal rocks)
@@ -311,7 +311,7 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
 - boss restrictions:
   - LW: no boom, sword1, bow
   - no sword2 or sword3 vs Vitreous, Arrghus, Trinexx
-- no sword2, bottles, Aga 1 until full clear(?) an MST dungeon
+- no sword2, bottles, Aga 1 until full clear an MST dungeon
 - any item used against a boss may not be used against another boss
 - may only open 1 chest in Hyrule Castle
 - may not spend rupees until boots
@@ -321,13 +321,13 @@ Expanding the definition of Exploration Glitch to include glitches with similar 
 
 ### #20 x10power
 ![prompt](<prompts/20 - x10power.jpeg>)
-- no JP 1.0 Glitches (EG?)
+- no JP 1.0 Glitches
 - goals:
   - boss dash challenge, defeat bosses with only dash
     - Lanmo: 4 hearts max, no filled bottles
     - Arrghus: 7 hearts max, 1 filled bottle max, hookshot allowed
     - Blind: 8 hearts max, 1 filled bottle max
-    - Kholdstare: 10 hearts max, 1 filled bottle max (fire allowed?)
+    - Kholdstare: 10 hearts max, 1 filled bottle max, bombos or fire rod allowed
   - must DMD to DW
   - finish with 3 heart pieces, sword3, byrna, cape, blue tunic, boom2
   - finish with 500+ rupees
