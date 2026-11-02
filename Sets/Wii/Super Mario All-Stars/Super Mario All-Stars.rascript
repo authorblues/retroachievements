@@ -268,10 +268,8 @@ function checkpoint_type(r) => byte(r.offset() + 0x462493)
 function lives(r) => byte(r.offset() + 0x462496)
 
 // $4624A4: (NTSC) (SMB2) Mushroom #1 Collected [8 bit] (0/1)
-function mushroom_1_collected(r) => byte(r.offset() + 0x4624A4)
-
 // $4624A5: (NTSC) (SMB2) Mushroom #2 Collected [8 bit] (0/1)
-function mushroom_2_collected(r) => byte(r.offset() + 0x4624A5)
+function mushroom_collected(r, i) => byte(r.offset() + 0x4624A4 + i-1)
 
 // $4624A8: (NTSC) (SMB2) Stopwatch Timer [8 bit]
 //          when picking up a stopwatch, goes from 0->255
@@ -298,16 +296,10 @@ function room_type(r) => byte(r.offset() + 0x4625D0)
 function coins(r) => byte(r.offset() + 0x4625D3)
 
 // $4625D5: (NTSC) (SMB2) Completed Level Count for Mario [8 bit]
-function completed_level_count_for_mario(r) => byte(r.offset() + 0x4625D5)
-
 // $4625D6: (NTSC) (SMB2) Completed Level Count for Princess [8 bit]
-function completed_level_count_for_princess(r) => byte(r.offset() + 0x4625D6)
-
 // $4625D7: (NTSC) (SMB2) Completed Level Count for Toad [8 bit]
-function completed_level_count_for_toad(r) => byte(r.offset() + 0x4625D7)
-
 // $4625D8: (NTSC) (SMB2) Completed Level Count for Luigi [8 bit]
-function completed_level_count_for_luigi(r) => byte(r.offset() + 0x4625D8)
+function completed_level_count(r, char) => byte(r.offset() + 0x4625D5 + char)
 
 // $4625DD: (NTSC) (SMB2) World Number [8 bit]
 function world_number(r) => byte(r.offset() + 0x4625DD)
@@ -399,11 +391,16 @@ LEVELS = {
 	_level(7, 2): "7-2",
 }
 
+CHAR_MARIO = 0
+CHAR_PRINCESS = 1
+CHAR_TOAD = 2
+CHAR_LUIGI = 3
+
 CHARS = {
-	0: "Mario",
-	1: "Princess",
-	2: "Toad",
-	3: "Luigi",
+	CHAR_MARIO: "Mario",
+	CHAR_PRINCESS: "Princess",
+	CHAR_TOAD: "Toad",
+	CHAR_LUIGI: "Luigi",
 }
 
 INPUT_RIGHT = 0
@@ -415,12 +412,36 @@ INPUT_SELECT = 5
 INPUT_B = 6
 INPUT_A = 7
 
+MUSHROOM_COUNT = {
+	_level(1, 1): 2,
+	_level(1, 2): 2,
+	_level(1, 3): 2,
+	_level(2, 1): 1,
+	_level(2, 2): 2,
+	_level(2, 3): 2,
+	_level(3, 1): 2,
+	_level(3, 2): 2,
+	_level(3, 3): 2,
+	_level(4, 1): 2,
+	_level(4, 2): 2,
+	_level(4, 3): 2,
+	_level(5, 1): 2,
+	_level(5, 2): 2,
+	_level(5, 3): 2,
+	_level(6, 1): 2,
+	_level(6, 2): 1,
+	_level(6, 3): 2,
+	_level(7, 1): 2,
+	_level(7, 2): 2,
+	_level(7, 3): 0, // i promise there is a reason for this
+}
+
 // --- AUX FUNCTIONS  -------------------------------------------------------------------
 
 function in_game(r) => unless(!r.is_region()) && demo_screen(r) == 0 && game_id(r) == GAME_SMB2
 
 function use_warp(stage) => any_of(REGIONS, r => (
-	in_game(r) &&
+	in_game(r) && in_stage_check(r) == 1 &&
 	// going down pipe with warp music playing
 	player_state(r) == 0x04 && music_id(r) == 0x13 &&
 	// level changes to a later level during the transition
@@ -434,12 +455,13 @@ function pull_up(r, item) => any_of(range(0,8), i => (
 ))
 
 function boss_challenge(r, stage, checkpoint) => (
+	in_game(r) && in_stage_check(r) == 1 &&
 	// music updates while stage and checkpoint already set
 	once(
 		stage_id(r) == stage && level_checkpoint(r) == checkpoint && 
 		prev(music_id(r)) != 0x08 && music_id(r) == 0x08
 	) &&
-	// win if the boss music plays
+	// win if the boss dead music plays
 	trigger_when(prev(music_id(r)) != 0x0b && music_id(r) == 0x0b) &&
 	// reset if the player dies
 	never(alive(r) == 0) &&
@@ -457,63 +479,268 @@ function sprite_y(r, i) => sprite_y_position_high_byte(r, i) * 0x100 + sprite_y_
 function boss_killed(stage) => any_of(REGIONS, r => (
 	// might be worth adding a checkpoint check
 	in_game(r) && stage_id(r) == stage &&
-	prev(music_id(r)) == 0x08 && music_id(r) == 0x0c
+	prev(music_id(r)) == 0x08 && music_id(r) == 0x0b
 ))
 
+function win_the_game(r) => stage_id(r) == _level(7, 2) && prev(music_id(r)) == 0x0b && music_id(r) == 0x80
+
+function collect_all_mushrooms(r, w)
+{
+	mushrooms = []
+	for s in range(1,3) for m in range(0,MUSHROOM_COUNT[_level(w, s)]) if (m != 0)
+		array_push(mushrooms, stage_id(r) == _level(w, s) && is_set(mushroom_collected(r, m)))
+
+	// no reset because you might choose to save+quit to restart the world
+	return in_game(r) && measured(tally_of(mushrooms, length(mushrooms), x => once(x)))
+}
+
 // --- RICH PRESENCE -------------------------------------------------------------------
+
+for r in REGIONS
+{
+	rich_presence_conditional_display(in_game(r),
+		"[SMB2] {0} in {1} · ❤️ {2}/{3} · 🍄 {4} · 🪙 {5}",
+		rich_presence_lookup("SMB2CHAR", character(r), CHARS, fallback="???"),
+		rich_presence_lookup("SMB2LEVEL", stage_id(r), LEVELS, fallback="???"),
+		rich_presence_number(current_health(r)),
+		rich_presence_number(heart_containers(r)),
+		rich_presence_number(lives(r)),
+		rich_presence_number(coins(r))
+	)
+}
+
+rich_presence_display(
+	"Playing Super Mario All-Stars"
+)
 
 // --- ACHIEVEMENTS -------------------------------------------------------------------
 
 achievement(
-	title="__DefeatMouser1",
+	title="Bombchucker",
 	description="Defeat Mouser at the end of World 1",
 	points=5,
 	trigger=boss_killed(_level(1, 3))
 )
 
 achievement(
-	title="__DefeatTriclyde1",
+	title="Three Heads Are Better than One",
 	description="Defeat Triclyde at the end of World 2",
 	points=5,
 	trigger=boss_killed(_level(2, 3))
 )
 
 achievement(
-	title="__DefeatMouser2",
+	title="Sheriff Mouser",
 	description="Defeat Mouser at the end of World 3",
 	points=5,
 	trigger=boss_killed(_level(3, 3))
 )
 
 achievement(
-	title="__DefeatFryguy",
+	title="Firefighter",
 	description="Defeat Fryguy at the end of World 4",
 	points=5,
 	trigger=boss_killed(_level(4, 3))
 )
 
 achievement(
-	title="__DefeatClawglip",
+	title="Scatterbrain",
 	description="Defeat Clawglip at the end of World 5",
 	points=5,
 	trigger=boss_killed(_level(5, 3))
 )
 
 achievement(
-	title="__DefeatTriclyde2",
+	title="A Precarious Perch",
 	description="Defeat Triclyde at the end of World 6",
 	points=5,
 	trigger=boss_killed(_level(6, 3))
 )
 
 achievement(
-	title="__DefeatWart",
+	title="Wart and the Dream Machine",
 	description="Defeat Wart and save Subcon",
 	type="progression",
 	points=25,
+	trigger=any_of(REGIONS, r => in_game(r) && win_the_game(r))
+)
+
+achievement(
+	title="The Hero",
+	description="Complete the game using only Mario",
+	points=10,
 	trigger=any_of(REGIONS, r => (
-		in_game(r) && stage_id(r) == _level(7, 2) &&
-		prev(music_id(r)) == 0x0b && music_id(r) == 0x80
+		in_game(r) && trigger_when(win_the_game(r)) &&
+		completed_level_count(r, CHAR_MARIO) > 0 &&
+		completed_level_count(r, CHAR_LUIGI) == 0 &&
+		completed_level_count(r, CHAR_PRINCESS) == 0 &&
+		completed_level_count(r, CHAR_TOAD) == 0
+	))
+)
+
+achievement(
+	title="The Sidekick",
+	description="Complete the game using only Luigi",
+	points=10,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && trigger_when(win_the_game(r)) &&
+		completed_level_count(r, CHAR_MARIO) == 0 &&
+		completed_level_count(r, CHAR_LUIGI) > 0 &&
+		completed_level_count(r, CHAR_PRINCESS) == 0 &&
+		completed_level_count(r, CHAR_TOAD) == 0
+	))
+)
+
+achievement(
+	title="The Sovereign",
+	description="Complete the game using only Princess",
+	points=10,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && trigger_when(win_the_game(r)) &&
+		completed_level_count(r, CHAR_MARIO) == 0 &&
+		completed_level_count(r, CHAR_LUIGI) == 0 &&
+		completed_level_count(r, CHAR_PRINCESS) > 0 &&
+		completed_level_count(r, CHAR_TOAD) == 0
+	))
+)
+
+achievement(
+	title="The Retainer",
+	description="Complete the game using only Toad",
+	points=10,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && trigger_when(win_the_game(r)) &&
+		completed_level_count(r, CHAR_MARIO) == 0 &&
+		completed_level_count(r, CHAR_LUIGI) == 0 &&
+		completed_level_count(r, CHAR_PRINCESS) == 0 &&
+		completed_level_count(r, CHAR_TOAD) > 0
+	))
+)
+
+achievement(
+	title="Mushrooms in the Plains",
+	description="In one session, collect all mushrooms in World 1",
+	points=5,
+	trigger=any_of(REGIONS, r => collect_all_mushrooms(r, 1))
+)
+
+achievement(
+	title="Mushrooms in the Desert",
+	description="In one session, collect all mushrooms in World 2",
+	points=5,
+	trigger=any_of(REGIONS, r => collect_all_mushrooms(r, 2))
+)
+
+achievement(
+	title="Mushrooms Under the Falls",
+	description="In one session, collect all mushrooms in World 3",
+	points=5,
+	trigger=any_of(REGIONS, r => collect_all_mushrooms(r, 3))
+)
+
+achievement(
+	title="Mushrooms in the Snow",
+	description="In one session, collect all mushrooms in World 4",
+	points=5,
+	trigger=any_of(REGIONS, r => collect_all_mushrooms(r, 4))
+)
+
+achievement(
+	title="Mushrooms in the Forest",
+	description="In one session, collect all mushrooms in World 5",
+	points=5,
+	trigger=any_of(REGIONS, r => collect_all_mushrooms(r, 5))
+)
+
+achievement(
+	title="Mushrooms in the Gorge",
+	description="In one session, collect all mushrooms in World 6",
+	points=5,
+	trigger=any_of(REGIONS, r => collect_all_mushrooms(r, 6))
+)
+
+achievement(
+	title="Mushrooms in the Skies",
+	description="In one session, collect all mushrooms in World 7",
+	points=3,
+	trigger=any_of(REGIONS, r => collect_all_mushrooms(r, 7))
+)
+
+achievement(
+	title="A Secret Beyond the Tower",
+	description="Take a secret warp pipe in 1-3",
+	points=3,
+	trigger=use_warp(_level(1, 3))
+)
+
+achievement(
+	title="A Secret Behind the Waterfall",
+	description="Take a secret warp pipe in 3-1",
+	points=3,
+	trigger=use_warp(_level(3, 1))
+)
+
+achievement(
+	title="A Secret Amongst the Whales",
+	description="Take a secret warp pipe in 4-2",
+	points=3,
+	trigger=use_warp(_level(4, 2))
+)
+
+achievement(
+	title="A Secret in the Forest",
+	description="Take a secret warp pipe in 5-3",
+	points=3,
+	trigger=use_warp(_level(5, 3))
+)
+
+achievement(
+	title="An Idyllic Life in the Plains",
+	description="Find a hidden 1-Up mushroom in 1-1",
+	points=2,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && in_stage_check(r) == 1 &&
+		stage_id(r) == _level(1, 1) && is_set(collected_1up(r))
+	))
+)
+
+achievement(
+	title="Life with the Ninji Clan",
+	description="Find a hidden 1-Up mushroom in 1-2",
+	points=2,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && in_stage_check(r) == 1 &&
+		stage_id(r) == _level(1, 2) && is_set(collected_1up(r))
+	))
+)
+
+achievement(
+	title="Cave Dwelling with the Hunter-Gatherers",
+	description="Find a hidden 1-Up mushroom in 2-2",
+	points=2,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && in_stage_check(r) == 1 &&
+		stage_id(r) == _level(2, 2) && is_set(collected_1up(r))
+	))
+)
+
+achievement(
+	title="A Picturesque Waterfall Come to Life",
+	description="Find a hidden 1-Up mushroom in 5-1",
+	points=2,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && in_stage_check(r) == 1 &&
+		stage_id(r) == _level(5, 1) && is_set(collected_1up(r))
+	))
+)
+
+achievement(
+	title="Pottery Storage in the Desert",
+	description="Find a hidden 1-Up mushroom in 6-1",
+	points=2,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && in_stage_check(r) == 1 &&
+		stage_id(r) == _level(6, 1) && is_set(collected_1up(r))
 	))
 )
 
@@ -564,21 +791,39 @@ achievement(
 	description="Match three symbols in the Bonus Chance game",
 	points=5,
 	trigger=any_of(REGIONS, r => (
-		in_game(r) && 
+		in_game(r) && in_stage_check(r) == 0 &&
 		slot_1_status(r) == 0 &&
 		slot_2_status(r) == 0 &&
-		slot_3_status(r) == 0 && prev(slot_3_status(r)) == 2 &&
+		slot_3_status(r) == 0 && prev(slot_3_status(r)) == 1 &&
 		slot_1_result(r) == slot_2_result(r) &&
 		slot_1_result(r) == slot_3_result(r)
 	))
 )
 
 achievement(
-	title="__Triclyde1OneThrow",
+	title="Starstruck",
+	description="Defeat any Birdo with star power active",
+	points=5,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && in_stage_check(r) == 1 &&
+		// star is active
+		star_invincibility_timer(r) > 0 &&
+		// for all sprite slots
+		any_of(range(0,8), i => (
+			// sprite is birdo
+			sprite_id(r, i) == 0x1c &&
+			// sprite is falling from screen (state 2)
+			prev(sprite_state(r, i)) == 1 && sprite_state(r, i) == 2
+		))
+	))
+)
+
+achievement(
+	title="Shooting from Half Court",
 	description="Defeat Triclyde in 2-3 in one throw",
 	points=5,
 	trigger=any_of(REGIONS, r => (
-		in_game(r) && boss_challenge(r, _level(2, 3), 6) &&
+		boss_challenge(r, _level(2, 3), checkpoint=6) &&
 		// for all sprite slots
 		never(tally_of(range(0,8), 2, i => (
 			// the object is no longer held
@@ -592,11 +837,36 @@ achievement(
 )
 
 achievement(
+	title="An Albatoss Around My Neck",
+	description="Complete the second room of 6-2 without ever riding a right-moving enemy",
+	points=10,
+	trigger=any_of(REGIONS, r => (
+		in_game(r) && in_stage_check(r) == 1 &&
+		// checkpoint at the start of the room
+		once(stage_id(r) == _level(6, 2) && room_id(r) == 1 && player_x(r) < 0x50) &&
+		// for all sprite slots
+		all_of(range(0,8), i => never(
+			// sprite is moving right
+			sprite_x_speed(r, i) < 0x80 &&
+			// standing on the sprite
+			sprite_stood_on(r, i) == 1 &&
+			// sprite is in its main state
+			sprite_state(r, i) == 1
+		)) &&
+		// reset if the player dies or leaves the level/room
+		never(alive(r) == 0) && never(stage_id(r) != _level(6, 2)) && never(room_id(r) != 1) &&
+		// trigger on the other side of the gap
+		trigger_when(player_x(r) > 0x0940)
+	))
+)
+
+achievement(
 	title="Waste Not, Want Not",
 	description="Defeat Triclyde in 6-3 without losing any mushroom blocks down the pit",
 	points=5,
 	trigger=any_of(REGIONS, r => (
-		in_game(r) && boss_challenge(r, _level(6, 3), 6) &&
+		boss_challenge(r, _level(6, 3), checkpoint=6) &&
+		// for all sprite slots
 		all_of(range(0,8), i => never(
 			// reset if the sprite is a mushroom block, low enough on screen, and it must exist
 			sprite_id(r, i) == 0x39 && sprite_y(r, i) > 0x00c4 && sprite_state(r, i) != 0

@@ -9,15 +9,14 @@ https://www.smwcentral.net/?p=memorymap&game=smas&u=0&address=&sizeOperation=%3D
   - [ ] All 7s gives 10 lives? (maybe leaderboard 777)
 - [x] Complete each world
 - [x] Find the three warps (1-3, 3-1, 4-2, 5-3)
-- [x] Max health
 - [x] Collect all mushrooms in each world
-- [ ] Warpless each character
+- [x] Solo each character
 - [x] 1-ups?
   
 - [x] Kill any Birdo with star power
-- [ ] Complete the second room of 6-2 without ever riding a right-moving enemy
-  - ("An Albatoss Around My Neck") ("Determined to Go Forward")
-- [ ] Defeat Triclyde 1 in one throw
-- [ ] Defeat Triclyde 2 without any mushroom blocks falling down the hole
+- [x] Complete the second room of 6-2 without ever riding a right-moving enemy
+  - ("An Albatoss Around My Neck")
+- [x] Defeat Triclyde 1 in one throw
+- [x] Defeat Triclyde 2 without any mushroom blocks falling down the hole
 - [ ] Defeat Wart without ever standing at a lower level than Wart (y > 0x0090)
   - ("Don't Stoop to His Level") ("The Floor Is Lava")
