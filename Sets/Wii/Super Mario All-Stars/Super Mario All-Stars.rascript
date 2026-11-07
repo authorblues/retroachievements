@@ -571,7 +571,8 @@ achievement(
 	points=10,
 	trigger=any_of(REGIONS, r => (
 		in_game(r) && trigger_when(win_the_game(r)) &&
-		completed_level_count(r, CHAR_MARIO) > 0 &&
+		character(r) == CHAR_MARIO &&
+		trigger_when(completed_level_count(r, CHAR_MARIO) > 0) &&
 		completed_level_count(r, CHAR_LUIGI) == 0 &&
 		completed_level_count(r, CHAR_PRINCESS) == 0 &&
 		completed_level_count(r, CHAR_TOAD) == 0
@@ -584,8 +585,9 @@ achievement(
 	points=10,
 	trigger=any_of(REGIONS, r => (
 		in_game(r) && trigger_when(win_the_game(r)) &&
+		character(r) == CHAR_LUIGI &&
 		completed_level_count(r, CHAR_MARIO) == 0 &&
-		completed_level_count(r, CHAR_LUIGI) > 0 &&
+		trigger_when(completed_level_count(r, CHAR_LUIGI) > 0) &&
 		completed_level_count(r, CHAR_PRINCESS) == 0 &&
 		completed_level_count(r, CHAR_TOAD) == 0
 	))
@@ -597,9 +599,10 @@ achievement(
 	points=10,
 	trigger=any_of(REGIONS, r => (
 		in_game(r) && trigger_when(win_the_game(r)) &&
+		character(r) == CHAR_PRINCESS &&
 		completed_level_count(r, CHAR_MARIO) == 0 &&
 		completed_level_count(r, CHAR_LUIGI) == 0 &&
-		completed_level_count(r, CHAR_PRINCESS) > 0 &&
+		trigger_when(completed_level_count(r, CHAR_PRINCESS) > 0) &&
 		completed_level_count(r, CHAR_TOAD) == 0
 	))
 )
@@ -610,10 +613,11 @@ achievement(
 	points=10,
 	trigger=any_of(REGIONS, r => (
 		in_game(r) && trigger_when(win_the_game(r)) &&
+		character(r) == CHAR_TOAD &&
 		completed_level_count(r, CHAR_MARIO) == 0 &&
 		completed_level_count(r, CHAR_LUIGI) == 0 &&
 		completed_level_count(r, CHAR_PRINCESS) == 0 &&
-		completed_level_count(r, CHAR_TOAD) > 0
+		trigger_when(completed_level_count(r, CHAR_TOAD) > 0)
 	))
 )
 
@@ -792,9 +796,12 @@ achievement(
 	points=5,
 	trigger=any_of(REGIONS, r => (
 		in_game(r) && in_stage_check(r) == 0 &&
+		// slots 1 and 2 already stopped
 		slot_1_status(r) == 0 &&
 		slot_2_status(r) == 0 &&
+		// slot 3 is stopping
 		slot_3_status(r) == 0 && prev(slot_3_status(r)) == 1 &&
+		// and results all match
 		slot_1_result(r) == slot_2_result(r) &&
 		slot_1_result(r) == slot_3_result(r)
 	))
