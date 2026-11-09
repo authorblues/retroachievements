@@ -9,7 +9,7 @@ function plural(x) => rich_presence_lookup("_Pl", x, {1: ""}, fallback="s")
 function if_else(p, t, f) { if (p) { return t } else return f }
 
 function score_wrap(score, max, n=20, reset=always_false()) => (
-	max_of(array_map(range(0,n), i => measured(max*i+score, when=if_else(i == 0, always_true(), tally(i, score < prev(score)) && never(reset)))))
+	max_of(array_map(range(0,n), i => measured(max*i+score, when=if_else(i == 0, always_true(), tally(i, score < 4000000 && prev(score) > 6000000) && never(reset)))))
 )
 
 function commas(x)
@@ -377,7 +377,7 @@ leaderboard(
 	cancel=game_state() < STATE_PLAYING, // might be worth scrapping this and just having all non-playing states submit
 	submit=game_state() == STATE_GAMEOVER,
 
-	value=score_wrap(p1_score(), 10000000, n=20),
+	value=score_wrap(p1_score(), 10000000, n=20, reset=game_state() == STATE_TITLE),
 	format="SCORE",
 	lower_is_better=false
 )

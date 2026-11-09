@@ -183,9 +183,6 @@ function start_any_level() => (
 )
 function level_start(x) => level() == x && start_any_level()
 
-function complete_any_level() => ball_state() == 1 && is_set(_level_complete())
-function level_complete(x) => level() == x && complete_any_level()
-
 function total_centiseconds() => 2 * (
 	time_min() * 60 * 50 +
 	time_sec_tens() * 10 * 50 +
@@ -195,8 +192,11 @@ function total_centiseconds() => 2 * (
 
 // this is zeroed out between stages, so we can use it for an in-level check, I think...
 function blank_time() => time_min() == 0 && time_sec_tens() == 0 && time_sec_ones() == 0 && time_f() == 0
-function in_stage() => !blank_time()
+function in_stage() => __ornext(!blank_time())
 function on_title_screen() => map_size() == 768 && dword(addr_offset() + 0x00008c) == 0x49544e41
+
+function complete_any_level() => ball_state() == 1 && _level_complete() == 1 && prev(_level_complete()) == 0 && __ornext(!blank_time())
+function level_complete(x) => level() == x && complete_any_level()
 
 function all_enemies_destroyed(n=MAX_ENEMIES) => all_of(range(0,n-1), i => enemy_health(i) == 0)
 function toggle_doors_closed(n=MAX_DOORS) => all_of(range(0,n-1), i => toggle_door_state(i) == 0)
