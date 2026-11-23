@@ -312,6 +312,10 @@ achievement(
 
 for event in ALL_EVENTS
 {
+	v = best_try_score()
+	// weight lifting has a 0xF2 in the upper byte for "kg", so ignore it
+	if (event == EVENT_WEIGHTS) v = bcd(word(0x0090))
+
 	leaderboard(
 		title=format("{0} World Record", EVENT_NAMES[event]),
 		description=format("Highest single attempt on {0}", EVENT_NAMES[event]),
@@ -319,8 +323,8 @@ for event in ALL_EVENTS
 		start=(
 			// in the correct event
 			in_game() && event_type() == event && 
-			// best try score is not defaulted
-			_best_try_score_raw() != 0xFFFFFF &&
+			// best try score is not defaulted or zero
+			_best_try_score_raw() != 0xFFFFFF && v != 0 &&
 			// the best try score just changed
 			best_try_score() != prev(best_try_score()) &&
 			// did the best try score improve?
@@ -334,7 +338,7 @@ for event in ALL_EVENTS
 		cancel=always_false(),
 		submit=always_true(),
 
-		value=measured(best_try_score()),
+		value=measured(v),
 		format="VALUE",
 		lower_is_better=false
 	)
