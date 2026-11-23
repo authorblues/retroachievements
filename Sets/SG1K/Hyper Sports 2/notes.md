@@ -1,0 +1,9 @@
+- [ ] Complete 1 loop
+- [ ] Complete 3 loops
+- [ ] Improve the Skeet Shooting world record
+- [ ] Improve the Archery world record
+- [ ] Improve the Weight Lifting world record
+- [ ] Earn 9000+ points in a single attempt of Skeet Shooting
+- [ ] Get a bullseye in Archery
+- [ ] Shoot an apple in the Archery bonus round
+- [ ] Earn flowers in Weight Lifting?
