@@ -888,6 +888,10 @@ function __prg_b1(p, line) => byte(0x6060 + 0x20*p + line*2 + 1)
 
 // --- MAIN DATA -------------------------------------------------------------------
 
+function on_title() => current_music() == MUSIC_TITLE // && current_irq_pointer() == 0xF794
+function on_epilogue() => current_music() == MUSIC_EPILOGUE
+function in_game() => game_time_nonzero() && !on_title() && !on_epilogue()
+
 MAX_MAP_PROGRESS = 243
 
 MUSIC_NONE = 0x00
@@ -1061,8 +1065,8 @@ class BossData
 	maxhealth = 999
 	programs = []
 
-	function flip_circuit() => room_id() == this.room && boss_state() >= 7 && is_set(circuit(this.circuit))
-	function start_fight() => room_id() == this.room && device_type(0) == 0x04 && prev(device_anim(0)) == 11 && device_anim(0) == 10
+	function flip_circuit() => in_game() && room_id() == this.room && boss_state() >= 7 && is_set(circuit(this.circuit))
+	function start_fight() => in_game() && room_id() == this.room && device_type(0) == 0x04 && prev(device_anim(0)) == 11 && device_anim(0) == 10
 	function challenge() => once(this.start_fight()) &&	trigger_when(prev(boss_state()) == 1) && trigger_when(boss_state() == 2) &&	never(room_id() != this.room)
 	function perfect() => this.challenge() && never(harm_timer() > 0) && all_of(ALL_MACHINES, i => never(machine_status(i) == MACHINE_ERROR))
 }
@@ -1188,10 +1192,6 @@ function completion_percent() => (
 	notes_count() + chip_count()
 )
 
-function on_title() => current_music() == MUSIC_TITLE // && current_irq_pointer() == 0xF794
-function on_epilogue() => current_music() == MUSIC_EPILOGUE
-function in_game() => game_time_nonzero() && !on_title() && !on_epilogue()
-
 function viewing_map() => (
 	chr04bank_u8() == 0x1f &&
 	audio_enabled() == 1 &&
@@ -1202,14 +1202,14 @@ function viewing_map() => (
 function epilogue_show_percent() => on_epilogue() && prev(epilogue_screen()) == 19 && epilogue_screen() == 20
 
 function program_contains_opcode(p, opcode) => __ornext(any_of(range(0,15), line => prg_op(p, line) == opcode))
-function program_maxlength(p, len) => len >= 12 || prg_op(p, len) == OPCODE_EMPTY
+function program_maxlength(p, len) => len >= 16 || prg_op(p, len) == OPCODE_EMPTY
 
 // helper method to determine that a program is running without error
 function machine_is_looping(i) => (
 	// machine is either Running, Working, or Waiting; not Syncing
 	machine_status(i) < 4 && machine_status(i) != 2 &&
 	// the wait time has run out
-	prev(machine_wait_cycles(i)) == 1 && machine_wait_cycles(i) == 0 &&
+	machine_wait_cycles(i) == 0 &&
 	// the program counter has either stayed put or moved backwards
 	machine_pc(i) <= prev(machine_pc(i))
 )
@@ -1508,8 +1508,7 @@ achievement(
 	type="missable",
 	points=10,
 	trigger=(
-		// checkpoint on the start of the fight
-		once(bossSaltwyrm.start_fight()) &&
+		bossSaltwyrm.challenge() &&
 		// challenge indicator will appear if the length of the programs satisfy the challenge
 		any_of(range(0,18), i => program_maxlength(PROG_BossMineTrolley, i) && program_maxlength(PROG_BossMineCrane, 18-i)) &&
 		// reset if we leave the room
@@ -1542,7 +1541,7 @@ achievement(
 	points=5,
 	trigger=(
 		prev(boss_city_walldmg()) == 4 &&
-		measured(boss_city_walldmg() == 5, when=room_id() == bossBombshell.room)
+		measured(boss_city_walldmg() == 5, when=in_game() && room_id() == bossBombshell.room)
 	)
 )
 
@@ -1588,49 +1587,49 @@ achievement(
 	title="Decision Time",
 	description="Collect the IF opcode",
 	points=2,
-	trigger=room_id() == 0x3c && is_set(chip_if())
+	trigger=in_game() && room_id() == 0x3c && is_set(chip_if())
 )
 
 achievement(
 	title="Getting Loopy",
 	description="Collect the TIL opcode",
 	points=3,
-	trigger=room_id() == 0x3c && is_set(chip_til())
+	trigger=in_game() && room_id() == 0x83 && is_set(chip_til())
 )
 
 achievement(
 	title="A Reasonable Facsimile",
 	description="Collect the COPY opcode",
 	points=3,
-	trigger=room_id() == 0x44 && is_set(chip_copy())
+	trigger=in_game() && room_id() == 0x44 && is_set(chip_copy())
 )
 
 achievement(
 	title="It Was My Understanding That There Would Be No Math",
 	description="Collect the ADD/SUB opcode",
 	points=3,
-	trigger=room_id() == 0x69 && is_set(chip_addsub())
+	trigger=in_game() && room_id() == 0x69 && is_set(chip_addsub())
 )
 
 achievement(
 	title="GOTO Considered Harmful",
 	description="Collect the GOTO opcode",
 	points=3,
-	trigger=room_id() == 0x23 && is_set(chip_goto())
+	trigger=in_game() && room_id() == 0x23 && is_set(chip_goto())
 )
 
 achievement(
 	title="Segmentation Fault",
 	description="Collect the SKIP opcode",
 	points=3,
-	trigger=room_id() == 0x2d && is_set(chip_skip())
+	trigger=in_game() && room_id() == 0x2d && is_set(chip_skip())
 )
 
 achievement(
 	title="Synchronicity",
 	description="Collect the SYNC opcode",
 	points=3,
-	trigger=room_id() == 0x5e && is_set(chip_sync())
+	trigger=in_game() && room_id() == 0x5e && is_set(chip_sync())
 )
 
 achievement(
@@ -1649,7 +1648,7 @@ achievement(
 	description="Find and deliver a flower to the florist in Mermaid Vale",
 	points=3,
 	trigger=(
-		room_id() == 0x51 &&
+		in_game() && room_id() == 0x51 &&
 		flower_count() > prev(flower_count())
 	)
 )
@@ -1659,7 +1658,7 @@ achievement(
 	description="Retrieve all flowers and earn a reward",
 	points=25,
 	trigger=(
-		room_id() == 0x49 &&
+		in_game() && room_id() == 0x49 &&
 		measured(flower_count() == 12) &&
 		is_set(chip_beep())
 	)
@@ -1713,8 +1712,9 @@ achievement(
 	description="Build a complete band in the music room in the Mermaid Vale incorporating all instruments fully",
 	points=2,
 	trigger=(
+		in_game() && room_id() == 0x53 && 
 		// confirm that we have opened a console at least once in this room
-		room_id() == 0x53 && once(prev(console_machine_index()) != 0xFF) &&
+		once(prev(console_machine_index()) != 0xFF) &&
 		// all machines/instruments contain an ACT
 		program_contains_opcode(PROG_MermaidHut6Organ, OPCODE_ACT) &&
 		program_contains_opcode(PROG_MermaidHut6Trombone, OPCODE_ACT) &&
@@ -1738,7 +1738,7 @@ achievement(
 	points=1,
 	trigger=(
 		// correct room
-		room_id() == 0x6f &&
+		in_game() && room_id() == 0x6f &&
 		// five times the ducks have been fed
 		tally_of(range(0,2), 5, i => (
 			// actor is a duck
